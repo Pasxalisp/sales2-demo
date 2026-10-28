@@ -17,6 +17,28 @@ body.home #home {
   background: var(--card);
   font-size: 26px;
 }
+/* υπενθύμιση αντιγράφου ασφαλείας: μία διακριτική γραμμή (home.js, setBak) */
+#home .hbk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--hbd);
+  border-radius: 14px;
+  background: var(--hc1);
+  color: var(--hdate);
+  font-size: 14px;
+}
+#home .hbk button {
+  flex: none;
+  display: inline-block;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  color: var(--hic);
+}
 /* πρόταση ένωσης προσωρινού (πέρασε στο orders): κανονικά κουμπιά, όχι σαν πλακίδια */
 #home #hmatch button {
   flex: none;

@@ -37,13 +37,12 @@
     { name: 'add_note', description: "Γράφει μια νέα καταχώρηση στην καρτέλα του πελάτη. discussed = Τι συζητήσαμε, products = Προϊόντα (λίστα), todo = Να πω την επόμενη φορά, next = Εκκρεμότητα ημερομηνία (YYYY-MM-DD ή κενό), next_time = ώρα εκκρεμότητας (HH:MM ή κενό), works = Δουλεύει ήδη (προστίθενται σε όσα υπάρχουν). Γράψε μόνο ό,τι ειπώθηκε.",
       inputSchema: { type: 'object', properties: { customer_id: str, discussed: str, products: { type: 'array', items: str }, todo: str, next: str, next_time: str, works: { type: 'array', items: str } }, required: ['customer_id'] },
       execute: async (x) => {
-        const c = cust(x.customer_id), cur = S.get('notes', c.i) || {};
-        const works = [...new Set((cur.works || []).concat(list(x.works).map(okProduct)))];
+        const c = cust(x.customer_id), worksBefore = M.works(c.i).length;
         const nx = isDate(x.next) ? String(x.next) : '';
         const e = { d: u.today(), products: list(x.products).map(okProduct).join(', '), text: String(x.discussed || '').trim(), todo: String(x.todo || '').trim(), next: nx };
         if (nx && isTime(x.next_time)) e.nt = String(x.next_time).padStart(5, '0');
-        await put('notes', c.i, { code: c.code, name: c.name, works, entries: [e].concat(cur.entries || []) });
-        const what = []; if (e.text) what.push('Τι συζητήσαμε'); if (e.products) what.push('Προϊόντα'); if (e.todo) what.push('Να πω'); if (e.next) what.push('Εκκρεμότητα ' + e.next + (e.nt ? ' ' + e.nt : '')); if (works.length > (cur.works || []).length) what.push('Δουλεύει ήδη');
+        await PL.notes.add(c.i, e, list(x.works).map(okProduct));
+        const what = []; if (e.text) what.push('Τι συζητήσαμε'); if (e.products) what.push('Προϊόντα'); if (e.todo) what.push('Να πω'); if (e.next) what.push('Εκκρεμότητα ' + e.next + (e.nt ? ' ' + e.nt : '')); if (M.works(c.i).length > worksBefore) what.push('Δουλεύει ήδη');
         act('✍️ ' + c.name + ': ' + (what.join(', ') || 'σημείωση')); return 'ok'; } },
 
     { name: 'add_to_seminar', description: "Βάζει πελάτη σε σεμινάριο της Ακαδημίας. Αν το σεμινάριο δεν υπάρχει, το δημιουργεί με αυτόν τον τίτλο. Χρησιμοποίησέ το όταν ο πωλητής λέει ότι ένας πελάτης ενδιαφέρεται/θα έρθει σε σεμινάριο. title = ο τίτλος (χρησιμοποίησε ακριβώς τον υπάρχοντα αν ταιριάζει), customer_id, date = YYYY-MM-DD αν ειπώθηκε.",
@@ -68,11 +67,10 @@
       execute: async ({ customer_id }) => {
         const c = cust(customer_id), tk = Object.entries(S.all('tasks')).filter(([, x]) => x && !x.done && x.cid === c.i);
         for (const [id, x] of tk) await put('tasks', id, Object.assign({}, x, { done: true, doneD: u.today() }));
-        const es = M.entries(c.i).slice(), ks = es.map((e, k) => (e && e.next && !e.done ? k : -1)).filter((k) => k >= 0);
-        if (!ks.length) { if (tk.length) { act('✓ Εκκρεμότητα έκλεισε: ' + c.name); return 'Έκλεισαν ' + tk.length; } return 'Δεν έχει ανοιχτές εκκρεμότητες.'; }
-        ks.forEach((k) => { es[k] = Object.assign({}, es[k], { done: true, doneD: u.today() }); });
-        const cur = S.get('notes', c.i) || {}; await put('notes', c.i, Object.assign({}, cur, { code: cur.code || c.code, name: cur.name || c.name, works: cur.works || [], entries: es }));
-        act('✓ Εκκρεμότητα έκλεισε: ' + c.name); return 'Έκλεισαν ' + ks.length; } },
+        const open = M.entries(c.i).filter((e) => e && e.next && !e.done);
+        if (!open.length) { if (tk.length) { act('✓ Εκκρεμότητα έκλεισε: ' + c.name); return 'Έκλεισαν ' + tk.length; } return 'Δεν έχει ανοιχτές εκκρεμότητες.'; }
+        await PL.notes.mark(c.i, open, { done: true, doneD: u.today() });
+        act('✓ Εκκρεμότητα έκλεισε: ' + c.name); return 'Έκλεισαν ' + open.length; } },
 
     { name: 'set_sos', description: "Βάζει αστέρι SOS στον πελάτη για το επόμενο πρόγραμμα. Χρησιμοποίησέ το όταν ο πωλητής λέει «βάλε SOS».",
       inputSchema: { type: 'object', properties: { customer_id: str }, required: ['customer_id'] },

@@ -77,5 +77,22 @@
       }
       return out;
     },
+
+    /* Πλήρες αντίγραφο ασφαλείας σε αρχείο. Η ημερομηνία του φυλάγεται στη βάση (settings/backup) μόνο αν η λήψη έγινε,
+       ώστε η Αρχική να θυμίζει όταν περάσουν BACKUP_DAYS μέρες. */
+    BACKUP_DAYS: 7,
+    async backup() {
+      const all = await PL.dataio.exportAll();
+      await PL.adapter.files.save('pelatologio-' + all._meta.date + '.json', JSON.stringify(all));
+      const doc = { d: all._meta.date };
+      PL.store.put('settings', 'backup', doc);
+      try { await PL.adapter.db.set('settings/backup', doc); } catch (e) { /* το αρχείο κατέβηκε· η ημερομηνία ξαναγράφεται την επόμενη φορά */ }
+      return all._meta.date;
+    },
+    /* Μέρες από το τελευταίο αντίγραφο (null = ποτέ). */
+    backupAge() {
+      const b = PL.store.get('settings', 'backup'); if (!b || !b.d) return null;
+      return Math.max(0, Math.round((Date.parse(PL.u.today()) - Date.parse(b.d)) / 864e5));
+    },
   };
 })();

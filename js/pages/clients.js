@@ -114,7 +114,7 @@
           try { await PL.adapter.files.save('pelatologio.csv', csv); } catch (x) { D.toast('Η λήψη δουλεύει μόνο μέσα στο claude.ai'); }
         }
         else if (t.id === 'bak') {
-          try { const all = await PL.dataio.exportAll(); await PL.adapter.files.save('pelatologio-' + all._meta.date + '.json', JSON.stringify(all)); } catch (x) { D.toast('Η λήψη δουλεύει μόνο μέσα στο claude.ai'); }
+          try { await PL.dataio.backup(); D.toast('💾 Το αντίγραφο κατέβηκε'); } catch (x) { D.toast('Δεν έγινε η λήψη (' + ((x && x.code) || 'σφάλμα') + ')'); }
         }
       });
       return () => { offs.forEach((f) => f()); cancelAnimationFrame(raf); };

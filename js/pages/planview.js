@@ -330,7 +330,7 @@
             try {
               const id = await E.newProspect({ name, city: canon($('#pnc').value || ''), addr: $('#pna').value.trim(), phone: $('#pnp').value.trim() }), c = M.byId(id);
               prg(45, 'Αποθηκεύω τη σημείωση…'); const note = $('#pnt').value.trim();
-              if (note) { const nd = { code: 'ΝΕΟΣ', name, works: [], entries: [{ d: u.today(), products: '', text: note, todo: '', next: '' }] }; try { await db().set('notes/' + id, nd); S.put('notes', id, nd); } catch (e) { /* τίποτα */ } }
+              if (note) { try { await PL.notes.update(id, (d) => { d.code = d.code || 'ΝΕΟΣ'; d.entries.unshift({ d: u.today(), products: '', text: note, todo: '', next: '' }); }); } catch (e) { /* τίποτα */ } }
               const stp = { id, why: 'Νέο κομμωτήριο' + (note ? ': ' + note : ''), say: [], done: false, added: true }, ht = $('#pnh').value; if (ht) { stp.appt = ht; stp.apptD = cur.created || u.today(); }
               E.insertStop(cur, stp); void c;
               prg(75, 'Ενημερώνω το πρόγραμμα…'); await savePlan(); await E.setManual(id); prg(100, 'Έτοιμο'); await new Promise((r) => setTimeout(r, 350));

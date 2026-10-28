@@ -33,9 +33,7 @@
       const np = await E.doneStop(k, k2); if (np) D.celebrate(Object.assign({ id: k }, np));
     } else if (id === 'P') { const n = Object.assign({}, S.get('balnotes', k), { pdone: (S.get('balnotes', k) || {}).pay }); await db().set('balnotes/' + k, n); S.put('balnotes', k, n); }
     else if (id === 'T') { const n = Object.assign({}, S.get('tasks', k), { done: true, doneD: t }); await db().set('tasks/' + k, n); S.put('tasks', k, n); }
-    else { const cur = S.get('notes', id) || {}, es = (cur.entries || []).slice(), c = M.byId(id); if (!es[+k]) return;
-      es[+k] = Object.assign({}, es[+k], { done: true, doneD: t });
-      const doc = Object.assign({ code: (c || {}).code || '', name: (c || {}).name || '', works: [] }, cur, { entries: es }); await db().set('notes/' + id, doc); S.put('notes', id, doc); }
+    else { const e = M.entries(id)[+k]; if (e) await PL.notes.mark(id, [e], { done: true, doneD: t }); }
   }
 
   PL.register('tasks', {

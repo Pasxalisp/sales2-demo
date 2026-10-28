@@ -84,10 +84,12 @@
     if (!c || c.prospect) throw new Error('Διάλεξε κανονικό πελάτη.');
     const W = [];
     /* σημειώσεις: όλες οι καταχωρήσεις μαζί, η πιο πρόσφατη πρώτη· «Δουλεύει ήδη» ενωμένο */
-    const na = S.get('notes', pid), nb = S.get('notes', cid) || {};
+    const na = S.get('notes', pid);
     if (na) {
-      const entries = (na.entries || []).concat(nb.entries || []).sort((x, y) => (x.d < y.d ? 1 : x.d > y.d ? -1 : 0));
-      W.push(put('notes', cid, Object.assign({}, nb, { code: c.code || nb.code || '', name: c.name, works: [...new Set((nb.works || []).concat(na.works || []))], entries })).then(() => drop('notes', pid)));
+      W.push(PL.notes.update(cid, (d) => {
+        d.code = c.code || d.code; d.name = c.name; d.works = [...new Set(d.works.concat(na.works || []))];
+        d.entries = (na.entries || []).concat(d.entries).sort((x, y) => (x.d < y.d ? 1 : x.d > y.d ? -1 : 0));
+      }).then(() => drop('notes', pid)));
     }
     /* επισκέψεις */
     const va = S.get('visits', pid);

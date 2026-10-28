@@ -131,8 +131,6 @@
       const id = params.id;
       el.innerHTML = `<div id="top"></div><div id="form">${formHtml()}</div><div id="hist"></div>`;
       const $ = (s) => el.querySelector(s);
-      const saveNotes = (patch) => { const c = M.byId(id) || {}; const cur = S.get('notes', id) || {};
-        return db().set('notes/' + id, Object.assign({ code: c.code || '', name: c.name || '', works: cur.works || [], entries: cur.entries || [] }, patch)); };
       const paintTop = () => { const c = M.byId(id); const keep = $('#pmc') && $('#pmc').value;
         $('#top').innerHTML = c ? topHtml(id, c) : '<div class="warn"><b>Δεν βρέθηκε ο πελάτης</b>Ίσως δεν έχουν φορτώσει ακόμα τα δεδομένα.</div>'; if (keep && $('#pmc')) $('#pmc').value = keep; };
       const paintHist = () => { $('#hist').innerHTML = histHtml(id); };
@@ -188,7 +186,7 @@
             try { await db().remove('notes/' + id); } catch (e) { /* δεν υπήρχε */ }
             await db().remove('prospects/' + id); closeAfter();
           }
-          else if (t.dataset.w) { const cur = M.works(id).slice(), k = cur.indexOf(t.dataset.w); k >= 0 ? cur.splice(k, 1) : cur.push(t.dataset.w); await saveNotes({ works: cur }); }
+          else if (t.dataset.w) { const w = t.dataset.w; await PL.notes.update(id, (d) => { const k = d.works.indexOf(w); k >= 0 ? d.works.splice(k, 1) : d.works.push(w); }); }
           else if (t.dataset.p) {
             const f = $('#fp'), a = f.value.split(',').map((s) => s.trim()).filter(Boolean);
             if (!a.includes(t.dataset.p)) a.push(t.dataset.p); f.value = a.join(', ');
@@ -199,13 +197,13 @@
             if (!p && !x && !o) { $('#svmsg').textContent = 'Γράψε κάτι πρώτα.'; return; }
             t.disabled = true;
             const entry = Object.assign({ d: u.today(), products: p, text: x, todo: o, next: n }, n && ntm ? { nt: ntm } : {});
-            await saveNotes({ entries: [entry].concat(M.entries(id)) });
+            await PL.notes.add(id, entry);
             ['#fp', '#ft', '#fo', '#fn', '#fnt'].forEach((s) => { $(s).value = ''; });
             $('#svmsg').textContent = 'Αποθηκεύτηκε.'; t.disabled = false;
           }
           else if (t.dataset.del !== undefined) {
             if (!await D.confirm('Να διαγραφεί αυτή η καταγραφή από το ιστορικό;')) return;
-            const a = M.entries(id).slice(); a.splice(+t.dataset.del, 1); await saveNotes({ entries: a });
+            await PL.notes.remove(id, M.entries(id)[+t.dataset.del]);
           }
         } catch (e) { const m = $('#svmsg'); if (m) m.textContent = 'Δεν αποθηκεύτηκε: ' + ((e && e.message) || e); const b = $('#sv'); if (b) b.disabled = false; }
       });

@@ -12,10 +12,12 @@
              <p class="mu">Μετράει τι υπάρχει τώρα στη βάση. Δεν αλλάζει τίποτα.</p>
              <button id="cnt">Μέτρηση</button><div id="res"></div></div>
            <div class="card" style="cursor:default;margin-bottom:10px"><b>Λήψη αντιγράφου</b>
-             <p class="mu">Όλα τα δεδομένα σε ένα αρχείο JSON.</p>
+             <p class="mu">Όλα τα δεδομένα σε ένα αρχείο JSON. <span id="blast"></span></p>
              <button id="exp">Λήψη αντιγράφου</button><p class="mu" id="emsg"></p></div>
          </div>`;
       const $ = (s) => el.querySelector(s);
+      const last = () => { const a = D().backupAge(), b = PL.store.get('settings', 'backup'); $('#blast').textContent = a == null ? 'Δεν έχει γίνει ακόμα αντίγραφο.' : 'Τελευταίο: ' + PL.u.fd(b.d) + (a ? ' (πριν ' + a + (a === 1 ? ' μέρα)' : ' μέρες)') : ' (σήμερα)'); };
+      PL.store.use('settings').then(last);
       $('#cnt').onclick = async () => {
         $('#res').textContent = 'Μετράω…';
         try {
@@ -26,7 +28,7 @@
         } catch (e) { $('#res').textContent = 'Σφάλμα: ' + ((e && e.message) || e); }
       };
       $('#exp').onclick = async () => {
-        try { const all = await D().exportAll(); await PL.adapter.files.save('pelatologio-' + all._meta.date + '.json', JSON.stringify(all)); $('#emsg').textContent = 'Έτοιμο.'; }
+        try { await D().backup(); $('#emsg').textContent = 'Έτοιμο.'; last(); }
         catch (e) { $('#emsg').textContent = 'Δεν έγινε λήψη: ' + ((e && e.message) || e); }
       };
     },
