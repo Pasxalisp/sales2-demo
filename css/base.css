@@ -580,6 +580,7 @@ main {
   pointer-events: none;
 }
 #nav .nb {
+  touch-action: manipulation;
   background: none;
   border: 0;
   padding: 4px 0;

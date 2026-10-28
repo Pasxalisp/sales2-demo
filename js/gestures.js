@@ -29,6 +29,8 @@
     document.addEventListener('touchstart', (e) => {
       const t = e.touches[0]; sx = null;
       if (e.touches.length !== 1 || t.clientX > 40 || modal() || PL.nav.depth() < 2) return;
+      /* πάτημα σε κουμπί ή πεδίο δεν είναι σύρσιμο: στο τάμπλετ η κάθετη μπάρα (Πίσω, Αρχική…) είναι μέσα στην αριστερή άκρη */
+      if (e.target.closest && e.target.closest('#nav,#nvo,button,a,input,textarea,select,label')) return;
       el = pageEl(); if (!el) return; sx = t.clientX; sy = t.clientY; mv = false;
     }, { passive: true });
     document.addEventListener('touchmove', (e) => {
@@ -38,6 +40,7 @@
     }, { passive: true });
     const end = (e) => {
       if (sx == null) return;
+      if (!mv) { sx = null; el = null; return; }   /* απλό πάτημα: καμία αλλαγή στη σελίδα, για να μη χάνεται το πάτημα */
       const dx = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : sx) - sx, x = el, go = mv && dx > 80; sx = null; el = null;
       x.style.transition = 'transform .18s'; x.style.transform = go ? 'translateX(100%)' : '';
       setTimeout(() => { x.style.transition = ''; x.style.transform = ''; x.style.boxShadow = ''; if (go) PL.nav.up(); }, go ? 170 : 190);
