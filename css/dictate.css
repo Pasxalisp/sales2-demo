@@ -1,0 +1,24 @@
+/* dictate.css — Υπαγόρευση.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.rb.on {
+  background: #d9382f;
+  border-color: #d9382f;
+  color: #fff;
+}
+.mbu {
+  background: var(--ac);
+  color: #fff;
+  margin-left: auto;
+}
+.mba {
+  font-size: 13px;
+  color: var(--mu);
+  margin: 2px 0 2px 4px;
+}
+body.dictnav #dsh [style*="position:sticky"] {
+  bottom: calc(146px + 2 * env(safe-area-inset-bottom,0px));
+}
+body.dictnav #dbk,
+body.dictnav #dbk2 {
+  display: none;
+}

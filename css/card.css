@@ -1,0 +1,46 @@
+/* card.css — «Η κάρτα μου»: QR μεγάλο, πάντα μαύρο σε λευκό (και στο σκούρο θέμα), για εύκολο σκανάρισμα.
+   Με κλειστή την «Αλλαγή στοιχείων» (.cdlock) η οθόνη δεν κυλάει και το QR μικραίνει όσο χρειάζεται για να χωράνε όλα.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.cdqr {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+  max-width: 340px;
+  margin: 6px auto 14px;
+  box-shadow: 0 2px 14px rgba(0,0,0,.12);
+}
+.cdlock .cdqr {
+  width: min(340px, 100%, calc(100dvh - 450px));
+  min-width: 200px;
+}
+html:has(.page.cdlock),
+html:has(.page.cdlock) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.page.cdlock {
+  touch-action: none;
+}
+.cdqr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cdinfo {
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.cdinfo .cdn {
+  font-size: 21px;
+  font-weight: 700;
+}
+.cdinfo .cdt {
+  color: var(--ac);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}

@@ -1,0 +1,133 @@
+/* products.css — Προϊόντα: ποιος αγόρασε, πωλήσεις ανά κατηγορία.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.wb .cts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 132px;
+  overflow: auto;
+  padding: 2px 0;
+}
+.wb .cts button {
+  margin: 0;
+  padding: 5px 10px;
+  font-size: 13px;
+  border-radius: 99px;
+}
+.wb .cts button.on {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+}
+.wb .sum {
+  margin: 12px 0 6px;
+  font-size: 14px;
+}
+.wb .it {
+  font-size: 12px;
+  color: var(--mu);
+  margin: 2px 0 8px;
+}
+.wb .wr {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 2px 10px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+.wb .wr .n {
+  font-weight: 600;
+  line-height: 1.25;
+}
+.wb .wr .c {
+  font-size: 13px;
+  color: var(--mu);
+}
+.wb .wr .q {
+  text-align: right;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.wb .wr .q b {
+  font-size: 16px;
+  color: var(--tx);
+}
+.wb .wr .d {
+  grid-column: 1/-1;
+  font-size: 12px;
+  color: var(--mu);
+}
+.wb .stop {
+  color: var(--rd);
+  font-weight: 600;
+}
+.slk {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+.slk>div {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.slk .v {
+  font-size: 20px;
+  font-weight: 700;
+}
+.slk .l {
+  font-size: 12px;
+  color: var(--mu);
+}
+.slt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.slt th {
+  font-size: 11.5px;
+  color: var(--mu);
+  font-weight: 600;
+  text-align: right;
+  padding: 4px;
+  border-bottom: 1px solid var(--bd);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+}
+.slt th:first-child,
+.slt td:first-child {
+  text-align: left;
+}
+.slt td {
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--bd);
+  text-align: right;
+  white-space: nowrap;
+}
+.slt td:first-child {
+  white-space: normal;
+}
+.slt tr.cl {
+  cursor: pointer;
+}
+.slt tr.cl:active {
+  background: var(--ac2);
+}
+.slt .sub td {
+  background: var(--ac2);
+  font-size: 13px;
+  white-space: normal;
+}
+.slsort {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}

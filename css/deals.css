@@ -1,0 +1,83 @@
+/* deals.css — Συμφωνίες.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.dlc {
+  cursor: pointer;
+}
+.dlbtns .dlsb.on {
+  background: rgba(35,135,90,.1);
+}
+.dlx {
+  opacity: .45;
+}
+/* κουτί συμφωνίας στην καρτέλα πελάτη: κλειστό (δύο γραμμές + 💬) / ανοιχτό (.open) */
+.dlk .dlkh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dlk .dlkm {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.dlk .dlbar {
+  margin: 6px 0;
+}
+.dlk .dlkc {
+  transition: transform .15s;
+}
+.dlk.open .dlkc {
+  transform: rotate(180deg);
+}
+.dlk .dlkmsg {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  border-color: #b48ce0;
+  color: #7a3fb8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dlk .dlkmsg svg {
+  width: 21px;
+  height: 21px;
+}
+.dlk .dlkd {
+  display: none;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(122,63,184,.25);
+  line-height: 1.7;
+}
+.dlk.open .dlkd {
+  display: block;
+}
+.dlk .dlkd .dlr > span:first-child {
+  white-space: nowrap;
+}
+.dlk .dlka {
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 4px;
+}
+.dlk .dlkb {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.dlk .dlka button {
+  margin: 0 0 0 6px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 12.5px;
+}
+.dlk .dlka .dlsb {
+  border-color: #23875a;
+  color: #23875a;
+}
+.dlk .dlka .dlsb.on {
+  background: rgba(35,135,90,.1);
+}

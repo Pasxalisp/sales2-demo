@@ -1,0 +1,40 @@
+/* balances.css — Υπόλοιπα.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.bnb {
+  margin: 8px 0 0;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-color: var(--ac);
+  color: var(--ac);
+}
+.bnn {
+  margin-top: 6px;
+  background: var(--ac2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+.bnn .bnm {
+  font-size: 12px;
+  color: var(--mu);
+  margin-top: 3px;
+}
+.bnn .late {
+  color: var(--rd);
+  font-weight: 600;
+}
+.bned {
+  margin-top: 8px;
+  cursor: default;
+}
+.bned label {
+  margin: 6px 0 3px;
+}
+.bned .bnr {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}

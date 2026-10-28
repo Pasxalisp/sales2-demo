@@ -1,0 +1,56 @@
+/* clients.css — Πελατολόγιο (λίστα).
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+header {
+  position: sticky;
+  top: env(safe-area-inset-top,0px);
+  background: var(--bg);
+  padding: 12px 14px 8px;
+  z-index: 5;
+  border-bottom: 1px solid var(--bd);
+}
+main>.page:has(>header:first-child) {
+  margin: -12px -14px 0;
+  padding: 0 14px;
+}
+main>.page>header:first-child {
+  margin: 0 -14px 10px;
+}
+.due {
+  color: var(--rd);
+  font-weight: 600;
+  font-size: 13px;
+}
+#cp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  max-height: 45vh;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  z-index: 20;
+  display: none;
+  margin-top: 4px;
+}
+#hm {
+  white-space: nowrap;
+  font-size: 19px;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hmb {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.hmb .chip {
+  padding: 5px 11px;
+  border-color: var(--ac);
+  color: var(--ac);
+  font-weight: 600;
+  white-space: nowrap;
+}

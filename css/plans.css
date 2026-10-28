@@ -1,0 +1,390 @@
+/* plans.css — Προγράμματα: μήνα, ημέρας, ανοιχτό πρόγραμμα, εκτός προγράμματος, τα προγράμματά μου.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.pcard {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+  color: var(--mu);
+  touch-action: none;
+  cursor: grab;
+}
+.pcard.drag {
+  box-shadow: 0 10px 28px rgba(0,0,0,.28);
+  z-index: 5;
+  position: relative;
+  opacity: 1;
+}
+.pcard.shift {
+  transition: transform .15s;
+}
+/* Κάρτα προγράμματος: διεύθυνση σε μία γραμμή, από κάτω τηλέφωνο και οδηγίες. */
+.pvad {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pvbt {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+.pvbt .callb {
+  margin: 0;
+}
+.mo .wk {
+  margin: 14px 0 6px;
+  font-weight: 700;
+}
+.mo .day {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 8px;
+  align-items: start;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 6px 0;
+}
+.mo .day.past {
+  opacity: .55;
+}
+.mo .day.today {
+  border-color: var(--ac);
+  border-width: 2px;
+}
+.mo .dd {
+  font-weight: 700;
+  line-height: 1.15;
+}
+.mo .dd small {
+  display: block;
+  font-weight: 400;
+  color: var(--mu);
+  font-size: 12px;
+}
+.mo .tdot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: 0;
+}
+.mo .cty {
+  font-weight: 600;
+}
+.mo .dm {
+  font-size: 13px;
+  color: var(--mu);
+  margin-top: 2px;
+}
+.mo .dbt {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.mo .dbt button {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.mo .mnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+.mo .mnav b {
+  font-size: 18px;
+}
+.mo .trc {
+  border-left: 5px solid var(--bd);
+  padding-left: 10px;
+  margin: 10px 0;
+}
+.mo .ced label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 3px 8px 3px 0;
+  color: var(--tx);
+  font-size: 14px;
+}
+.mo .ced input {
+  width: auto;
+}
+.pbw {
+  margin-top: 10px;
+}
+.pbw .pbt {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--tx);
+  margin-bottom: 6px;
+}
+.pbw .pbt span:last-child {
+  color: var(--mu);
+  white-space: nowrap;
+}
+.pbar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--bd);
+  overflow: hidden;
+  position: relative;
+}
+.pbar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: var(--ac);
+  border-radius: 6px;
+  transition: width .4s;
+}
+.pbar.ind i {
+  width: 35%;
+  animation: pbi 1.3s ease-in-out infinite;
+}
+.pbw .pbs {
+  font-size: 12px;
+  color: var(--mu);
+  margin-top: 6px;
+}
+.apsum {
+  background: #e6eef5;
+  color: #173a52;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.aped {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  background: var(--ac2);
+  padding: 8px;
+  border-radius: 10px;
+}
+.aped input {
+  width: auto;
+  padding: 8px;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) .apsum {
+    background: #1c2b36;
+    color: #cfe3f2;
+  }
+}
+:root[data-theme="dark"] .apsum {
+  background: #1c2b36;
+  color: #cfe3f2;
+}
+#pgo:disabled {
+  opacity: .6;
+}
+#xvsh {
+  z-index: 11;
+}
+#xvsh .chip.on {
+  background: #c9711c;
+  border-color: #c9711c;
+  color: #fff;
+}
+.xvr {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.xvr .nm {
+  font-size: 15.5px;
+}
+.xvdone {
+  background: #23875a;
+  border-color: #23875a;
+  color: #fff;
+  font-weight: 700;
+}
+.xvtag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 9px;
+  margin: 2px 4px 0 0;
+  background: var(--ac2);
+}
+.xvsum {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(201,113,28,.09);
+  border: 1px solid rgba(201,113,28,.35);
+  margin-bottom: 8px;
+}
+/* σελίδα «Πρόγραμμα»: πλακίδια στο ύφος της Αρχικής (μεγάλο «Πρόγραμμα ημέρας», δύο μισά, ένα φαρδύ) */
+.pgo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.pgt {
+  --t: var(--ac);
+  --tb: var(--ac2);
+  grid-column: span 2;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--bd);
+  border-radius: 22px;
+  background: var(--card);
+  color: var(--tx);
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(0,0,0,.05);
+}
+.pgt::before {
+  content: "";
+  position: absolute;
+  right: -35%;
+  bottom: -60%;
+  width: 110%;
+  height: 85%;
+  border-radius: 50%;
+  background: var(--tb);
+  opacity: .7;
+  pointer-events: none;
+}
+.pgt > span {
+  position: relative;
+}
+.pgt .pgi {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--tb);
+  color: var(--t);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pgt .pgi svg {
+  width: 28px;
+  height: 28px;
+}
+.pgt .pgx {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pgt .pgn {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.pgt .pgs {
+  font-size: 14px;
+  color: var(--mu);
+  line-height: 1.3;
+}
+.pgt .pgl {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--t);
+}
+.pgt .pgc {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+}
+.pgt.mon,
+.pgt.free {
+  grid-column: span 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 168px;
+}
+.pgt.mon .pgc,
+.pgt.free .pgc {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+.pgt.mon {
+  --t: var(--pmon);
+  --tb: var(--pmonbg);
+}
+.pgt.free {
+  --t: #c9711c;
+  --tb: rgba(201,113,28,.1);
+}
+.pgt.day {
+  --t: #bff0dc;
+  --tb: rgba(255,255,255,.08);
+  background: #2b6a58;
+  border-color: #2b6a58;
+  color: #fff;
+  padding: 20px 16px;
+}
+.pgt.day .pgi {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+.pgt.day .pgs {
+  color: rgba(255,255,255,.78);
+}
+.pgt.day .pgc {
+  background: rgba(255,255,255,.15);
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) .pgt .pgc {
+    background: rgba(255,255,255,.08);
+  }
+  :root:not([data-theme="light"]) .pgt.day {
+    background: #24584a;
+    border-color: #24584a;
+  }
+}
+:root[data-theme="dark"] .pgt .pgc {
+  background: rgba(255,255,255,.08);
+}
+:root[data-theme="dark"] .pgt.day {
+  background: #24584a;
+  border-color: #24584a;
+}

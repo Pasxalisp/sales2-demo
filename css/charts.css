@@ -1,0 +1,364 @@
+/* charts.css — Τζίρος (σελίδα charts) και FLASH.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.gv {
+  --g1: #86b6ef;
+  --g2: #2a78d6;
+  --gu: #2a78d6;
+  --gd: #e34948;
+  --gtr: #e9e6de;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) .gv {
+    --g1: #1c5cab;
+    --g2: #3987e5;
+    --gu: #3987e5;
+    --gd: #e66767;
+    --gtr: #2c322f;
+  }
+}
+.gv .gcard {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.gv h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+.gv .gsub {
+  color: var(--mu);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.gv .glg {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--mu);
+  margin-bottom: 8px;
+}
+.gv .glg i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  vertical-align: -1px;
+  margin-right: 5px;
+}
+.gv .grow {
+  display: grid;
+  grid-template-columns: 34% minmax(0,1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  cursor: pointer;
+}
+.gv .grow:active {
+  background: var(--ac2);
+}
+.gv .gnm {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gv .gbars {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.gv .gb {
+  height: 9px;
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+.gv .gval {
+  font-size: 13px;
+  color: var(--mu);
+  margin-top: 3px;
+  white-space: nowrap;
+}
+.gv .gval b {
+  color: var(--tx);
+  font-weight: 600;
+}
+.gv .hero {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.gv .prog {
+  height: 12px;
+  background: var(--gtr);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0 4px;
+}
+.gv .prog div {
+  height: 100%;
+  background: var(--g2);
+  border-radius: 0 6px 6px 0;
+}
+.gv .dv {
+  display: grid;
+  grid-template-columns: 38% minmax(0,1fr) minmax(0,1fr);
+  gap: 0;
+  align-items: center;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.gv .dvl {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1px;
+  border-right: 1px solid var(--bd);
+}
+.gv .dvr {
+  display: flex;
+  padding-left: 1px;
+}
+.gv .dvb {
+  height: 12px;
+}
+.gv .dvl .dvb {
+  border-radius: 4px 0 0 4px;
+  background: var(--gd);
+}
+.gv .dvr .dvb {
+  border-radius: 0 4px 4px 0;
+  background: var(--gu);
+}
+.gv .gbtn {
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--ac);
+}
+.gv .ggoal {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bd);
+}
+.gv .gform {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.gv .gform input {
+  flex: 1;
+  min-width: 0;
+}
+.gv .gtk {
+  position: relative;
+  height: 12px;
+  margin: 8px 0 4px;
+}
+.gv .gtk .prog {
+  margin: 0;
+  position: absolute;
+  inset: 0;
+}
+.gv .gtk .mk {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--tx);
+}
+.gv .gxl {
+  font-size: 13px;
+}
+.gv .gxl .row {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bd);
+  align-items: center;
+}
+.gv .gxd {
+  border: 0;
+  background: none;
+  color: var(--mu);
+  font-size: 16px;
+  padding: 2px 6px;
+}
+.gv .gxf {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+.gv .gxf .w {
+  grid-column: 1/-1;
+}
+.gv .gfl {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 12px;
+}
+.gv .gfl select {
+  flex: 1;
+  min-width: 0;
+}
+.gv .gtip {
+  position: fixed;
+  z-index: 70;
+  background: var(--tx);
+  color: var(--bg);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  pointer-events: none;
+  max-width: 260px;
+  display: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+}
+/* FLASH πωλήσεων & εισπράξεων (σελίδα flash, κουμπί στο Πελατολόγιο) */
+.gv .flhero {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 2px 0 8px;
+}
+.gv .flhero .mu {
+  font-size: 15px;
+  font-weight: 500;
+}
+.gv .flbar {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--gtr);
+  overflow: hidden;
+}
+.gv .flbar i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--g2);
+  border-radius: 6px;
+}
+.gv .flbar b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--g1);
+}
+.gv .flrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.gv .flgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  margin-top: 12px;
+}
+.gv .flgrid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.gv .flgrid b {
+  font-size: 16px;
+}
+.gv .flmon {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+.gv .flm {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.gv .flc {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 110px;
+  border-radius: 6px;
+  background: var(--gtr);
+}
+.gv .flc i {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--g1);
+}
+.gv .flc i.ok {
+  background: var(--g2);
+}
+.gv .flc b {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  height: 2px;
+  background: var(--gd);
+}
+.gv .fll {
+  font-size: 11px;
+  color: var(--mu);
+}
+.gv .flm.on .fll {
+  color: var(--tx);
+  font-weight: 700;
+}
+/* μελλοντικοί μήνες: μόνο στόχος, πιο αχνά */
+.gv .flm.fut .flc,
+.gv .chip.fut:not(.on) {
+  opacity: .55;
+}
+.gv .fltw {
+  overflow-x: auto;
+  margin: 0 -4px;
+}
+.gv .fltab {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.gv .fltab th,
+.gv .fltab td {
+  padding: 6px 3px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--bd);
+}
+.gv .fltab th:first-child,
+.gv .fltab td:first-child {
+  text-align: left;
+  white-space: normal;
+  min-width: 92px;
+}
+.gv .fltab th {
+  color: var(--mu);
+  font-weight: 600;
+}
+.gv .fltab tr.me td {
+  background: var(--ac2);
+  font-weight: 700;
+}
+.gv .fltab tfoot td {
+  font-weight: 800;
+  border-top: 2px solid var(--bd);
+  border-bottom: none;
+}

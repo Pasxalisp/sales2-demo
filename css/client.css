@@ -1,0 +1,101 @@
+/* client.css — Καρτέλα πελάτη.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+.ent {
+  border-left: 3px solid var(--ac);
+  padding: 4px 0 4px 10px;
+  margin: 10px 0;
+}
+.debt {
+  margin-top: 4px;
+  font-size: 14px;
+}
+.ordl {
+  margin-top: 8px;
+}
+.ordl .oi {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bd);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* καρτέλα πελάτη: τρεις μεγάλες ενέργειες (Κλήση, Οδηγίες, Παραγγελία) και μικρά κουμπιά κατάστασης (SOS, Τεχνικός, Σεμινάριο) */
+.cact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+.cact .cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 12px 4px;
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ac);
+  font-size: 14px;
+  text-decoration: none;
+}
+.cact .cat span {
+  color: var(--tx);
+}
+.cact .cat svg {
+  width: 24px;
+  height: 24px;
+}
+.cact .cat:disabled {
+  opacity: .4;
+}
+.cchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.cchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 99px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.cchip svg {
+  width: 16px;
+  height: 16px;
+}
+.cchip.sos {
+  background: #fdecea;
+  border-color: #e2735f;
+  color: #b2392a;
+}
+.cchip.tech {
+  background: var(--techbg);
+  border-color: var(--tech);
+  color: var(--tech);
+}
+.cchip.sem {
+  background: var(--sembg);
+  border-color: var(--sem);
+  color: var(--sem);
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) .cchip.sos {
+    background: rgba(217,56,47,.18);
+    border-color: #c4523f;
+    color: #ff9a8a;
+  }
+}
+:root[data-theme="dark"] .cchip.sos {
+  background: rgba(217,56,47,.18);
+  border-color: #c4523f;
+  color: #ff9a8a;
+}
