@@ -75,9 +75,12 @@ body.home #home {
   grid-template-columns: 1fr 1fr;
   min-height: 0;
   gap: clamp(8px,1.5vh,12px);
-  flex: 0 0 auto;
+  /* Τα πλακίδια μοιράζονται τον χώρο που μένει πάνω από την μπάρα (ως 170px το καθένα): σε οθόνη με περιθώρια
+     συσκευής (iPhone από εικονίδιο) μικραίνουν αντί να πέφτουν κάτω από την μπάρα. */
+  flex: 1 1 0;
+  align-content: start;
   grid-template-rows: none;
-  grid-auto-rows: clamp(124px,20vh,170px);
+  grid-auto-rows: minmax(0,170px);
 }
 html,
 body,
