@@ -22,3 +22,9 @@ body.dictnav #dbk,
 body.dictnav #dbk2 {
   display: none;
 }
+/* Οριζόντια οθόνη: η μπάρα είναι στο πλάι, άρα το πεδίο γραφής κάθεται κάτω χωρίς κενό για μπάρα. */
+@media (min-width: 900px) and (orientation: landscape) {
+  body.dictnav #dsh [style*="position:sticky"] {
+    bottom: 16px;
+  }
+}

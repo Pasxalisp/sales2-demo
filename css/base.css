@@ -977,6 +977,77 @@ main {
   display: none;
 }
 
+/* ---- Οριζόντια οθόνη (τάμπλετ): ίδια συνθήκη με το PL.WIDE στο core.js ----
+   Η μπάρα γίνεται κάθετη στα αριστερά. Σε σελίδα-λίστα με `split` (core.js) η λίστα είναι αριστερά, η λεπτομέρεια δεξιά,
+   και η καθεμία κυλά μόνη της. */
+#list .card.sel {
+  border-color: var(--ac);
+  box-shadow: inset 0 0 0 1px var(--ac);
+  background: var(--ac2);
+}
+@media (min-width: 900px) and (orientation: landscape) {
+  :root {
+    --rail: calc(96px + env(safe-area-inset-left,0px));
+  }
+  #nav,
+  #nav.noplus {
+    left: calc(12px + env(safe-area-inset-left,0px));
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: 72px;
+    grid-template-columns: none;
+    grid-auto-flow: row;
+    gap: 6px;
+    padding: 10px 4px;
+    margin: 0;
+  }
+  #nav.off {
+    transform: translate(-140%,-50%);
+  }
+  main {
+    padding-left: var(--rail);
+    padding-bottom: 40px;
+  }
+  #dsh {
+    min-height: calc(100vh - 52px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  }
+  main.split {
+    display: grid;
+    grid-template-columns: minmax(360px,40%) 1fr;
+    height: calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    padding: 0 0 0 var(--rail);
+  }
+  main.split>.page {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 12px 18px 40px;
+  }
+  main.split>.page.paneL {
+    border-right: 1px solid var(--bd);
+  }
+  main.split .pgempty {
+    margin-top: 38vh;
+    text-align: center;
+  }
+  #pmb {
+    left: calc(var(--rail) + 170px);
+    bottom: 24px;
+  }
+  #nvo {
+    right: 24px;
+    bottom: 24px;
+  }
+  #ntoast {
+    bottom: 24px;
+  }
+  body:has(main.split) #fs {
+    display: none;
+  }
+}
+
 /* ---- Κινήσεις ---- */
 @keyframes pbi { 0%{left:-35%}100%{left:100%} }
 @keyframes celC { to{transform:scale(1)} }

@@ -27,6 +27,7 @@
 
   PL.register('clients', {
     title: 'Πελατολόγιο',
+    split: 'client',   /* σε οριζόντια οθόνη: η καρτέλα ανοίγει δεξιά (core.js) */
     nova: () => PL.menu('Πελατολόγιο', [
       { e: '👤', label: 'Νέος πελάτης', d: 'κομμωτήριο που δεν υπάρχει στη λίστα', fn: () => PL.dictation.open('Νέος πελάτης: ') },
       { e: '📝', label: 'Νέα σημείωση σε πελάτη', d: 'πες τι συζητήσατε, μπαίνει στην καρτέλα', fn: () => PL.dictation.open('Στον πελάτη ') },
@@ -41,6 +42,11 @@
       const panel = (f) => { const cm = cities(), k = Object.keys(cm).filter((x) => !f || nn(x).includes(nn(f))).sort((a, b) => a.localeCompare(b, 'el')), p = $('#cp');
         p.innerHTML = k.map((x) => `<div class="pk" data-pick="${esc(x)}"><span>${esc(x)}</span><span class="mu">${cm[x]}</span></div>`).join('') || '<div class="pk mu">Καμία περιοχή</div>'; return p; };
 
+      /* Ο πελάτης που είναι ανοιχτός δεξιά (οριζόντια οθόνη) φαίνεται επιλεγμένος στη λίστα. */
+      const mark = () => {
+        const c = PL.nav.current(), id = c.id === 'client' ? c.params.id : '';
+        el.querySelectorAll('#list .card').forEach((x) => x.classList.toggle('sel', !!id && x.dataset.id === id));
+      };
       const draw = () => {
         const C = M.clients(), cq = nn(st.city), t = nn(st.q), yf = st.yf, onlyT = st.onlyT;
         $('#chips').innerHTML = `<button class="chip ${!cq && !onlyT && !yf ? 'on' : ''}" data-c="">Όλοι</button><button class="chip ${onlyT ? 'on' : ''}" data-t="1">Με τζίρο</button><button class="chip ${yf === 'up' ? 'on' : ''}" data-y="up">▲ Θετικοί</button><button class="chip ${yf === 'dn' ? 'on' : ''}" data-y="dn">▼ Αρνητικοί</button>`;
@@ -57,8 +63,9 @@
             `<div class="mu">${esc(c.city)}</div>` + (y ? `<div class="${y.cls}" style="font-size:14px">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
             (w.length ? `<div class="mu">Δουλεύει: ${esc(w.join(', '))}</div>` : '') +
             (e.length ? `<div class="mu">Τελευταία: ${esc(e[0].d)}${e[0].products ? ' · ' + esc(e[0].products) : ''}</div>` : '') +
-            (td ? `<div class="tz" style="font-size:14px">Να πω: ${esc(td.todo)}</div>` : '') + (due ? `<div class="due">Επικοινωνία: ${esc(nx)}</div>` : '') + '</div>';
+            (td ? `<div class="say">Να πω: ${esc(td.todo)}</div>` : '') + (due ? `<div class="due">Επικοινωνία: ${esc(nx)}</div>` : '') + '</div>';
         }).join('');
+        mark();
         $('#cnt').textContent = L.length + ' πελάτες';
         const ct = $('#ct');
         if (cq) {
@@ -84,7 +91,7 @@
       };
       let raf = 0; const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); };
       draw();
-      const offs = COLS.map((c) => S.on(c, redraw));
+      const offs = COLS.map((c) => S.on(c, redraw)).concat(PL.bus.on('nav', mark));
 
       $('#q').addEventListener('input', (e) => { st.q = e.target.value; draw(); });
       $('#qc').addEventListener('input', (e) => { st.city = e.target.value; const p = panel(e.target.value); p.style.display = e.target.value ? 'block' : 'none'; draw(); });

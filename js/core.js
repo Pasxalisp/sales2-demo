@@ -53,14 +53,28 @@
   }
 
   /* ---- σελίδες & στοίβα πλοήγησης ---- */
-  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar? }
+  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:'id σελίδας λεπτομέρειας' }
   const stack = [];           // [{id, params}]
-  let cleanup = null;
   PL.pages = pages;
   PL.register = (id, def) => { pages[id] = def; };
 
+  /* Οριζόντια οθόνη (τάμπλετ): μία σελίδα-λίστα με `split: 'client'` δείχνεται αριστερά και η λεπτομέρεια δεξιά.
+     Η ίδια συνθήκη υπάρχει στο CSS (base.css, «Οριζόντια οθόνη»). Η στοίβα μένει ίδια: [.., clients, client]. */
+  PL.WIDE = window.matchMedia('(min-width: 900px) and (orientation: landscape)');
+  const masterOf = () => {
+    if (!PL.WIDE.matches) return null;
+    const cur = stack[stack.length - 1], below = stack[stack.length - 2];
+    if (pages[cur.id].split) return cur;
+    return below && pages[below.id].split === cur.id ? below : null;
+  };
+
   PL.nav = {
-    push(id, params) { stack.push({ id, params: params || {} }); show(); },
+    push(id, params) {
+      const e = { id, params: params || {} }, m = masterOf();
+      /* Δίπλα στη λίστα: νέα λεπτομέρεια αντικαθιστά την προηγούμενη (το «Πίσω» γυρνά στη λίστα, όχι από πελάτη σε πελάτη). */
+      if (m && m !== stack[stack.length - 1] && stack[stack.length - 1].id === id) stack[stack.length - 1] = e; else stack.push(e);
+      show();
+    },
     back() { if (stack.length > 1) { stack.pop(); show(); } },
     /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο): ρωτάει πρώτα τον φύλακα της σελίδας, μετά γυρνά */
     up() { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(); },
@@ -70,20 +84,37 @@
     trail: () => stack.map((s) => s.id),
   };
 
-  function show() {
-    const cur = stack[stack.length - 1];
-    const def = pages[cur.id];
-    const root = $('#app');
-    if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; }
-    root.innerHTML = '';
+  /* Δύο θέσεις: L (κύρια ή λίστα) και R (λεπτομέρεια, μόνο σε οριζόντια οθόνη). */
+  const slot = { L: { e: null, el: null, off: null }, R: { e: null, el: null, off: null } };
+  const unmount = (k) => {
+    const s = slot[k];
+    if (s.off) { try { s.off(); } catch (e) { console.error(e); } }
+    if (s.el) s.el.remove();
+    slot[k] = { e: null, el: null, off: null };
+  };
+  const mount = (k, e, cls) => {
+    unmount(k);
     const el = document.createElement('section');
-    el.className = 'page';
-    el.dataset.page = cur.id;
-    root.appendChild(el);
-    cleanup = def.render(el, cur.params) || null;
-    window.scrollTo(0, 0);
+    el.className = 'page' + (cls ? ' ' + cls : '');
+    if (e) el.dataset.page = e.id;
+    $('#app').appendChild(el);
+    if (k === 'L' && slot.R.el) $('#app').insertBefore(el, slot.R.el);
+    slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : null };
+    if (!e) el.innerHTML = '<p class="mu pgempty">Διάλεξε από τη λίστα.</p>';
+  };
+  function show() {
+    const cur = stack[stack.length - 1], m = masterOf(), root = $('#app');
+    root.classList.toggle('split', !!m);
+    if (!m) { unmount('R'); mount('L', cur); window.scrollTo(0, 0); }
+    else {
+      if (slot.L.e !== m) mount('L', m, 'paneL');
+      const d = m === cur ? null : cur;
+      if (!slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR'); slot.R.el.scrollTop = 0; }
+    }
     PL.bar.update();
+    PL.bus.emit('nav', cur);
   }
+  PL.WIDE.addEventListener('change', () => { if (stack.length) { unmount('L'); unmount('R'); show(); } });
 
   /* ---- κάτω μπάρα: ίδια με της παλιάς σελίδας (nav, pm, pmb) ---- */
   let badge = 0;

@@ -15,6 +15,12 @@ main>.page:has(>header:first-child) {
 main>.page>header:first-child {
   margin: 0 -14px 10px;
 }
+/* «Να πω» στη λίστα: πράσινο όπως ο τζίρος, αλλά αναδιπλώνεται (το .tz δεν σπάει γραμμή). */
+.say {
+  color: var(--ac);
+  font-weight: 600;
+  font-size: 14px;
+}
 .due {
   color: var(--rd);
   font-weight: 600;
@@ -53,4 +59,16 @@ main>.page>header:first-child {
   color: var(--ac);
   font-weight: 600;
   white-space: nowrap;
+}
+/* Οριζόντια οθόνη: η λίστα κυλά μέσα στη δική της στήλη (base.css), η κεφαλίδα κολλά στην κορυφή της στήλης. */
+@media (min-width: 900px) and (orientation: landscape) {
+  main.split>.page:has(>header:first-child) {
+    margin: 0;
+    padding: 0 18px 40px;
+  }
+  main.split>.page>header:first-child {
+    top: 0;
+    margin: 0 -18px 10px;
+    padding: 12px 18px 8px;
+  }
 }

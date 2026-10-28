@@ -574,3 +574,15 @@ body.home #nvo .oc {
 #home button#hqr:active {
   transform: scale(.92);
 }
+/* Οριζόντια οθόνη: χώρος για την κάθετη μπάρα αριστερά, πλακίδια σε 3 στήλες. */
+@media (min-width: 900px) and (orientation: landscape) {
+  #home {
+    padding-left: calc(var(--rail) + 8px);
+    padding-right: 24px;
+    padding-bottom: 24px;
+  }
+  #home .hg {
+    grid-template-columns: repeat(3,1fr);
+    grid-auto-rows: minmax(0,230px);
+  }
+}
