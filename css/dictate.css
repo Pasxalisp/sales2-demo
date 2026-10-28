@@ -16,7 +16,7 @@
   margin: 2px 0 2px 4px;
 }
 body.dictnav #dsh [style*="position:sticky"] {
-  bottom: calc(146px + 2 * env(safe-area-inset-bottom,0px));
+  bottom: calc(132px + var(--navb));
 }
 body.dictnav #dbk,
 body.dictnav #dbk2 {

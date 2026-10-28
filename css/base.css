@@ -422,6 +422,9 @@ a.btn.callo {
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top,0px);
   padding-bottom: env(safe-area-inset-bottom,0px);
+  /* Απόσταση της κάτω μπάρας από το κάτω άκρο: 14px· σε iPhone με γραμμή αρχικής οθόνης (εφαρμογή από εικονίδιο) κάθεται
+     λίγο πάνω από τη γραμμή, όχι 14px πάνω από όλο το περιθώριο. Ό,τι στοιβάζεται πάνω από την μπάρα μετριέται από εδώ. */
+  --navb: max(14px, calc(env(safe-area-inset-bottom,0px) - 12px));
   --gl: rgba(255,255,255,.3);
   --glb: rgba(255,255,255,.75);
   --gli: rgba(255,255,255,.9);
@@ -555,7 +558,7 @@ main {
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(14px + env(safe-area-inset-bottom,0px));
+  bottom: var(--navb);
   z-index: 40;
   display: grid;
   grid-template-columns: repeat(5,1fr);
@@ -626,7 +629,7 @@ main {
 #pmb {
   position: fixed;
   left: 50%;
-  bottom: calc(100px + env(safe-area-inset-bottom,0px));
+  bottom: calc(86px + var(--navb));
   transform: translate(-50%,16px) scale(.97);
   width: min(320px,88vw);
   z-index: 41;
@@ -684,7 +687,7 @@ main {
 #nvo {
   position: fixed;
   right: 18px;
-  bottom: calc(98px + env(safe-area-inset-bottom,0px));
+  bottom: calc(84px + var(--navb));
   z-index: 40;
   width: 56px;
   height: 56px;
@@ -828,7 +831,7 @@ main {
   position: fixed;
   right: 0;
   top: calc(64px + env(safe-area-inset-top,0px));
-  bottom: calc(104px + env(safe-area-inset-bottom,0px));
+  bottom: calc(90px + var(--navb));
   width: 30px;
   z-index: 38;
   display: none;
@@ -961,7 +964,7 @@ main {
 #ntoast {
   position: fixed;
   left: 50%;
-  bottom: calc(100px + env(safe-area-inset-bottom,0px));
+  bottom: calc(86px + var(--navb));
   transform: translateX(-50%);
   z-index: 60;
   background: var(--tx);

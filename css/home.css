@@ -107,7 +107,7 @@ main,
   --hdate: #6b716c;
   --hmint: linear-gradient(135deg,#b9eddb,#8bdec1);
   background: var(--hbg);
-  padding: calc(clamp(8px,2vh,16px) + env(safe-area-inset-top,0px)) 16px calc(100px + env(safe-area-inset-bottom,0px));
+  padding: calc(clamp(8px,2vh,16px) + env(safe-area-inset-top,0px)) 16px calc(86px + var(--navb));
   overflow: hidden;
   gap: clamp(8px,1.6vh,14px);
   --tb: #ffffff;
