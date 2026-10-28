@@ -85,12 +85,14 @@
   };
 
   /* Δύο θέσεις: L (κύρια ή λίστα) και R (λεπτομέρεια, μόνο σε οριζόντια οθόνη). */
-  const slot = { L: { e: null, el: null, off: null }, R: { e: null, el: null, off: null } };
+  /* Κάθε θέση κρατά και τα μισογραμμένα κείμενα της σελίδας της (drafts.js): φυλάγονται όταν η σελίδα φεύγει. */
+  const slot = { L: { e: null, el: null, off: null, dr: null }, R: { e: null, el: null, off: null, dr: null } };
   const unmount = (k) => {
     const s = slot[k];
+    if (s.dr) { try { s.dr.off(); } catch (e) { console.error(e); } }
     if (s.off) { try { s.off(); } catch (e) { console.error(e); } }
     if (s.el) s.el.remove();
-    slot[k] = { e: null, el: null, off: null };
+    slot[k] = { e: null, el: null, off: null, dr: null };
   };
   const mount = (k, e, cls) => {
     unmount(k);
@@ -99,9 +101,13 @@
     if (e) el.dataset.page = e.id;
     $('#app').appendChild(el);
     if (k === 'L' && slot.R.el) $('#app').insertBefore(el, slot.R.el);
-    slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : null };
+    slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : null, dr: e ? PL.drafts.track(el, e) : null };
     if (!e) el.innerHTML = '<p class="mu pgempty">Διάλεξε από τη λίστα.</p>';
   };
+  /* Κλείσιμο ή παρασκήνιο της εφαρμογής: φυλάγονται τα μισογραμμένα κείμενα των ανοιχτών σελίδων. */
+  const keepDrafts = () => ['L', 'R'].forEach((k) => { if (slot[k].dr) slot[k].dr.keep(); });
+  addEventListener('pagehide', keepDrafts);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) keepDrafts(); });
   function show() {
     const cur = stack[stack.length - 1], m = masterOf(), root = $('#app');
     root.classList.toggle('split', !!m);

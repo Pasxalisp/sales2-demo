@@ -192,6 +192,7 @@
           else if (t.dataset.p) {
             const f = $('#fp'), a = f.value.split(',').map((s) => s.trim()).filter(Boolean);
             if (!a.includes(t.dataset.p)) a.push(t.dataset.p); f.value = a.join(', ');
+            f.dispatchEvent(new Event('input', { bubbles: true }));   /* μετράει ως γραμμένο: κρατιέται αν φύγεις χωρίς αποθήκευση (drafts.js) */
           }
           else if (t.id === 'sv') {
             const p = $('#fp').value.trim(), x = $('#ft').value.trim(), o = $('#fo').value.trim(), n = $('#fn').value, ntm = $('#fnt').value || '';
