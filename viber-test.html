@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="el"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Δοκιμή Viber</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f6f4ef; --card:#fff; --tx:#1f2421; --mu:#6b716c; --ac:#7360f2; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#151816; --card:#202422; --tx:#eef0ee; --mu:#a3aaa5; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--tx); font:16px -apple-system,BlinkMacSystemFont,sans-serif;
+         padding: calc(16px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px)); }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p { color:var(--mu); margin:0 0 16px; font-size:14px; }
+  a, button { display:block; width:100%; text-align:left; text-decoration:none; color:var(--tx); background:var(--card);
+              border:1px solid rgba(127,127,127,.25); border-radius:14px; padding:14px; margin:0 0 10px; font:inherit; cursor:pointer; }
+  b { display:block; color:var(--ac); margin-bottom:2px; }
+  span { font-size:13px; color:var(--mu); }
+  #msg { min-height:20px; font-size:14px; color:var(--ac); }
+</style></head>
+<body>
+<h1>Δοκιμή Viber</h1>
+<p>Αριθμός: 6972259249. Κείμενο: «Χρόνια πολλά!! Εύχομαι ό,τι επιθυμείς με υγεία!». Πάτα ένα-ένα και σημείωσε τι έγινε.</p>
+
+<a id="a"><b>Α. Συνομιλία + έτοιμο κείμενο</b><span>Ανοίγει τη συνομιλία· αν το Viber το δέχεται, το κείμενο είναι ήδη γραμμένο.</span></a>
+<button id="b"><b>Β. Συνομιλία + αντιγραφή κειμένου</b><span>Αντιγράφει το κείμενο και ανοίγει τη συνομιλία· εσύ κάνεις Επικόλληση.</span></button>
+<a id="c"><b>Γ. Κείμενο, διαλέγεις παραλήπτη</b><span>Ανοίγει το Viber με το κείμενο· διαλέγεις σε ποιον.</span></a>
+<a id="d"><b>Δ. Συνομιλία (χωρίς +)</b><span>Όπως το Α, με τον αριθμό γραμμένο αλλιώς (306972259249).</span></a>
+<div id="msg"></div>
+
+<script>
+  const NUM = '306972259249', TEXT = 'Χρόνια πολλά!! Εύχομαι ό,τι επιθυμείς με υγεία!', t = encodeURIComponent(TEXT);
+  document.getElementById('a').href = 'viber://chat?number=%2B' + NUM + '&draft=' + t;
+  document.getElementById('c').href = 'viber://forward?text=' + t;
+  document.getElementById('d').href = 'viber://chat?number=' + NUM + '&draft=' + t;
+  document.getElementById('b').onclick = async () => {
+    const m = document.getElementById('msg');
+    try { await navigator.clipboard.writeText(TEXT); m.textContent = 'Αντιγράφηκε. Ανοίγω το Viber…'; } catch (e) { m.textContent = 'Δεν αντιγράφηκε· ανοίγω το Viber…'; }
+    location.href = 'viber://chat?number=%2B' + NUM;
+  };
+</script>
+</body></html>
