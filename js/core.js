@@ -137,9 +137,33 @@
       if (!slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR'); slot.R.el.scrollTop = 0; }
       markSel();
     }
+    placeDiv();
     PL.bar.update();
   }
   PL.WIDE.addEventListener('change', () => { if (stack.length) { unmount('L'); unmount('R'); show(); } });
+
+  /* Χερούλι ανάμεσα στις δύο στήλες: σέρνεις και αλλάζει το πλάτος της λίστας (μεταβλητή CSS --paneL).
+     Η συσκευή θυμάται το πλάτος (localStorage, μόνο για ευκολία)· διπλό πάτημα = αρχικό. Όρια: λίστα ≥ 300px, λεπτομέρεια ≥ 420px. */
+  const PK = 'pl.paneL', root = document.documentElement;
+  try { const w = +localStorage.getItem(PK); if (w) root.style.setProperty('--paneL', w + 'px'); } catch (e) { /* τίποτα */ }
+  const div = document.createElement('div');
+  div.id = 'pdiv'; div.setAttribute('role', 'separator'); div.setAttribute('aria-label', 'Πλάτος στηλών'); div.hidden = true;
+  document.body.appendChild(div);
+  function placeDiv() {
+    const L = $('#app').classList.contains('split') && slot.L.el;
+    div.hidden = !L; if (L) div.style.left = (L.getBoundingClientRect().right - 9) + 'px';
+  }
+  addEventListener('resize', placeDiv);
+  let drag = null;
+  div.addEventListener('pointerdown', (e) => { const L = slot.L.el; if (!L) return; drag = { x0: L.getBoundingClientRect().left }; div.setPointerCapture(e.pointerId); div.classList.add('on'); e.preventDefault(); });
+  div.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const w = Math.round(Math.max(300, Math.min(innerWidth - drag.x0 - 420, e.clientX - drag.x0)));
+    root.style.setProperty('--paneL', w + 'px'); placeDiv();
+  });
+  const end = () => { if (!drag) return; drag = null; div.classList.remove('on'); try { localStorage.setItem(PK, parseInt(root.style.getPropertyValue('--paneL'), 10) || ''); } catch (e) { /* τίποτα */ } };
+  div.addEventListener('pointerup', end); div.addEventListener('pointercancel', end);
+  div.addEventListener('dblclick', () => { root.style.removeProperty('--paneL'); try { localStorage.removeItem(PK); } catch (e) { /* τίποτα */ } placeDiv(); });
 
   /* ---- κάτω μπάρα: ίδια με της παλιάς σελίδας (nav, pm, pmb) ---- */
   let badge = 0;

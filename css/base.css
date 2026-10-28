@@ -1010,7 +1010,7 @@ main {
   }
   main.split {
     display: grid;
-    grid-template-columns: minmax(360px,40%) 1fr;
+    grid-template-columns: minmax(300px,var(--paneL,34%)) minmax(420px,1fr);
     height: calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
     padding: 0 0 0 var(--rail);
   }
@@ -1022,6 +1022,31 @@ main {
   }
   main.split>.page.paneL {
     border-right: 1px solid var(--bd);
+  }
+  /* χερούλι πλάτους στηλών (core.js) */
+  #pdiv {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    z-index: 38;
+    cursor: col-resize;
+    touch-action: none;
+  }
+  #pdiv::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    width: 6px;
+    height: 44px;
+    margin-top: -22px;
+    border-radius: 3px;
+    background: var(--bd);
+  }
+  #pdiv.on::after,
+  #pdiv:hover::after {
+    background: var(--ac);
   }
   /* ό,τι είναι ανοιχτό δεξιά (core.js, markSel) */
   main.split>.paneL .sel {
