@@ -163,11 +163,7 @@
             await db().set('seminars/' + sid, x); S.put('seminars', sid, x);
             D.toast((rm ? 'Αφαιρέθηκε από το σεμινάριο «' : '🎓 Μπήκε στο σεμινάριο «') + (x.title || 'Σεμινάριο') + '»');
           }
-          else if (t.closest('#ordb')) {
-            const ex = Object.entries(S.all('orders')).find(([, o]) => o.cid === id && o.st === 'draft');
-            if (ex && await D.confirm('Υπάρχει ήδη πρόχειρη παραγγελία για «' + c.name + '». Να ανοίξει αυτή;', 'Ναι, άνοιξέ τη', 'Όχι, νέα παραγγελία')) { PL.nav.push('order', { id: ex[0] }); return; }
-            PL.nav.push('order', { id: await PL.orders.create(id) });
-          }
+          else if (t.closest('#ordb')) await PL.orders.openFor(id);
           else if (t.closest('[data-oo]')) PL.nav.push('order', { id: t.closest('[data-oo]').dataset.oo });
           else if (PL.deals.click(t)) { /* Συμφωνία: μήνυμα / ενημερώθηκε */ }
           else if (t.dataset.xorest) {

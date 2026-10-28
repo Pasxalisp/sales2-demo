@@ -83,7 +83,13 @@
   /* ---------- Οθόνη ---------- */
   PL.register('planview', {
     title: 'Πρόγραμμα',
-    split: ['client'],
+    split: ['client', 'visit'],
+    /* τάμπλετ, τίποτα πατημένο: δεξιά το φύλλο του επόμενου ανοιχτού πελάτη */
+    aside(el, params) {
+      const p = params.id && S.get('plans', params.id), s = p && (p.stops || []).find((x) => !x.done);
+      if (!s) { el.innerHTML = '<p class="mu pgempty">' + (p ? '✅ Όλες οι επισκέψεις έγιναν.' : 'Πάτα έναν πελάτη από τη λίστα.') + '</p>'; return null; }
+      return PL.pages.visit.render(el, { pid: params.id, id: s.id });
+    },
     nova: () => PL.menu('Πρόγραμμα ημέρας', [
       { e: '👤', label: 'Πρόσθεσε πελάτη', d: 'από το πελατολόγιο', fn: () => { const i = document.getElementById('pladd'); if (i) { i.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => i.focus(), 350); } } },
       { e: '🆕', label: 'Νέο κομμωτήριο', d: 'δεν υπάρχει στη λίστα', fn: () => { const b = document.getElementById('plnewb'); if (b) { b.click(); b.scrollIntoView({ block: 'center', behavior: 'smooth' }); } } },
@@ -279,6 +285,9 @@
           const ap = t.closest('[data-apick]');
           if (ap && cur) { aPick[cur.id || 'x'] = ap.dataset.apick; $('#plsum').innerHTML = areaSum(cur.cities); return; }
           if (!cur) return;
+          /* τάμπλετ: πάτημα στην κάρτα ή στο όνομα (όχι σε κουμπί) → φύλλο επίσκεψης δεξιά */
+          const pc = t.closest('.pcard');
+          if (PL.WIDE.matches && cur.saved && pc && !t.closest('button,input,a,label,select,textarea')) { const s = cur.stops[+pc.dataset.sk]; if (s) PL.nav.push('visit', { pid: cur.id, id: s.id }); return; }
           const op = t.closest('[data-open]');  /* το όνομα του πελάτη ή το «Καρτέλα» */
           if (op) PL.nav.push('client', { id: op.dataset.open });
           else if (t.dataset.rm !== undefined) {

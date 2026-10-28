@@ -45,5 +45,11 @@
     return `Παραγγελία ${o.name}${o.code ? ' (' + o.code + ')' : ''} · ${u.fd(o.date)}\nΕίδος: ${o.sal} · Πληρωμή: ${o.pay} · Καμπάνια: ${o.camp}` + (o.note ? '\nΠαρατηρήσεις: ' + o.note : '') +
       '\n\nΠΡΟΪΟΝΤΑ\n' + (s.P.map(ln).join('\n') || '—') + (s.G.length ? '\n\nΔΩΡΑ / ΕΞΟΠΛΙΣΜΟΣ (ξεχωριστή παραγγελία)\n' + s.G.map(ln).join('\n') : '') + `\n\nΚαθαρή αξία ${u.money(s.sp.n)} · ΦΠΑ ${u.money(s.sp.v)} · Σύνολο ${u.money(s.sp.t)}`;
   }
-  PL.orders = { items, byCode, search, lineFrom, sums, split, usual, create, toText };
+  /* «Παραγγελία» για πελάτη (καρτέλα, φύλλο επίσκεψης): αν υπάρχει πρόχειρη, ρωτά αν θα ανοίξει αυτή· αλλιώς νέα. */
+  async function openFor(cid) {
+    const c = PL.model.byId(cid) || {}, ex = Object.entries(S.all('orders')).find(([, o]) => o.cid === cid && o.st === 'draft');
+    if (ex && await PL.dlg.confirm('Υπάρχει ήδη πρόχειρη παραγγελία για «' + c.name + '». Να ανοίξει αυτή;', 'Ναι, άνοιξέ τη', 'Όχι, νέα παραγγελία')) { PL.nav.push('order', { id: ex[0] }); return; }
+    PL.nav.push('order', { id: await create(cid) });
+  }
+  PL.orders = { items, byCode, search, lineFrom, sums, split, usual, create, toText, openFor };
 })();

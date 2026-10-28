@@ -175,6 +175,12 @@
     await Promise.all([E.savePlan(pid, np), E.setVisit(id, true), E.clearSos(id)]);
     return !free && !E.allDone(p) && E.allDone(np) ? np : null;
   };
+  /* Αναίρεση του ✓ (φύλλο επίσκεψης): η στάση ξαναγίνεται ανοιχτή και φεύγει η σημερινή επίσκεψη. */
+  E.undoStop = async (pid, id) => {
+    const p = S.get('plans', pid); if (!p) return;
+    const stops = (p.stops || []).map((s) => (s.id === id ? Object.assign({}, s, { done: false, doneDate: '' }) : s));
+    await Promise.all([E.savePlan(pid, Object.assign({}, p, { stops, closed: false })), E.setVisit(id, false)]);
+  };
 
   /* Θέση εισαγωγής νέου πελάτη σε πρόγραμμα: δίπλα στους ίδιας πόλης. */
   E.insertStop = (p, st) => {

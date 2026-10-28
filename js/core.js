@@ -53,7 +53,7 @@
   }
 
   /* ---- σελίδες & στοίβα πλοήγησης ---- */
-  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:['ids σελίδων λεπτομέρειας'] }
+  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:['ids σελίδων λεπτομέρειας'], aside?(el)->cleanup? }
   const stack = [];           // [{id, params}]
   PL.pages = pages;
   PL.register = (id, def) => { pages[id] = def; };
@@ -101,15 +101,17 @@
     if (s.el) s.el.remove();
     slot[k] = { e: null, el: null, off: null, dr: null, obs: null };
   };
-  const mount = (k, e, cls) => {
+  /* asideOf: η σελίδα-λίστα· όταν δεξιά δεν είναι ανοιχτό τίποτα, δείχνει το δικό της aside(el) αν έχει (π.χ. ημερολόγιο). */
+  const mount = (k, e, cls, asideOf) => {
     unmount(k);
     const el = document.createElement('section');
     el.className = 'page' + (cls ? ' ' + cls : '');
     if (e) el.dataset.page = e.id;
     $('#app').appendChild(el);
     if (k === 'L' && slot.R.el) $('#app').insertBefore(el, slot.R.el);
-    slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : null, dr: e ? PL.drafts.track(el, e) : null };
-    if (!e) el.innerHTML = '<p class="mu pgempty">Διάλεξε από τη λίστα.</p>';
+    const aside = !e && asideOf && pages[asideOf.id].aside;
+    slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : aside ? aside(el, asideOf.params) || null : null, dr: e ? PL.drafts.track(el, e) : null };
+    if (!e && !aside) el.innerHTML = '<p class="mu pgempty">Διάλεξε από τη λίστα.</p>';
     /* Η λίστα ξαναζωγραφίζεται όταν αλλάζουν τα δεδομένα: η επιλογή ξαναμπαίνει. */
     if (cls === 'paneL') { slot.L.obs = new MutationObserver(() => requestAnimationFrame(markSel)); slot.L.obs.observe(el, { childList: true, subtree: true }); }
   };
@@ -118,7 +120,7 @@
   const SEL = '.card,.ndr,.wr';
   function markSel() {
     const L = slot.L.el; if (!L || !slot.L.obs) return;
-    const id = slot.R.e && slot.R.e.params.id, on = new Set();
+    const pr = slot.R.e && slot.R.e.params, id = pr && (pr.id || pr.key), on = new Set();
     if (id) L.querySelectorAll('*').forEach((x) => { if (Object.values(x.dataset).includes(id)) on.add(x.closest(SEL) || x); });
     L.querySelectorAll('.sel').forEach((x) => { if (!on.has(x)) x.classList.remove('sel'); });
     on.forEach((x) => x.classList.add('sel'));
@@ -132,9 +134,9 @@
     root.classList.toggle('split', !!m);
     if (!m) { unmount('R'); mount('L', cur); window.scrollTo(0, 0); }
     else {
-      if (slot.L.e !== m) mount('L', m, 'paneL');
-      const d = m === cur ? null : cur;
-      if (!slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR'); slot.R.el.scrollTop = 0; }
+      const newL = slot.L.e !== m, d = m === cur ? null : cur;
+      if (newL) mount('L', m, 'paneL');
+      if (newL || !slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR', m); slot.R.el.scrollTop = 0; }
       markSel();
     }
     placeDiv();
