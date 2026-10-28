@@ -1,4 +1,5 @@
-/* «Τεχνικός – Σεμινάρια»: αρχική με δύο κάρτες, και η λίστα «Τεχνική υποστήριξη» (πελάτες που χρειάζονται τεχνικό). */
+/* «Τεχνικός – Σεμινάρια»: αρχική με δύο κάρτες, και η λίστα «Τεχνική υποστήριξη» (πελάτες που χρειάζονται τεχνικό).
+   Τάμπλετ: στη λίστα, δεξιά το φύλλο τεχνικού (techreq.js) ή, χωρίς πάτημα, οι πελάτες ανά πόλη. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, db = () => PL.adapter.db;
   const COLS = ['clients', 'prospects', 'tech', 'seminars'];
@@ -6,7 +7,6 @@
 
   PL.register('tech', {
     title: 'Τεχνικός – Σεμινάρια',
-    split: ['client'],
     render(el) {
       el.innerHTML = `<h2>Τεχνικός – Σεμινάρια</h2>
 <div class="card" id="hubt" style="padding:18px"><div class="row"><span class="nm" style="font-size:18px">🔧 Επίσκεψη τεχνικού</span><span class="tz" id="hubtc"></span></div><div class="mu">Πελάτες που χρειάζονται τεχνικό</div></div>
@@ -27,6 +27,8 @@
 
   PL.register('techlist', {
     title: 'Τεχνική υποστήριξη',
+    split: ['client', 'techreq'],
+    aside: (el) => PL.techSheet.aside(el),   /* techreq.js: ανά πόλη */
     render(el) {
       el.innerHTML = `<h2 style="display:flex;align-items:center;gap:8px">${TI(28)} Τεχνική υποστήριξη</h2>
 <div style="height:8px;border-radius:4px;background:repeating-linear-gradient(-45deg,#f2c94c 0 11px,#2b2b2b 11px 22px);margin:-4px 0 12px"></div>
@@ -37,7 +39,7 @@
         const L = Object.entries(S.all('tech')).filter(([id]) => M.byId(id)).sort((a, b) => ((a[1].d || '') < (b[1].d || '') ? -1 : 1));
         $('#tl').innerHTML = L.length ? L.map(([id, t]) => {
           const c = M.byId(id), tel = PL.call.first(c);
-          return `<div class="card" style="cursor:default"><div class="row"><span class="nm">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu" style="white-space:nowrap">από ${esc(t.d || '')}</span></div><div class="mu">${esc(c.city)}${c.addr ? ' · ' + esc(c.addr) : ''}</div>${t.note ? `<div style="margin-top:4px"><b>Χρειάζεται:</b> ${esc(t.note)}</div>` : ''}<div style="margin-top:6px">${tel ? PL.call.btn(tel, c.name) : ''}<button data-open="${esc(id)}" style="margin:0 6px 6px 0">Καρτέλα</button><button data-tdone="${esc(id)}" style="margin:0 0 6px 0">✓ Έγινε</button></div></div>`;
+          return `<div class="card" data-tro="${esc(id)}" style="cursor:${PL.WIDE.matches ? 'pointer' : 'default'}"><div class="row"><span class="nm">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu" style="white-space:nowrap">από ${esc(t.d || '')}</span></div><div class="mu">${esc(c.city)}${c.addr ? ' · ' + esc(c.addr) : ''}</div>${t.note ? `<div style="margin-top:4px"><b>Χρειάζεται:</b> ${esc(t.note)}</div>` : ''}<div style="margin-top:6px">${tel ? PL.call.btn(tel, c.name) : ''}<button data-open="${esc(id)}" style="margin:0 6px 6px 0">Καρτέλα</button><button data-tdone="${esc(id)}" style="margin:0 0 6px 0">✓ Έγινε</button></div></div>`;
         }).join('') : '<p class="mu">Κανένας πελάτης δεν χρειάζεται τεχνικό αυτή τη στιγμή.</p>';
         $('#dclh').innerHTML = PL.dcl();
       };
@@ -47,6 +49,8 @@
         const t = ev.target;
         try {
           if (t.dataset.open) PL.nav.push('client', { id: t.dataset.open });
+          /* τάμπλετ: πάτημα στο κουτί → φύλλο τεχνικού δεξιά */
+          else if (PL.WIDE.matches && t.closest('.card[data-tro]') && !t.closest('button,input,a')) PL.nav.push('techreq', { id: t.closest('.card[data-tro]').dataset.tro });
           else if (t.dataset.tdone) {
             const id = t.dataset.tdone, c = M.byId(id);
             if (!(await D.confirm('Ολοκληρώθηκε η τεχνική επίσκεψη στον «' + (c ? c.name : '') + '»; Θα φύγει από τη λίστα.', 'Ναι, ολοκληρώθηκε'))) return;

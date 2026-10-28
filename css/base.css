@@ -977,7 +977,7 @@ main {
   display: none;
 }
 
-/* ---- Φύλλα δεξιά (τάμπλετ): φύλλο επίσκεψης (visit.js), φύλλο εκκρεμότητας (task.js) ---- */
+/* ---- Φύλλα δεξιά (τάμπλετ): sheet.js και τα φύλλα visit, task, debt, deal, techreq, buyer, salesitem ---- */
 .shh {
   display: flex;
   justify-content: space-between;
@@ -1014,6 +1014,12 @@ main {
 .sha svg {
   width: 22px;
   height: 22px;
+}
+.sha.n2 {
+  grid-template-columns: 1fr 1fr;
+}
+.sha.n4 {
+  grid-template-columns: 1fr 1fr 1fr 1.3fr;
 }
 .sha .shdone {
   background: #23875a;
@@ -1091,6 +1097,66 @@ main {
   background: none;
   border: 0;
   padding: 6px 0;
+}
+
+/* μεγάλα νούμερα (υπόλοιπο, συμφωνία, είδος) */
+.shk {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.shk>div {
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--card);
+}
+.shk span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--mu);
+}
+.shk b {
+  font-size: 20px;
+}
+/* γραμμές μέσα σε κουτί: είδος αριστερά, νούμερα δεξιά */
+.shr {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+/* λίστα που ανοίγει φύλλο (δεξί μέρος χωρίς επιλογή) */
+.shl>.shli {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--bd);
+  cursor: pointer;
+}
+.shl>.shli:last-child {
+  border-bottom: 0;
+}
+.shli>div {
+  min-width: 0;
+}
+.shli .mu {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shli>span {
+  white-space: nowrap;
+  font-weight: 600;
+}
+.shpre {
+  white-space: pre-wrap;
+  font: inherit;
+  margin: 0 0 8px;
 }
 
 /* ---- Οριζόντια οθόνη (τάμπλετ): ίδια συνθήκη με το PL.WIDE στο core.js ----

@@ -1,7 +1,7 @@
 /* «Συμφωνίες»: λίστα πελατών με στόχο, ρυθμός, πρόταση παραγγελιών και μήνυμα στον πελάτη (SMS / αντιγραφή).
    Δίπλα στο «Μήνυμα» το «✓ Ενημερώθηκε» κρατά την τελευταία ημερομηνία που ενημερώθηκε ο πελάτης (συλλογή dealmsg,
    χωριστά από το deals/all ώστε να μη σβήνεται στον συγχρονισμό με το orders).
-   Εκθέτει PL.deals.line / PL.deals.click ώστε να δουλεύουν και μέσα στην καρτέλα πελάτη. */
+   Εκθέτει PL.deals.line / PL.deals.click ώστε να δουλεύουν και μέσα στην καρτέλα πελάτη και στο φύλλο συμφωνίας (deal.js). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, esc = u.esc, eur = u.eur;
   const r10 = (v) => Math.ceil(v / 10) * 10;
@@ -59,15 +59,13 @@
       `<div class="dlr dlka"><span>Ενημερώθηκε: <b style="color:var(--tx)">${d ? dmy(d) : 'όχι ακόμα'}</b></span><span class="dlkb"><button class="dlsb${d ? ' on' : ''}" data-dlsent="${esc(id)}">✓ Ενημερώθηκε</button><button data-dlign="${esc(id)}">${ig ? '↩ Επαναφορά' : 'Αγνόηση'}</button></span></div></div></div>`; };
 
   /* Κείμενο μηνύματος (ένα): χαιρετισμός ανάλογα με την ώρα, συμφωνία / μέχρι σήμερα / απομένουν, πρόταση. Χωρίς υπογραφή. */
-  const greet = () => (new Date().getHours() < 13 ? 'Καλημέρα!' : 'Καλησπέρα!');
   function text(id) {
     const x = DL()[id], i = M.deal(x), P = plan(id);
-    return greet() + '\nΜια σύντομη ενημέρωση για τη συμφωνία μας Goldwell για το ' + new Date().getFullYear() + '.' +
+    return PL.sheet.greet() + '\nΜια σύντομη ενημέρωση για τη συμφωνία μας Goldwell για το ' + new Date().getFullYear() + '.' +
       '\n\nΣυμφωνία: ' + eur(x.goal) + '\nΜέχρι σήμερα: ' + eur(x.ty) + ' (' + Math.round(i.pct) + '%)' +
       (i.done ? '\n✓ Η συμφωνία πιάστηκε!' : '\nΑπομένουν: ' + eur(i.left) + ' (μέχρι τέλος του έτους)') +
       (P ? '\n\n' + P.when + '.' : '');
   }
-  const mob = (c) => [c.t2, c.t1].map((x) => String(x || '').replace(/[^\d+]/g, '')).find((x) => /^(\+?30)?69\d{8}$/.test(x)) || '';
 
   /* Παράθυρο μηνύματος (φύλλο στο κάτω μέρος). */
   let md = null, MID = null;
@@ -91,8 +89,8 @@
     return md;
   }
   function fill() {
-    const c = M.byId(MID), num = c ? mob(c) : '', body = encodeURIComponent(md.querySelector('#dlmb').value), ios = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
-    md.querySelector('#dlms').href = 'sms:' + num + (ios ? '&' : '?') + 'body=' + body;
+    const c = M.byId(MID), num = c ? PL.names.mobile(c) : '';
+    md.querySelector('#dlms').href = PL.call.sms(c, md.querySelector('#dlmb').value);
     md.querySelector('#dlmn').textContent = num ? 'Θα ανοίξει το SMS προς ' + num + ' με το κείμενο έτοιμο. Το στέλνεις εσύ.' : 'Δεν βρήκα κινητό για τον πελάτη. Το SMS θα ανοίξει χωρίς παραλήπτη.';
   }
   function open(id) {
@@ -100,14 +98,15 @@
     md.querySelector('#dlmt').textContent = '💬 ' + (M.byId(id) || {}).name;
     md.querySelector('#dlmb').value = text(id); fill(); md.style.display = 'flex';
   }
-  PL.deals = { plan, text, msg: open, click, sent, ignored, bar, line };
+  PL.deals = { list, plan, text, msg: open, click, sent, ignored, bar, line };
 
   const SORTS = { left: ['Μένουν περισσότερα', (a, b) => M.deal(b[1]).left - M.deal(a[1]).left], behind: ['Πιο πίσω', (a, b) => M.deal(a[1]).ahead - M.deal(b[1]).ahead], pct: ['Μικρότερο %', (a, b) => M.deal(a[1]).pct - M.deal(b[1]).pct], city: ['Πόλη', (a, b) => (M.byId(a[0]).city || '').localeCompare(M.byId(b[0]).city || '', 'el')] };
   let sortK = 'left';
 
   PL.register('deals', {
     title: 'Συμφωνίες',
-    split: ['client'],
+    split: ['client', 'deal'],
+    aside: (el) => PL.dealSheet.aside(el),   /* deal.js: ποιους να ενημερώσεις */
     render(el) {
       el.innerHTML = '<h2 style="color:#7a3fb8">🤝 Συμφωνίες Goldwell</h2><div id="dlsum"></div><div id="dlsort" class="chips" style="margin:6px 0"></div><div id="dll"></div><p class="mu" id="dlsrc" style="font-size:12px"></p>';
       ['deals', 'cats', 'clients', 'prospects', 'dealmsg'].forEach((c) => S.use(c));
@@ -128,7 +127,7 @@
       const offs = ['deals', 'cats', 'clients', 'dealmsg'].map((c) => S.on(c, paint));
       el.addEventListener('click', (ev) => {
         const t = ev.target, s = t.closest('[data-dls]'), o = t.closest('[data-dlo]');
-        if (s) { sortK = s.dataset.dls; paint(); } else if (click(t)) { /* μήνυμα / ενημερώθηκε / αγνόηση */ } else if (o) PL.nav.push('client', { id: o.dataset.dlo });
+        if (s) { sortK = s.dataset.dls; paint(); } else if (click(t)) { /* μήνυμα / ενημερώθηκε / αγνόηση */ } else if (o) PL.nav.push(PL.WIDE.matches ? 'deal' : 'client', { id: o.dataset.dlo });   /* τάμπλετ: φύλλο συμφωνίας δεξιά */
       });
       return () => offs.forEach((f) => f());
     },

@@ -1,5 +1,7 @@
 /* «Επισκέψεις εκτός προγράμματος» (ίδιο με της παλιάς σελίδας): για μέρες στη βάση και γύρω, χωρίς πρόγραμμα.
-   Πόλη → περιοχή → ΤΚ, αναζήτηση με φωνητικό ταίριασμα, φίλτρα, ✓ Επίσκεψη, 🕐 Ραντεβού (πάνω-πάνω τα ραντεβού, σε σειρά ώρας). */
+   Πόλη → περιοχή → ΤΚ, αναζήτηση με φωνητικό ταίριασμα, φίλτρα, ✓ Επίσκεψη, 🕐 Ραντεβού (πάνω-πάνω τα ραντεβού, σε σειρά ώρας).
+   Τάμπλετ: πάτημα στο κουτί του πελάτη → φύλλο επίσκεψης δεξιά (visit.js χωρίς πρόγραμμα)· χωρίς πάτημα, δεξιά η μέρα σου
+   (ραντεβού και επισκέψεις σήμερα). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
   const XV = { city: '', area: '', zip: '', f: 'all', q: '' };
@@ -15,7 +17,21 @@
 
   PL.register('free', {
     title: 'Επισκέψεις εκτός προγράμματος',
-    split: ['client'],
+    split: ['client', 'visit'],
+    aside(el) {
+      E.use(); S.use('settings');
+      const paint = () => {
+        const t = u.today(), AP = E.freeAppts().filter((a) => a.d === t), V = ((S.get('plans', E.freeId()) || {}).stops || []).filter((s) => s.done && M.byId(s.id));
+        const row = (id, right, cls, sub) => ({ attr: `data-xid="${esc(id)}"`, name: esc(M.byId(id).name), sub: esc(M.byId(id).city) + (sub ? ' · ' + sub : ''), right, cls });
+        el.innerHTML = `<h2 style="margin-top:0;color:#b5651d">Η μέρα σου</h2><p class="mu" style="margin-top:-6px">Βάση: <b>${esc(trips().base || '—')}</b> · πάτα έναν πελάτη για το φύλλο επίσκεψης.</p>` +
+          PL.sheet.box(`🕐 Ραντεβού σήμερα (${AP.length})`, PL.sheet.list(AP.map((a) => row(a.id, esc(a.appt), 'up', esc(M.byId(a.id).addr || ''))), 'Κανένα ραντεβού σήμερα.')) +
+          PL.sheet.box(`✓ Επισκέψεις σήμερα (${V.length})`, PL.sheet.list(V.map((s) => row(s.id, '✓', 'up', esc(M.byId(s.id).addr || ''))), 'Καμία ακόμα.'));
+      };
+      paint();
+      const offs = ['settings', 'clients', 'prospects', 'plans'].map((c) => S.on(c, paint));
+      el.addEventListener('click', (ev) => { const r = ev.target.closest('[data-xid]'); if (r) PL.nav.push('visit', { id: r.dataset.xid }); });
+      return () => offs.forEach((f) => f());
+    },
     nova: () => PL.menu('Εκτός προγράμματος', [{ e: '🆕', label: 'Νέο κομμωτήριο', d: '', fn: () => PL.dictation.open('Νέο κομμωτήριο ' + (trips().base || '') + ': ') }]),
     render(el) {
       el.id = 'xvsh';
@@ -55,7 +71,7 @@
         const row = (c) => {
           const v = E.visitedToday(c.i), ap = E.apptOf(c.i), lv = E.lastVisit(c.i), o = owe(c.i), os = E.openStop(c.i), dl = DL[c.i], tz = M.tz(c);
           const left = dl && dl.goal > dl.ty ? dl.goal - dl.ty : 0;
-          return `<div class="card"><div class="xvr"><div style="flex:1;min-width:0"><div class="nm">${ap ? `<span class="appt">🕐 ${ap.d !== u.today() ? fmt(ap.d) + ' ' : ''}${esc(ap.appt)}</span> ` : ''}${SOS[c.i] ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}${tz > 0 ? ` <span class="mu" style="font-weight:600;white-space:nowrap">· ${money(tz)}</span>` : ''}</div><div class="mu">${esc(c.addr || '')}${E.areaOf(c) ? ' · ' + esc(E.areaOf(c)) : ''}${c.zip ? ' · ' + esc(c.zip) : ''}</div><div>${lv ? `<span class="xvtag">Τελευταία: ${fmt(lv)}</span>` : '<span class="xvtag">Καμία επίσκεψη</span>'}${o.a >= 1 ? `<span class="xvtag" style="background:rgba(217,56,47,.12);color:#b8463e">💶 ${money(o.a)}</span>` : ''}${left ? `<span class="xvtag" style="background:rgba(122,63,184,.1);color:#7a3fb8">🤝 μένουν ${money(left)}</span>` : ''}${os ? '<span class="xvtag" style="background:rgba(35,135,90,.12);color:#23875a">📋 στο πρόγραμμα</span>' : ''}</div>
+          return `<div class="card" data-xid="${esc(c.i)}"><div class="xvr"><div style="flex:1;min-width:0"><div class="nm">${ap ? `<span class="appt">🕐 ${ap.d !== u.today() ? fmt(ap.d) + ' ' : ''}${esc(ap.appt)}</span> ` : ''}${SOS[c.i] ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}${tz > 0 ? ` <span class="mu" style="font-weight:600;white-space:nowrap">· ${money(tz)}</span>` : ''}</div><div class="mu">${esc(c.addr || '')}${E.areaOf(c) ? ' · ' + esc(E.areaOf(c)) : ''}${c.zip ? ' · ' + esc(c.zip) : ''}</div><div>${lv ? `<span class="xvtag">Τελευταία: ${fmt(lv)}</span>` : '<span class="xvtag">Καμία επίσκεψη</span>'}${o.a >= 1 ? `<span class="xvtag" style="background:rgba(217,56,47,.12);color:#b8463e">💶 ${money(o.a)}</span>` : ''}${left ? `<span class="xvtag" style="background:rgba(122,63,184,.1);color:#7a3fb8">🤝 μένουν ${money(left)}</span>` : ''}${os ? '<span class="xvtag" style="background:rgba(35,135,90,.12);color:#23875a">📋 στο πρόγραμμα</span>' : ''}</div>
 <div class="acts"><button data-xvv="${esc(c.i)}" class="${v ? 'xvdone' : ''}">${v ? '✓ Επίσκεψη σήμερα' : '✓ Επίσκεψη'}</button><button data-xap="${esc(c.i)}" aria-label="Ραντεβού">🕐</button>${PL.call.tels(c).length ? `<button data-callc="${esc(c.i)}" aria-label="Κλήση">📞</button>` : ''}<button data-xvo="${esc(c.i)}">Καρτέλα</button></div>${apEdit === c.i ? `<div class="aped"><label style="margin:0;color:var(--tx)">Ραντεβού</label><input type="date" id="xapd" value="${esc((ap && ap.d) || u.today())}"><input type="time" id="xapt" value="${esc((ap && ap.appt) || '')}"><button class="pri" data-xapsave="${esc(c.i)}">OK</button>${ap ? `<button data-xapdel="${esc(c.i)}">Χωρίς ραντεβού</button>` : ''}<button data-xapx="1">Άκυρο</button></div>` : ''}</div></div></div>`;
         };
         $('#xvl').innerHTML = (AP.length ? `<h3 style="margin:10px 0 4px">📅 Ραντεβού (${AP.length})</h3>` + AP.map((a) => row(M.byId(a.id))).join('') : '') + (V.length ? `<h3 style="margin:10px 0 4px;color:#23875a">✓ Σήμερα (${V.length})</h3>` + V.map(row).join('') : '') + (R.length ? `<h3 style="margin:12px 0 4px">${R.length} πελάτες</h3>` + R.slice(0, 200).map(row).join('') : '<p class="mu">Κανένας πελάτης με αυτά τα φίλτρα.</p>') + (R.length > 200 ? '<p class="mu">Εμφανίζονται οι 200 πρώτοι. Χρησιμοποίησε αναζήτηση ή περιοχή.</p>' : '');
@@ -86,6 +102,8 @@
         if ((b = t.closest('[data-xvz]'))) { XV.zip = b.dataset.xvz; render(); return; }
         if ((b = t.closest('[data-xvf]'))) { XV.f = b.dataset.xvf; render(); return; }
         if ((b = t.closest('[data-xvo]'))) { PL.nav.push('client', { id: b.dataset.xvo }); return; }
+        /* τάμπλετ: πάτημα στο κουτί (όχι σε κουμπί ή πεδίο) → φύλλο επίσκεψης δεξιά */
+        if (PL.WIDE.matches && (b = t.closest('.card[data-xid]')) && !t.closest('button,input,a,label,select,textarea')) { PL.nav.push('visit', { id: b.dataset.xid }); return; }
         if (t.id === 'xvend') { PL.nav.home(); return; }
         if ((b = t.closest('[data-xap]'))) { apEdit = apEdit === b.dataset.xap ? '' : b.dataset.xap; render(); setTimeout(() => { const i = $('#xapt'); if (i) i.focus(); }, 50); return; }
         if (t.dataset.xapx) { apEdit = ''; render(); return; }

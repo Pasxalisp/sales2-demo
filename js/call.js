@@ -2,6 +2,7 @@
    btn(tel, who, small): κουμπί με τον αριθμό (λίστες που δείχνουν ένα τηλέφωνο).
    cbtn(c, small): «📞 Κλήση» — με ένα τηλέφωνο ρωτά «σίγουρα;», με περισσότερα βγάζει επιλογή (Σταθερό / Κινητό).
    map(c, small) / mapUrl(c): «📍 Οδηγίες» — ανοίγει το Google Maps στη διεύθυνση του πελάτη.
+   sms(c, body): σύνδεσμος Μηνυμάτων με έτοιμο κείμενο.
    Το παράθυρο (#callm) φτιάχνεται στο dialogs.js· τα πατήματα [data-call] / [data-callc] τα χειρίζεται αυτό το αρχείο.
    Οι σύνδεσμοι tel: / sms: ανοίγουν με target=_blank (όπως οι Οδηγίες): η σελίδα τρέχει μέσα σε πλαίσιο του claude.ai
    και ο σύνδεσμος πρέπει να «βγει» από το πλαίσιο για να ανοίξει η Κλήση / τα Μηνύματα του κινητού. */
@@ -32,6 +33,8 @@
     btn: (tel, who, small) => `<button class="callb" data-call="${esc(tel)}" data-who="${esc(who || '')}"${sm(small)}>📞 ${esc(tel)}</button>`,
     cbtn: (c, small) => (tels(c).length ? `<button class="callb" data-callc="${esc(c.i)}"${sm(small)}>📞 Κλήση</button>` : ''),
     map: (c, small) => { const h = mapUrl(c); return h ? `<a class="btn callb" href="${esc(h)}" target="_blank" rel="noopener"${sm(small)}>📍 Οδηγίες</a>` : ''; },
+    /* SMS με έτοιμο κείμενο προς το κινητό του πελάτη (χωρίς κινητό: ανοίγει χωρίς παραλήπτη). Το στέλνει ο πωλητής. */
+    sms: (c, body) => 'sms:' + (c ? PL.names.mobile(c) : '') + (body ? (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ? '&' : '?') + 'body=' + encodeURIComponent(body) : ''),
   };
   document.addEventListener('click', (ev) => {
     const k = ev.target.closest('[data-call],[data-callc]'); if (!k || k.disabled) return;
