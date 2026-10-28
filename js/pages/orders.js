@@ -3,6 +3,7 @@
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, esc = u.esc, O = () => PL.orders;
   PL.register('orders', {
     title: 'Παραγγελίες',
+    split: ['order'],
     render(el) {
       el.innerHTML = '<div class="page-head"><h1>🛒 Παραγγελίες</h1></div><label class="mu">Νέα παραγγελία για πελάτη</label><div id="opk"></div><div id="obody"></div><p class="mu f">Εδώ φτιάχνεις μόνο πρόχειρες παραγγελίες, για να μην τις γράφεις από την αρχή. Δεν στέλνονται πουθενά και δεν έχουν εκπτώσεις· το «Αντιγραφή» σου δίνει το κείμενο για να το περάσεις στο σύστημα.</p>';
       ['orders', 'clients', 'prospects', 'ocat', 'items'].forEach((c) => S.use(c));

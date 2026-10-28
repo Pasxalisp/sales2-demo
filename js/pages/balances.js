@@ -43,6 +43,7 @@
 
   PL.register('balances', {
     title: 'Υπόλοιπα',
+    split: ['client'],
     render(el) {
       el.innerHTML = `<h2>Υπόλοιπα πελατών</h2><div id="bsum" class="warn"></div><div id="bchips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
 <input id="bq" placeholder="Αναζήτηση πελάτη ή πόλης…" style="margin:8px 0"><div id="bl"></div>`;

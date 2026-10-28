@@ -61,7 +61,7 @@ main>.page>header:first-child {
   white-space: nowrap;
 }
 /* Οριζόντια οθόνη: η λίστα κυλά μέσα στη δική της στήλη (base.css), η κεφαλίδα κολλά στην κορυφή της στήλης. */
-@media (min-width: 900px) and (orientation: landscape) {
+@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
   main.split>.page:has(>header:first-child) {
     margin: 0;
     padding: 0 18px 40px;

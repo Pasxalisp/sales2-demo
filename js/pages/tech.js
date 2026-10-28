@@ -6,6 +6,7 @@
 
   PL.register('tech', {
     title: 'Τεχνικός – Σεμινάρια',
+    split: ['client'],
     render(el) {
       el.innerHTML = `<h2>Τεχνικός – Σεμινάρια</h2>
 <div class="card" id="hubt" style="padding:18px"><div class="row"><span class="nm" style="font-size:18px">🔧 Επίσκεψη τεχνικού</span><span class="tz" id="hubtc"></span></div><div class="mu">Πελάτες που χρειάζονται τεχνικό</div></div>

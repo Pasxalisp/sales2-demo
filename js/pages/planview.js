@@ -83,6 +83,7 @@
   /* ---------- Οθόνη ---------- */
   PL.register('planview', {
     title: 'Πρόγραμμα',
+    split: ['client'],
     nova: () => PL.menu('Πρόγραμμα ημέρας', [
       { e: '👤', label: 'Πρόσθεσε πελάτη', d: 'από το πελατολόγιο', fn: () => { const i = document.getElementById('pladd'); if (i) { i.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => i.focus(), 350); } } },
       { e: '🆕', label: 'Νέο κομμωτήριο', d: 'δεν υπάρχει στη λίστα', fn: () => { const b = document.getElementById('plnewb'); if (b) { b.click(); b.scrollIntoView({ block: 'center', behavior: 'smooth' }); } } },
@@ -107,7 +108,7 @@
       /* ---- σχεδίαση ---- */
       function renderPlan() {
         if (pDrag) { pDrag.pending = true; return; }
-        const p = cur; if (!p || !alive) return; const sc = window.scrollY;
+        const p = cur; if (!p || !alive) return; const scr = PL.scroller(el), sc = scr.scrollTop;
         $('#plt').textContent = p.cities.join(' + ') + E.modeLbl(p.mode); $('#plsum').innerHTML = areaSum(p.cities);
         const d = p.stops.filter((s) => s.done).length;
         $('#plp').textContent = p.saved ? d + '/' + p.stops.length + ' επισκέψεις · ' + p.created + ' · Κράτα πατημένο έναν πελάτη ή σύρε το ≡ για να αλλάξεις σειρά' : 'Πρόχειρο: αφαίρεσε ή πρόσθεσε πελάτες και πάτα ΟΚ για να αποθηκευτεί. Αν βγεις, κρατιέται στα «Πρόχειρα» του Προγράμματος ημέρας. Τα τικ για τις επισκέψεις εμφανίζονται μετά το ΟΚ.';
@@ -128,7 +129,7 @@
         });
         const A = p.stops.filter((s) => s.appt && !s.done && M.byId(s.id)).sort((a, b) => ((a.apptD || '') + a.appt).localeCompare((b.apptD || '') + b.appt));
         if (A.length) h = `<div class="apsum"><b>📅 Ραντεβού:</b> ${A.map((s) => '<b>' + (s.apptD && s.apptD !== p.created ? esc(s.apptD.split('-').reverse().slice(0, 2).join('/')) + ' ' : '') + esc(s.appt) + '</b> ' + esc(M.byId(s.id).name)).join(' · ')}</div>` + h;
-        $('#plb').innerHTML = h || '<p class="mu">Κανένας πελάτης.</p>'; window.scrollTo(0, sc);
+        $('#plb').innerHTML = h || '<p class="mu">Κανένας πελάτης.</p>'; scr.scrollTop = sc;
         $('#plact').innerHTML = p.saved ? (p.stops.length && p.stops.every((x) => x.done) ? '<div class="warn" style="font-weight:600">✅ Το πρόγραμμα ολοκληρώθηκε</div>' : '') + '<p style="display:flex;gap:6px;flex-wrap:wrap"><button class="pri" id="plxls">📤 Excel</button><button id="ploff">📴 Για χωρίς σήμα</button><button id="pldel">🗑 Διαγραφή προγράμματος</button></p><div id="plxst" class="mu"></div>' : '<button class="pri" id="plok">ΟΚ — αποθήκευση προγράμματος</button>';
         $('#dclh').innerHTML = PL.dcl() + `<datalist id="ccl">${[...new Set(M.clients().map((c) => c.city))].sort((a, b) => a.localeCompare(b, 'el')).map((k) => `<option value="${esc(k)}">`).join('')}</datalist>`;
         draftSave();
@@ -152,15 +153,15 @@
       /* ---- σύρσιμο ---- */
       const pdStart = (card, x, y) => {
         const cards = [...$('#plb').querySelectorAll('.pcard')], p = cards.indexOf(card); if (p < 0) return;
-        const mids = cards.map((c) => { const r = c.getBoundingClientRect(); return r.top + r.height / 2 + window.scrollY; });
+        const top0 = PL.scroller(el).scrollTop, mids = cards.map((c) => { const r = c.getBoundingClientRect(); return r.top + r.height / 2 + top0; });
         const cs = getComputedStyle(card), h = card.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
-        pDrag = { card, cards, p, t: p, mids, h, y0: y + window.scrollY }; card.classList.add('drag'); cards.forEach((c) => { if (c !== card) c.classList.add('shift'); });
+        pDrag = { card, cards, p, t: p, mids, h, y0: y + top0 }; card.classList.add('drag'); cards.forEach((c) => { if (c !== card) c.classList.add('shift'); });
         try { navigator.vibrate && navigator.vibrate(25); } catch (e) { /* τίποτα */ }
       };
       const pdMove = (y) => {
         const d = pDrag; if (!d) return;
-        if (y < 90) window.scrollBy(0, -14); else if (y > innerHeight - 130) window.scrollBy(0, 14);
-        const dy = y + window.scrollY - d.y0; d.card.style.transform = 'translateY(' + dy + 'px)';
+        const scr = PL.scroller(el); if (y < 90) scr.scrollBy(0, -14); else if (y > innerHeight - 130) scr.scrollBy(0, 14);
+        const dy = y + scr.scrollTop - d.y0; d.card.style.transform = 'translateY(' + dy + 'px)';
         const c = d.mids[d.p] + dy; let t = 0; d.mids.forEach((m, i) => { if (i !== d.p && m < c) t++; }); d.t = t;
         d.cards.forEach((e2, i) => { if (i === d.p) return; let o = 0; if (d.p < t && i > d.p && i <= t) o = -d.h; else if (d.p > t && i >= t && i < d.p) o = d.h; e2.style.transform = o ? 'translateY(' + o + 'px)' : ''; });
       };

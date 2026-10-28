@@ -15,6 +15,7 @@
 
   PL.register('free', {
     title: 'Επισκέψεις εκτός προγράμματος',
+    split: ['client'],
     nova: () => PL.menu('Εκτός προγράμματος', [{ e: '🆕', label: 'Νέο κομμωτήριο', d: '', fn: () => PL.dictation.open('Νέο κομμωτήριο ' + (trips().base || '') + ': ') }]),
     render(el) {
       el.id = 'xvsh';

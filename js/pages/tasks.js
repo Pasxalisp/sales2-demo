@@ -40,6 +40,7 @@
 
   PL.register('tasks', {
     title: 'Εκκρεμότητες',
+    split: ['client', 'seminar'],
     nova: () => PL.menu('Εκκρεμότητες', [
       { e: '➕', label: 'Νέα εκκρεμότητα', d: 'για κάποιον πελάτη, με υπαγόρευση', fn: () => PL.dictation.open('Εκκρεμότητα: ') },
       { e: '⏰', label: 'Υπενθύμιση', d: 'στο ημερολόγιο του iPhone', fn: () => PL.dictation.open('Θύμισέ μου ') },

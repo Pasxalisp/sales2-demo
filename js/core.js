@@ -53,26 +53,32 @@
   }
 
   /* ---- σελίδες & στοίβα πλοήγησης ---- */
-  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:'id σελίδας λεπτομέρειας' }
+  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:['ids σελίδων λεπτομέρειας'] }
   const stack = [];           // [{id, params}]
   PL.pages = pages;
   PL.register = (id, def) => { pages[id] = def; };
 
-  /* Οριζόντια οθόνη (τάμπλετ): μία σελίδα-λίστα με `split: 'client'` δείχνεται αριστερά και η λεπτομέρεια δεξιά.
-     Η ίδια συνθήκη υπάρχει στο CSS (base.css, «Οριζόντια οθόνη»). Η στοίβα μένει ίδια: [.., clients, client]. */
-  PL.WIDE = window.matchMedia('(min-width: 900px) and (orientation: landscape)');
+  /* Οριζόντια οθόνη (τάμπλετ): μια σελίδα-λίστα με `split: ['client', …]` δείχνεται αριστερά και η λεπτομέρεια που
+     ανοίγει από αυτήν δεξιά. Η ίδια συνθήκη υπάρχει στο CSS (base.css, «Οριζόντια οθόνη»).
+     Η στοίβα μένει ίδια με του κινητού: [.., clients, client] — αλλάζει μόνο το πώς δείχνεται. */
+  /* Το ύψος αποκλείει τα μεγάλα κινητά σε οριζόντια (π.χ. iPhone Pro Max: 932×430). */
+  PL.WIDE = window.matchMedia('(min-width: 900px) and (min-height: 600px) and (orientation: landscape)');
+  const details = (e) => [].concat(pages[e.id].split || []);
   const masterOf = () => {
     if (!PL.WIDE.matches) return null;
     const cur = stack[stack.length - 1], below = stack[stack.length - 2];
-    if (pages[cur.id].split) return cur;
-    return below && pages[below.id].split === cur.id ? below : null;
+    if (details(cur).length) return cur;
+    return below && details(below).includes(cur.id) ? below : null;
   };
+
+  /* Το στοιχείο που κυλά για μια σελίδα: η δική της στήλη σε οριζόντια οθόνη με δύο στήλες, αλλιώς όλη η σελίδα. */
+  PL.scroller = (el) => (el && el.closest('main.split>.page')) || document.scrollingElement;
 
   PL.nav = {
     push(id, params) {
-      const e = { id, params: params || {} }, m = masterOf();
+      const e = { id, params: params || {} }, m = masterOf(), top = stack[stack.length - 1];
       /* Δίπλα στη λίστα: νέα λεπτομέρεια αντικαθιστά την προηγούμενη (το «Πίσω» γυρνά στη λίστα, όχι από πελάτη σε πελάτη). */
-      if (m && m !== stack[stack.length - 1] && stack[stack.length - 1].id === id) stack[stack.length - 1] = e; else stack.push(e);
+      if (m && m !== top && details(m).includes(id)) stack[stack.length - 1] = e; else stack.push(e);
       show();
     },
     back() { if (stack.length > 1) { stack.pop(); show(); } },
@@ -86,13 +92,14 @@
 
   /* Δύο θέσεις: L (κύρια ή λίστα) και R (λεπτομέρεια, μόνο σε οριζόντια οθόνη). */
   /* Κάθε θέση κρατά και τα μισογραμμένα κείμενα της σελίδας της (drafts.js): φυλάγονται όταν η σελίδα φεύγει. */
-  const slot = { L: { e: null, el: null, off: null, dr: null }, R: { e: null, el: null, off: null, dr: null } };
+  const slot = { L: { e: null, el: null, off: null, dr: null, obs: null }, R: { e: null, el: null, off: null, dr: null } };
   const unmount = (k) => {
     const s = slot[k];
+    if (s.obs) s.obs.disconnect();
     if (s.dr) { try { s.dr.off(); } catch (e) { console.error(e); } }
     if (s.off) { try { s.off(); } catch (e) { console.error(e); } }
     if (s.el) s.el.remove();
-    slot[k] = { e: null, el: null, off: null, dr: null };
+    slot[k] = { e: null, el: null, off: null, dr: null, obs: null };
   };
   const mount = (k, e, cls) => {
     unmount(k);
@@ -103,7 +110,19 @@
     if (k === 'L' && slot.R.el) $('#app').insertBefore(el, slot.R.el);
     slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : null, dr: e ? PL.drafts.track(el, e) : null };
     if (!e) el.innerHTML = '<p class="mu pgempty">Διάλεξε από τη λίστα.</p>';
+    /* Η λίστα ξαναζωγραφίζεται όταν αλλάζουν τα δεδομένα: η επιλογή ξαναμπαίνει. */
+    if (cls === 'paneL') { slot.L.obs = new MutationObserver(() => requestAnimationFrame(markSel)); slot.L.obs.observe(el, { childList: true, subtree: true }); }
   };
+  /* Στη λίστα αριστερά φαίνεται επιλεγμένο ό,τι είναι ανοιχτό δεξιά: το στοιχείο που έχει το id του σε κάποιο data-…
+     (data-id, data-open, data-oo, data-sem …), μαζί με την κάρτα ή τη γραμμή που το περιέχει. */
+  const SEL = '.card,.ndr,.wr';
+  function markSel() {
+    const L = slot.L.el; if (!L || !slot.L.obs) return;
+    const id = slot.R.e && slot.R.e.params.id, on = new Set();
+    if (id) L.querySelectorAll('*').forEach((x) => { if (Object.values(x.dataset).includes(id)) on.add(x.closest(SEL) || x); });
+    L.querySelectorAll('.sel').forEach((x) => { if (!on.has(x)) x.classList.remove('sel'); });
+    on.forEach((x) => x.classList.add('sel'));
+  }
   /* Κλείσιμο ή παρασκήνιο της εφαρμογής: φυλάγονται τα μισογραμμένα κείμενα των ανοιχτών σελίδων. */
   const keepDrafts = () => ['L', 'R'].forEach((k) => { if (slot[k].dr) slot[k].dr.keep(); });
   addEventListener('pagehide', keepDrafts);
@@ -116,9 +135,9 @@
       if (slot.L.e !== m) mount('L', m, 'paneL');
       const d = m === cur ? null : cur;
       if (!slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR'); slot.R.el.scrollTop = 0; }
+      markSel();
     }
     PL.bar.update();
-    PL.bus.emit('nav', cur);
   }
   PL.WIDE.addEventListener('change', () => { if (stack.length) { unmount('L'); unmount('R'); show(); } });
 

@@ -18,6 +18,7 @@
   /* ---------- Λίστα σεμιναρίων ---------- */
   PL.register('semlist', {
     title: 'Σεμινάρια', nova,
+    split: ['seminar'],
     render(el) {
       el.id = 'smsh';   /* όπως στην παλιά: ο τίτλος παίρνει το μωβ των σεμιναρίων (#smsh h2) */
       el.innerHTML = `<h2>🎓 Σεμινάρια</h2><button class="pri" id="smopen" style="width:100%;padding:14px;font-size:17px;margin-bottom:10px">+ Νέο σεμινάριο</button>
@@ -118,7 +119,7 @@
 <div style="display:flex;gap:6px;flex-wrap:wrap"><select id="smpc" style="flex:1;min-width:150px"></select><select id="smpk" style="flex:1;min-width:150px"></select></div>
 <div style="display:flex;gap:6px;margin-top:6px;align-items:center"><input id="smpq" placeholder="Αναζήτηση ονόματος…" style="flex:1;min-width:0"><label style="margin:0;display:flex;align-items:center;gap:4px;white-space:nowrap;color:var(--tx);font-size:14px"><input type="checkbox" id="smpz" style="width:auto"> Με τζίρο</label></div>
 <div style="display:flex;gap:6px;margin:8px 0"><button id="smpall">Επιλογή όλων</button><button id="smpnone">Καθαρισμός</button><span id="smpn" class="mu" style="align-self:center;margin-left:auto"></span></div>
-<div id="smpl"></div><div style="position:sticky;bottom:calc(70px + var(--navb));background:var(--bg);padding:10px 0"><button class="pri" id="smpok" style="width:100%;padding:14px;font-size:17px">Προσθήκη</button></div>`;
+<div id="smpl"></div><div class="smbar"><button class="pri" id="smpok" style="width:100%;padding:14px;font-size:17px">Προσθήκη</button></div>`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
       let sel = new Set();

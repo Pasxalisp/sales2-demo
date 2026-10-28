@@ -107,6 +107,7 @@
 
   PL.register('deals', {
     title: 'Συμφωνίες',
+    split: ['client'],
     render(el) {
       el.innerHTML = '<h2 style="color:#7a3fb8">🤝 Συμφωνίες Goldwell</h2><div id="dlsum"></div><div id="dlsort" class="chips" style="margin:6px 0"></div><div id="dll"></div><p class="mu" id="dlsrc" style="font-size:12px"></p>';
       ['deals', 'cats', 'clients', 'prospects', 'dealmsg'].forEach((c) => S.use(c));

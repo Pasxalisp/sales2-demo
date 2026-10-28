@@ -8,7 +8,8 @@
 (function () {
   const PL = window.PL;
   const KEY = 'pl.drafts', DAYS = 7;
-  const TXT = 'textarea,input:not([type]),input[type=text],input[type=search],input[type=number],input[type=tel],input[type=email],input[type=url],input[type=date],input[type=time]';
+  /* κείμενα και ημερομηνίες· όχι αναζητήσεις (type=search) και αριθμοί-ρυθμίσεις (type=number) */
+  const TXT = 'textarea,input:not([type]),input[type=text],input[type=tel],input[type=email],input[type=url],input[type=date],input[type=time]';
   let all = {};
   try { all = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { all = {}; }
   const old = Date.now() - DAYS * 864e5;

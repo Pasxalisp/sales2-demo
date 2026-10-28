@@ -17,6 +17,7 @@
 
   PL.register('sales', {
     title: 'Πωλήσεις ανά κατηγορία',
+    split: ['client'],
     render(el, params) {
       if (params && params.g != null) { st.g = params.g; st.open = null; }
       el.innerHTML = '<h2 style="color:#2f6f5e">📊 Πωλήσεις ανά κατηγορία</h2><div style="display:flex;gap:6px;margin:4px 0 8px"><select id="slg" style="flex:1;min-width:0" aria-label="Κατηγορία"></select><select id="slc" style="flex:1;min-width:0" aria-label="Περιοχή"></select></div><div id="slsum"></div><div id="slbody"></div><p class="mu" id="slsrc" style="font-size:12px"></p>';
@@ -50,7 +51,7 @@
       el.addEventListener('click', (e) => {
         const t = e.target, o = t.closest('[data-slo]'), g = t.closest('[data-slg]'), s = t.closest('[data-sls]'), i = t.closest('[data-sli]');
         if (o) PL.nav.push('client', { id: o.dataset.slo });
-        else if (g) { st.g = g.dataset.slg; st.open = null; fillSel(); render(); window.scrollTo(0, 0); }
+        else if (g) { st.g = g.dataset.slg; st.open = null; fillSel(); render(); PL.scroller(el).scrollTop = 0; }
         else if (s) { st.sort = s.dataset.sls; render(); }
         else if (i) { st.open = st.open === i.dataset.sli ? null : i.dataset.sli; render(); }
       });

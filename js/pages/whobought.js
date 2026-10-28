@@ -20,6 +20,7 @@
 
   PL.register('whobought', {
     title: 'Ποιος αγόρασε',
+    split: ['client'],
     render(el) {
       el.classList.add('wb');
       el.innerHTML = `<h2>🔎 Ποιος αγόρασε…</h2>
