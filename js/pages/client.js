@@ -68,7 +68,7 @@
   }
   /* προσωρινός: αν μοιάζει με κανονικό πελάτη (π.χ. πέρασε στο orders), πρόταση ένωσης· αλλιώς ένωση με το χέρι */
   const prospPanel = (id) => { const m = PL.prospects.matches().find((x) => x.pid === id), mc = m && M.byId(m.cid);
-    return `<div class="warn">${mc ? `Μάλλον πέρασε στο orders ως <b>${esc(mc.name)}</b>${mc.code ? ' (κωδ. ' + esc(mc.code) + ')' : ''} · ${esc(m.why)}.<p style="margin:8px 0"><button class="pri" data-pmy="${esc(mc.i)}">Ένωση</button> <button data-pmn="${esc(mc.i)}">Όχι, άλλος</button></p>` : ''}🆕 Προσωρινός πελάτης (δεν έχει περάσει στο orders). Όταν περάσει, θα σου προταθεί η ένωση στην Αρχική. Ή ένωσέ τον τώρα με τον κανονικό:<input id="pm" list="dcl" placeholder="γράψε το όνομα του κανονικού πελάτη…" style="margin-top:6px"><datalist id="dcl">${M.clients().map((c) => `<option value="${esc(c.name)} · ${esc(c.city)} · ${c.i}">`).join('')}</datalist><p style="margin:8px 0 0"><button id="pmg">Ένωση</button> <button id="pdel">Διαγραφή</button></p></div>`; };
+    return `<div class="warn">${mc ? `Μάλλον πέρασε στο orders ως <b>${esc(mc.name)}</b>${mc.code ? ' (κωδ. ' + esc(mc.code) + ')' : ''} · ${esc(m.why)}.<p style="margin:8px 0"><button class="pri" data-pmy="${esc(mc.i)}">Ένωση</button> <button data-pmn="${esc(mc.i)}">Όχι, άλλος</button></p>` : ''}🆕 Προσωρινός πελάτης (δεν έχει περάσει στο orders). Όταν περάσει, θα σου προταθεί η ένωση στην Αρχική. Ή ένωσέ τον τώρα με τον κανονικό:<input id="pmc" list="dcl" placeholder="γράψε το όνομα του κανονικού πελάτη…" style="margin-top:6px"><datalist id="dcl">${M.clients().map((c) => `<option value="${esc(c.name)} · ${esc(c.city)} · ${c.i}">`).join('')}</datalist><p style="margin:8px 0 0"><button id="pmg">Ένωση</button> <button id="pdel">Διαγραφή</button></p></div>`; };
 
   /* ---- πάνω μέρος ---- */
   /* σεμινάρια του πελάτη: '' (κανένα) · 'p' (κάποιο περιμένει επιβεβαίωση) · 'c' (όλα επιβεβαιωμένα) */
@@ -133,8 +133,8 @@
       const $ = (s) => el.querySelector(s);
       const saveNotes = (patch) => { const c = M.byId(id) || {}; const cur = S.get('notes', id) || {};
         return db().set('notes/' + id, Object.assign({ code: c.code || '', name: c.name || '', works: cur.works || [], entries: cur.entries || [] }, patch)); };
-      const paintTop = () => { const c = M.byId(id); const keep = $('#pm') && $('#pm').value;
-        $('#top').innerHTML = c ? topHtml(id, c) : '<div class="warn"><b>Δεν βρέθηκε ο πελάτης</b>Ίσως δεν έχουν φορτώσει ακόμα τα δεδομένα.</div>'; if (keep && $('#pm')) $('#pm').value = keep; };
+      const paintTop = () => { const c = M.byId(id); const keep = $('#pmc') && $('#pmc').value;
+        $('#top').innerHTML = c ? topHtml(id, c) : '<div class="warn"><b>Δεν βρέθηκε ο πελάτης</b>Ίσως δεν έχουν φορτώσει ακόμα τα δεδομένα.</div>'; if (keep && $('#pmc')) $('#pmc').value = keep; };
       const paintHist = () => { $('#hist').innerHTML = histHtml(id); };
       COLS.forEach((c) => S.use(c));
       paintTop(); paintHist();
@@ -177,7 +177,7 @@
             await PL.plans.clearExit(id);
           }
           else if (t.id === 'pmg' || t.dataset.pmy) {
-            const tid = t.dataset.pmy || $('#pm').value.split(' · ').pop(), tc = M.byId(tid);
+            const tid = t.dataset.pmy || $('#pmc').value.split(' · ').pop(), tc = M.byId(tid);
             if (!tc || tc.prospect) { D.toast('Διάλεξε κανονικό πελάτη από τη λίστα'); return; }
             if (!await D.confirm('Να ενωθεί ο προσωρινός πελάτης με τον «' + tc.name + '»; Ό,τι έχει (σημειώσεις, επισκέψεις, προγράμματα, ραντεβού, SOS, εκκρεμότητες…) θα περάσει σε αυτόν και ο προσωρινός θα διαγραφεί.', 'Ναι, ένωση')) return;
             await PL.prospects.merge(id, tid); D.toast('Ενώθηκε με «' + tc.name + '»'); closeAfter();
