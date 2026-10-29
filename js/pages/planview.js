@@ -95,7 +95,7 @@
       { e: '🆕', label: 'Νέο κομμωτήριο', d: 'δεν υπάρχει στη λίστα', fn: () => { const b = document.getElementById('plnewb'); if (b) { b.click(); b.scrollIntoView({ block: 'center', behavior: 'smooth' }); } } },
     ]),
     render(el, params) {
-      el.innerHTML = `<h2 id="plt"></h2><div id="plp" class="mu"></div><div id="plsum"></div><div id="plb"></div>
+      el.innerHTML = `<h2 id="plt"></h2><div id="plp" class="mu"></div><div id="pllab" class="chips" style="margin:6px 0 0"></div><div id="plsum"></div><div id="plb"></div>
 <div style="display:flex;gap:6px;margin-top:12px"><input id="pladd" list="dcl" placeholder="Πρόσθεσε πελάτη…" style="flex:1;min-width:0"><button id="pladdb">Προσθήκη</button></div>
 <button id="plpick" style="width:100%;margin-top:6px;padding:12px;border-color:var(--ac);color:var(--ac)">📋 Επιλογή από όλο το πελατολόγιο</button>
 <button id="plnewb" style="width:100%;margin-top:6px;padding:12px;border-color:var(--ac);color:var(--ac)">🆕 Νέο κομμωτήριο (δεν υπάρχει στο πελατολόγιο)</button>
@@ -106,6 +106,11 @@
 <p style="display:flex;gap:6px;margin:10px 0 0"><button class="pri" id="pnsave">Προσθήκη στο πρόγραμμα</button><button id="pncancel">Άκυρο</button></p><div id="pnst" class="mu"></div></div>
 <p id="plact"></p><span id="dclh"></span>`;
       const $ = (s) => el.querySelector(s);
+      /* Δοκιμαστικά (lab/, μόνο στη δοκιμαστική έκδοση): κουμπιά για αυτή τη σελίδα από το PL.labActs = [{page, label, fn(planId)}]. */
+      const LA = (PL.labActs || []).filter((x) => x.page === 'planview');
+      $('#pllab').innerHTML = LA.map((x, k) => `<button class="chip" data-plab="${k}">${x.label}</button>`).join('');
+      $('#pllab').hidden = !LA.length;
+      $('#pllab').addEventListener('click', (ev) => { const b = ev.target.closest('[data-plab]'); if (b && cur && cur.saved) LA[+b.dataset.plab].fn(cur.id); });
       let pDrag = null, pLP = null, pNoClick = false, alive = true;
       const canon = E.canonCity;
 

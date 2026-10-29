@@ -61,7 +61,8 @@
 
   PL.register('labmap', {
     title: 'Χάρτης (δοκιμαστικό)',
-    render(el) {
+    render(el, params) {
+      if (params && params.pid) st.mode = 'plan';   /* από το κουμπί «🗺 Χάρτης» του Προγράμματος */
       el.classList.add('lmap');
       el.innerHTML = '<div class="lmh"><h2>🗺 Χάρτης <span class="lmb">δοκιμαστικό</span></h2><select id="lmcity" aria-label="Πόλη"></select></div>' +
         '<div class="chips lmm" id="lmmode"><button class="chip" data-lmm="all">Όλοι οι πελάτες</button><button class="chip" data-lmm="plan">📋 Το πρόγραμμά μου</button><button class="chip" data-lmm="near">📍 Κοντά μου</button></div>' +
@@ -93,7 +94,7 @@
         if (layer) layer.remove(); layer = L.layerGroup().addTo(map);
         let pts = [], side = '';
         if (st.mode === 'plan') {
-          const act = E.activeList().find(([, p]) => p.mode !== 'free');
+          const act = (params && params.pid && S.get('plans', params.pid) ? [params.pid, S.get('plans', params.pid)] : null) || E.activeList().find(([, p]) => p.mode !== 'free');
           if (!act) side = '<p class="mu">Δεν υπάρχει ανοιχτό πρόγραμμα.</p>';
           else {
             const [pid, p] = act, stops = (p.stops || []).map((s) => ({ s, c: M.byId(s.id) })).filter((x) => x.c).map((x) => Object.assign(x, { p: pos(x.c) })).filter((x) => x.p);
@@ -162,4 +163,6 @@
 
   (PL.labs = PL.labs || []).push({ page: 'labmap', label: 'Χάρτης', sub: 'δοκιμαστικό',
     icon: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>' });
+  /* κουμπί μέσα στο Πρόγραμμα: ανοίγει τον χάρτη με τις στάσεις αυτού του προγράμματος */
+  (PL.labActs = PL.labActs || []).push({ page: 'planview', label: '🗺 Χάρτης', fn: (pid) => PL.nav.push('labmap', { pid }) });
 })();
