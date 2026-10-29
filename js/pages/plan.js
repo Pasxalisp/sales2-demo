@@ -28,7 +28,9 @@
       E.use(); S.use('pdrafts');
       const paint = () => {
         const ok = S.loaded('plans');
-        el.querySelector('.pgo').innerHTML = OPT.map((o) => { const l = ok ? live[o.k]() : '';
+        /* + δοκιμαστικά πλακίδια (lab/, μόνο στη δοκιμαστική έκδοση): PL.labActs = [{page: 'plan', tile: {id, k, i, t, s}}] */
+        const opts = OPT.concat((PL.labActs || []).filter((x) => x.page === 'plan').map((x) => x.tile));
+        el.querySelector('.pgo').innerHTML = opts.map((o) => { const l = ok && live[o.k] ? live[o.k]() : '';
           return `<button class="pgt ${o.k}" data-go="${o.id}"><span class="pgi">${PL.icon[o.i]}</span><span class="pgx"><span class="pgn">${o.t}</span><span class="pgs">${o.s}</span>${l ? `<span class="pgl">${l}</span>` : ''}</span><span class="pgc" aria-hidden="true">›</span></button>`; }).join('');
       };
       paint();

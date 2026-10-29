@@ -62,7 +62,7 @@
   PL.register('labmap', {
     title: 'Χάρτης (δοκιμαστικό)',
     render(el, params) {
-      if (params && params.pid) st.mode = 'plan';   /* από το κουμπί «🗺 Χάρτης» του Προγράμματος */
+      st.mode = params && params.pid ? 'plan' : 'all';   /* από το κουμπί «🗺 Χάρτης» ενός προγράμματος: οι στάσεις του· από το πλακίδιο: όλοι */
       el.classList.add('lmap');
       el.innerHTML = '<div class="lmh"><h2>🗺 Χάρτης <span class="lmb">δοκιμαστικό</span></h2><select id="lmcity" aria-label="Πόλη"></select></div>' +
         '<div class="chips lmm" id="lmmode"><button class="chip" data-lmm="all">Όλοι οι πελάτες</button><button class="chip" data-lmm="plan">📋 Το πρόγραμμά μου</button><button class="chip" data-lmm="near">📍 Κοντά μου</button></div>' +
@@ -163,4 +163,6 @@
 
   /* κουμπί μέσα στο Πρόγραμμα: ανοίγει τον χάρτη με τις στάσεις αυτού του προγράμματος */
   (PL.labActs = PL.labActs || []).push({ page: 'planview', label: '🗺 Χάρτης', fn: (pid) => PL.nav.push('labmap', { pid }) });
+  /* πλακίδιο στη σελίδα «Πρόγραμμα»: όλο το πελατολόγιο στον χάρτη */
+  PL.labActs.push({ page: 'plan', tile: { id: 'labmap', k: 'map', i: 'route', t: 'Χάρτης πελατών', s: 'Όλο το πελατολόγιο στον χάρτη · δοκιμαστικό' } });
 })();
