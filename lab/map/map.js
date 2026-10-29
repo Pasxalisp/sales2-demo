@@ -161,8 +161,6 @@
     },
   });
 
-  (PL.labs = PL.labs || []).push({ page: 'labmap', label: 'Χάρτης', sub: 'δοκιμαστικό',
-    icon: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>' });
   /* κουμπί μέσα στο Πρόγραμμα: ανοίγει τον χάρτη με τις στάσεις αυτού του προγράμματος */
   (PL.labActs = PL.labActs || []).push({ page: 'planview', label: '🗺 Χάρτης', fn: (pid) => PL.nav.push('labmap', { pid }) });
 })();

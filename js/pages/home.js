@@ -14,8 +14,6 @@
       $('#hdt').textContent = t.charAt(0).toUpperCase() + t.slice(1);
       /* τα πλακίδια έχουν ως data-go το id της σελίδας */
       Object.entries(NAV).forEach(([id, page]) => { $('#' + id).dataset.go = page; });
-      /* Δοκιμαστικές σελίδες (φάκελος lab/, μπαίνουν μόνο στη δοκιμαστική έκδοση): PL.labs = [{page, label, sub, icon}]. Εδώ μόνο τα πλακίδια τους. */
-      (PL.labs || []).forEach((x) => $('.hg').insertAdjacentHTML('beforeend', `<button class="tl lab" data-go="${x.page}">${x.icon}<span>${x.label}</span><span class="ts">${x.sub}</span></button>`));
       $('#hdue').dataset.go = 'tasks';
       el.addEventListener('click', async (e) => {
         const b = e.target.closest('[data-go]'); if (b) { PL.nav.push(b.dataset.go); return; }
