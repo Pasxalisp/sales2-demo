@@ -1,0 +1,22 @@
+/* ΔΟΚΙΜΑΣΤΙΚΟ «Χάρτης» (lab/map/map.js) — μόνο στη δοκιμαστική έκδοση. */
+.lmap{display:flex;flex-direction:column;gap:8px}
+.lmh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lmh h2{margin:0}.lmh select{width:auto;max-width:55%}
+.lmb{font-size:12px;font-weight:600;color:var(--mu);border:1px solid var(--bd);border-radius:999px;padding:2px 8px;vertical-align:middle}
+.lmm,.lmf{margin:0}
+.lmw{display:grid;grid-template-columns:1fr;gap:10px}
+#lmap{height:58vh;min-height:320px;border-radius:16px;overflow:hidden;border:1px solid var(--bd);background:var(--card);z-index:0}
+.lmside h3{margin:4px 0}
+.lmleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mu)}
+.lmleg i,.lmdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.lmleg i.lmx{background:transparent;border:1.5px dashed var(--mu)}
+.lmn span{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#fff;font-weight:700;font-size:13px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.lmpop{min-width:190px;font-size:13.5px;line-height:1.4}.lmpop .lmpb{display:flex;gap:6px;margin-top:6px}.lmpop button,.lmpop .btn{padding:5px 10px;font-size:13px;margin:0}
+.lmside a.btn.lmgo{display:block;text-align:center;margin:8px 0;background:#2f6f5e;border-color:#2f6f5e;color:#fff;font-weight:700}
+.lmol{padding-left:30px;margin:6px 0}.lmol li{padding:5px 0;border-bottom:1px solid var(--bd);cursor:pointer}.lmol li.dn0{opacity:.5}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--tx)}
+@media (min-width:900px) and (min-height:600px) and (orientation:landscape){
+  .lmw{grid-template-columns:1fr 300px}
+  #lmap{height:calc(100dvh - 190px)}
+  .lmside{max-height:calc(100dvh - 190px);overflow:auto}
+}
