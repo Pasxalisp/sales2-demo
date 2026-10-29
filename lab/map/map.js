@@ -1,12 +1,12 @@
 /* ΔΟΚΙΜΑΣΤΙΚΟ: «Χάρτης» (φάκελος lab/ — μπαίνει ΜΟΝΟ στη δοκιμαστική έκδοση από το demo/build_site.mjs, όχι στο Sales 2.0).
    Χωριστό από τον υπόλοιπο κώδικα: διαβάζει μόνο (πελάτες, υπόλοιπα, SOS, συμφωνίες, προγράμματα, επισκέψεις) και δεν γράφει τίποτα.
-   Χάρτης Leaflet + OpenStreetMap/CARTO, φορτώνεται μόνο όταν ανοίξει η σελίδα.
+   Χάρτης Leaflet (lab/map/leaflet/, μαζί με τη σελίδα) + δρόμοι από CARTO/OpenStreetMap· φορτώνει μόνο όταν ανοίξει η σελίδα.
    Θέσεις πελατών: από τη συλλογή geo/{id} = {lat, lng, cat} (εκεί θα μπουν οι πινέζες του Google My Maps από KML)·
    όσοι δεν έχουν, μπαίνουν κατά προσέγγιση στο κέντρο της περιοχής/πόλης τους (πίνακας CENTRES), με μικρή διασπορά. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, esc = u.esc, money = u.money;
   const COLS = ['clients', 'prospects', 'balances', 'sos', 'deals', 'plans', 'visits', 'notes', 'geo'];
-  const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
+  const LEAFLET = 'lab/map/leaflet/';   /* Leaflet 1.9.4 μαζί με τη σελίδα (όχι από CDN) */
 
   /* κέντρα πόλεων / περιοχών (κατά προσέγγιση) */
   const CENTRES = {
@@ -53,8 +53,8 @@
   let lib = null;
   const loadLeaflet = () => lib || (lib = new Promise((ok, no) => {
     if (window.L) { ok(window.L); return; }
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = LEAFLET + 'leaflet.min.css'; document.head.appendChild(l);
-    const s = document.createElement('script'); s.src = LEAFLET + 'leaflet.min.js'; s.onload = () => ok(window.L); s.onerror = () => { lib = null; no(new Error('Δεν φόρτωσε ο χάρτης (σύνδεση;)')); }; document.head.appendChild(s);
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = LEAFLET + 'leaflet.css'; document.head.appendChild(l);
+    const s = document.createElement('script'); s.src = LEAFLET + 'leaflet.js'; s.onload = () => ok(window.L); s.onerror = () => { lib = null; no(new Error('Δεν φόρτωσε ο χάρτης (σύνδεση;)')); }; document.head.appendChild(s);
   }));
   const dark = () => matchMedia('(prefers-color-scheme: dark)').matches;
   const gmapsDir = (pts) => 'https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + pts[pts.length - 1].join(',') + (pts.length > 1 ? '&waypoints=' + encodeURIComponent(pts.slice(0, -1).map((p) => p.join(',')).join('|')) : '');
@@ -134,7 +134,10 @@
         if (!alive) return;
         $('#lmap').innerHTML = '';
         map = L.map($('#lmap'), { zoomControl: true, attributionControl: true }).setView([40.9, 24.3], 7);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/' + (dark() ? 'dark_all' : 'voyager') + '/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
+        /* δρόμοι: CARTO· αν δεν φορτώνουν, γυρνά στο OpenStreetMap */
+        let bad = 0;
+        const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/' + (dark() ? 'dark_all' : 'voyager') + '/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
+        carto.on('tileerror', () => { if (++bad === 4) { carto.remove(); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map); } });
         paint(); setTimeout(() => map && map.invalidateSize(), 200);
       }).catch((e) => { $('#lmap').innerHTML = '<p class="mu" style="padding:16px">' + esc(e.message) + '</p>'; });
 
