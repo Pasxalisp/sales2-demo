@@ -1,6 +1,6 @@
 /* ΔΟΚΙΜΑΣΤΙΚΟ: «Χάρτης» (φάκελος lab/ — μπαίνει ΜΟΝΟ στη δοκιμαστική έκδοση από το demo/build_site.mjs, όχι στο Sales 2.0).
    Χωριστό από τον υπόλοιπο κώδικα: διαβάζει μόνο (πελάτες, υπόλοιπα, SOS, συμφωνίες, προγράμματα, επισκέψεις) και δεν γράφει τίποτα.
-   Χάρτης Leaflet (lab/map/leaflet/, μαζί με τη σελίδα) + δρόμοι από CARTO/OpenStreetMap· φορτώνει μόνο όταν ανοίξει η σελίδα.
+   Χάρτης Leaflet (lab/map/leaflet/, μαζί με τη σελίδα) + δρόμοι από OpenStreetMap (εναλλακτικά Esri), χωρίς κλειδί· φορτώνει μόνο όταν ανοίξει η σελίδα.
    Θέσεις πελατών: από τη συλλογή geo/{id} = {lat, lng, cat} (εκεί θα μπουν οι πινέζες του Google My Maps από KML)·
    όσοι δεν έχουν, μπαίνουν κατά προσέγγιση στο κέντρο της περιοχής/πόλης τους (πίνακας CENTRES), με μικρή διασπορά. */
 (function () {
@@ -56,7 +56,6 @@
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = LEAFLET + 'leaflet.css'; document.head.appendChild(l);
     const s = document.createElement('script'); s.src = LEAFLET + 'leaflet.js'; s.onload = () => ok(window.L); s.onerror = () => { lib = null; no(new Error('Δεν φόρτωσε ο χάρτης (σύνδεση;)')); }; document.head.appendChild(s);
   }));
-  const dark = () => matchMedia('(prefers-color-scheme: dark)').matches;
   const gmapsDir = (pts) => 'https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + pts[pts.length - 1].join(',') + (pts.length > 1 ? '&waypoints=' + encodeURIComponent(pts.slice(0, -1).map((p) => p.join(',')).join('|')) : '');
   const km = (a, b) => { const R = 6371, t = Math.PI / 180, dl = (b[0] - a[0]) * t, dn = (b[1] - a[1]) * t, x = Math.sin(dl / 2) ** 2 + Math.cos(a[0] * t) * Math.cos(b[0] * t) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); };
 
@@ -134,10 +133,10 @@
         if (!alive) return;
         $('#lmap').innerHTML = '';
         map = L.map($('#lmap'), { zoomControl: true, attributionControl: true }).setView([40.9, 24.3], 7);
-        /* δρόμοι: CARTO· αν δεν φορτώνουν, γυρνά στο OpenStreetMap */
+        /* δρόμοι: OpenStreetMap (χωρίς κλειδί)· αν δεν φορτώνουν, Esri (επίσης χωρίς κλειδί) */
         let bad = 0;
-        const carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/' + (dark() ? 'dark_all' : 'voyager') + '/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© OpenStreetMap · © CARTO' }).addTo(map);
-        carto.on('tileerror', () => { if (++bad === 4) { carto.remove(); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map); } });
+        const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+        osm.on('tileerror', () => { if (++bad === 4) { osm.remove(); L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri · © OpenStreetMap' }).addTo(map); } });
         paint(); setTimeout(() => map && map.invalidateSize(), 200);
       }).catch((e) => { $('#lmap').innerHTML = '<p class="mu" style="padding:16px">' + esc(e.message) + '</p>'; });
 
