@@ -3,7 +3,10 @@
    Σήμερα: claude.ai (db / sample / downloads / user). Αύριο: αλλάζει μόνο αυτό το αρχείο
    (π.χ. Supabase + δικό μας server για το Claude). Αν δεν υπάρχει claude.ai → τοπική μνήμη (δοκιμές).
    Δοκιμαστική έκδοση σε δική της σελίδα: το js/demo-seed.js ορίζει window.PL_LOCAL = {key, seed:{path: doc}}.
-   Τότε η τοπική μνήμη ξεκινά από τα ψεύτικα δεδομένα και οι αλλαγές του χρήστη φυλάγονται στη συσκευή (localStorage). */
+   Τότε η τοπική μνήμη ξεκινά από τα ψεύτικα δεδομένα και οι αλλαγές του χρήστη φυλάγονται στη συσκευή (localStorage).
+   Πολλοί χρήστες (PL.adapter.org): χρήστες, ομάδες, ποιος βλέπει ποιον και τα δεδομένα ενός πωλητή για τον υπεύθυνο/διευθυντή.
+   Σήμερα υπάρχει μόνο στη δοκιμαστική (lab/team/session.js, PL_LOCAL.org)· στο claude.ai είναι null. Στην κανονική έκδοση
+   θα τα δίνει ο server (π.χ. Supabase): org.me, teams(), team(id), sellers(tid), data(uid) → {all, get}, users(), saveUser(x), login/logout. */
 (function () {
   const PL = (window.PL = window.PL || {});
   let db = null, user = null, sample = null, dl = null, uid = null, mode = 'local';
@@ -53,6 +56,7 @@
     ready,
     mode: () => mode,
     userId: () => uid,
+    org: (LOCAL && LOCAL.org) || null,
     isAdmin: async () => (user ? !!(await user.isOwner()) : false),
 
     db: {

@@ -6,7 +6,7 @@
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, H = PL.sheet, esc = u.esc, eur = u.eur;
   const COLS = ['deals', 'dealmsg', 'clients', 'prospects', 'notes', 'balances', 'items', 'cats'];
   const dmy = (d) => (d ? d.split('-').reverse().join('/') : '');
-  const X = (id) => (S.get('deals', 'all') || {})[id];
+  const X = (id) => M.dealsAll()[id];
 
   PL.register('deal', {
     title: 'Συμφωνία',

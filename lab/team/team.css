@@ -27,8 +27,6 @@ body.tmlock { overflow: hidden; }
 #home .tmme .mu { font-size: 13px; }
 #home .tmme .tmav { width: 30px; height: 30px; font-size: 12px; }
 #home .tmme button { flex: none; display: inline-block; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
-/* δοκιμαστική έκδοση με χρήστες: η υπενθύμιση αντιγράφου ασφαλείας δεν έχει νόημα (ψεύτικα δεδομένα) */
-#home #hbak { display: none; }
 #home button.duec.tmtile { padding-top: clamp(6px, 1vh, 12px); padding-bottom: clamp(6px, 1vh, 12px); border-radius: 18px; }
 #home button.duec.tmtile .dc { width: clamp(32px, 4.6vh, 42px); height: clamp(32px, 4.6vh, 42px); }
 #home button.duec.tmtile .dt { flex-direction: row; align-items: baseline; flex-wrap: wrap; column-gap: 10px; }
@@ -47,56 +45,139 @@ body.tmlock { overflow: hidden; }
 /* ο διευθυντής δεν έχει δικούς του πελάτες: στην αρχική μόνο οι ομάδες */
 body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hbak, body.tmdir #home #hmatch { display: none; }
 
-.tmav { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #2f6f5e; color: #fff; font-weight: 700; font-size: 15px; flex: none; margin-right: 8px; vertical-align: middle; letter-spacing: .5px; }
-.tmav.s { width: 28px; height: 28px; font-size: 12px; margin-right: 8px; }
-#home .tmme .tmav { margin-right: 0; }
-
-/* ---- σελίδες ομάδας ---- */
-.tmh { display: flex; align-items: center; gap: 8px; }
-.tmh svg { color: var(--ac); }
-.tmro { display: inline-block; font-size: 12px; font-weight: 600; color: var(--mu); border: 1px solid var(--bd); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
-.tmrole { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 9px; white-space: nowrap; background: var(--ac2); color: var(--ac); }
+/* ---- κοινά ---- */
+.tmav { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #2f6f5e; color: #fff; font-weight: 700; font-size: 14px; flex: none; letter-spacing: .5px; }
+.tmav.l { background: #2563c9; }
+.tmav.d { background: var(--sem); }
+.tmav.s { width: 26px; height: 26px; font-size: 11px; }
+.tmav.big { width: 52px; height: 52px; font-size: 19px; }
+.tmro { display: inline-block; font-size: 12px; font-weight: 600; color: var(--mu); border: 1px solid var(--bd); border-radius: 999px; padding: 2px 9px; white-space: nowrap; vertical-align: 1px; }
+.tmrole { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 2px 9px; white-space: nowrap; background: var(--ac2); color: var(--ac); }
 .tmrole.lead { background: rgba(37, 99, 201, .12); color: #2563c9; }
 .tmrole.director { background: rgba(122, 63, 184, .12); color: var(--sem); }
-.card.tmm, .card.tmteam, .card.tmu { cursor: pointer; }
-.card.tmu.off { opacity: .55; }
-.card.tmm.me { border-left: 4px solid #2563c9; }
-.tmm .nm, .tmu .nm { display: flex; align-items: center; }
-.tmfl { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 14.5px; }
-.tmfl.big { font-size: 17px; margin-top: 0; }
-.tmfl.big > b { font-size: 22px; }
-.tmbar { height: 8px; border-radius: 4px; background: var(--bd); overflow: hidden; margin-top: 5px; }
+.tmpage .up, b.up { color: var(--ac); }
+.tmpage .dn, b.dn { color: var(--rd); }
+.tmpage .mid, b.mid { color: #c78a00; }
+.tmbar { height: 7px; border-radius: 4px; background: var(--bd); overflow: hidden; margin-top: 5px; }
 .tmbar i { display: block; height: 100%; border-radius: 4px; background: #e0a11b; }
 .tmbar i.up { background: var(--ac); }
 .tmbar i.dn { background: var(--rd); }
-b.mid, .shk b.mid { color: #c78a00; }
-.tmmini { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13.5px; color: var(--mu); }
-.tmmini b { color: inherit; }
-b.up, .tmmini b.up { color: var(--ac); }
-b.dn, .tmmini b.dn { color: var(--rd); }
+.tmmini { display: flex; flex-wrap: wrap; gap: 3px 14px; margin-top: 7px; font-size: 13.5px; color: var(--mu); }
+.tmfoot { font-size: 13px; margin-top: 14px; }
+
+/* ---- σελίδα: κεφαλίδα, πλέγμα καρτών ---- */
+.tmhead h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.tmhead h2 svg { color: var(--ac); flex: none; }
+.tmtop { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.tmpn { display: flex; gap: 6px; }
+.tmpn button { border-radius: 999px; padding: 5px 12px; font-size: 14px; margin: 0; }
+.tmwho { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.tmwho > div { flex: 1; min-width: 0; }
+.tmwho h2 { margin: 0; }
+.tmgrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.tmcard { border: 1px solid var(--bd); border-radius: 16px; background: var(--card); padding: 12px 14px; min-width: 0; }
+.tmcard > h3 { margin: 0 0 8px; font-size: 12.5px; color: var(--mu); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+.tmsec { margin: 18px 2px 8px; font-size: 12.5px; color: var(--mu); text-transform: uppercase; letter-spacing: .4px; }
+.tmsum { display: flex; align-items: center; gap: 14px; }
+.tmsumb { flex: 1; min-width: 0; }
+.tmbig { font-size: 19px; }
+.tmkp { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; padding: 4px 0; }
+.tmkp > div { padding: 9px 14px; border-bottom: 1px solid var(--bd); min-width: 0; }
+.tmkp > div:nth-child(odd) { border-right: 1px solid var(--bd); }
+.tmkp > div:nth-last-child(-n+2) { border-bottom: 0; }
+.tmkp > div > span { display: block; font-size: 12px; color: var(--mu); }
+.tmkp > div > b { display: block; font-size: 19px; }
+.tmkp > div > small { display: block; font-size: 12px; color: var(--mu); }
 .tmn { padding: 7px 0; border-bottom: 1px solid var(--bd); }
 .tmn:last-child { border-bottom: 0; }
 .tmn > .mu { font-size: 13px; }
-.tmppl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.tmppl button { display: inline-flex; align-items: center; gap: 2px; padding: 4px 10px 4px 4px; border-radius: 999px; font-size: 13.5px; margin: 0; }
-.tmppl .tmav.s { width: 24px; height: 24px; font-size: 11px; margin-right: 4px; }
-.tmrk { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--bd); cursor: pointer; }
-.tmrk:last-child { border-bottom: 0; }
-.tmrk > div { flex: 1; min-width: 0; }
-.tmrk .mu { font-size: 12.5px; }
+.tmdl { padding: 6px 0; border-bottom: 1px solid var(--bd); }
+.tmdl:last-child { border-bottom: 0; }
+.tmdl small { color: var(--mu); }
+
+/* ---- λίστα πωλητών ---- */
+.tmrows { display: grid; grid-template-columns: 1fr; gap: 8px; }
+button.tmrow, button.tmrk { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: var(--tx); background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 12px 12px 12px 14px; margin: 0; }
+button.tmrow.me { border-left: 4px solid #2563c9; }
+button.tmrow.off { opacity: .55; }
+.tmrb { flex: 1; min-width: 0; display: block; }
+.tmrb > b { display: block; font-size: 16px; }
+.tmchev { color: var(--mu); font-size: 24px; line-height: 1; flex: none; }
+.tmspk { flex: none; }
+.tmspk rect { fill: color-mix(in srgb, var(--ac) 40%, transparent); }
+.tmspk rect.on { fill: var(--ac); }
+button.tmrk { border: 0; border-bottom: 1px solid var(--bd); border-radius: 0; padding: 9px 0; background: none; }
+button.tmrk:last-child { border-bottom: 0; }
+.tmrk small { display: block; }
 .tmn1 { width: 24px; height: 24px; border-radius: 50%; background: var(--ac2); color: var(--ac); font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.tmteam { cursor: pointer; }
+.tmteamh { display: flex; align-items: center; gap: 12px; }
+.tmppl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tmppl button { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; font-size: 13.5px; margin: 0; }
 .tmrl { padding: 7px 0; border-bottom: 1px solid var(--bd); display: flex; flex-direction: column; gap: 2px; }
 .tmrl:last-child { border-bottom: 0; }
 .tmrl span { color: var(--mu); font-size: 14px; }
-.tmfoot { font-size: 13px; margin-top: 14px; }
-.shk b small { font-size: 12px; font-weight: 400; }
+
+/* ---- γραφήματα (χρώματα από τις μεταβλητές: ανοιχτό και σκούρο) ---- */
+.tmdon { flex: none; }
+.tmdon circle { fill: none; stroke-width: 12; }
+.tmdon .tk { stroke: var(--bd); }
+.tmdon .v { stroke-linecap: round; stroke: #e0a11b; }
+.tmdon .v.up { stroke: var(--ac); }
+.tmdon .v.dn { stroke: var(--rd); }
+.tmdon text { text-anchor: middle; fill: var(--tx); }
+.tmdon .big { font-weight: 800; }
+.tmdon .sm { font-size: 11px; fill: var(--mu); }
+.tmch { width: 100%; height: auto; display: block; }
+.tmch .ax, .tmch .vl { font-size: 11px; text-anchor: middle; fill: var(--mu); }
+.tmch .vl { fill: var(--tx); }
+.tmch .b { fill: #e0a11b; opacity: .8; }
+.tmch .b.up { fill: var(--ac); }
+.tmch .b.dn { fill: var(--rd); }
+.tmch .b.cur { opacity: 1; }
+.tmch .t { stroke: var(--tx); stroke-width: 2; }
+.tmch .s { fill: color-mix(in srgb, var(--ac) 40%, transparent); }
+.tmch .s.on { fill: var(--ac); }
+.tmleg { display: flex; gap: 14px; font-size: 12px; color: var(--mu); margin-bottom: 4px; }
+.tmleg i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.tmleg i.ly, .tmpair i.ly { background: color-mix(in srgb, var(--mu) 45%, transparent); }
+.tmleg i.ty, .tmpair i.ty { background: var(--ac); }
+.tmpair { display: grid; grid-template-columns: 92px 1fr 78px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--bd); cursor: pointer; }
+.tmpair:last-child { border-bottom: 0; }
+.tmpair .l { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmpair .bs i { display: block; height: 7px; border-radius: 3px; margin: 2px 0; min-width: 2px; }
+.tmpair i.ty.dn { background: var(--rd); }
+.tmpair .r { text-align: right; font-size: 13px; line-height: 1.2; }
+.tmpair .r small { display: block; color: var(--mu); font-size: 11.5px; }
+.tmheat { overflow-x: auto; }
+.tmheat table { border-collapse: separate; border-spacing: 3px; font-size: 13px; width: 100%; }
+.tmheat th { font-weight: 600; color: var(--mu); font-size: 12px; text-align: center; white-space: nowrap; padding: 2px 4px; }
+.tmheat tbody th { text-align: left; color: var(--tx); font-size: 13.5px; }
+.tmheat tr[data-mem] { cursor: pointer; }
+.tmheat td { text-align: center; border-radius: 6px; padding: 6px 4px; white-space: nowrap; font-weight: 600; background: color-mix(in srgb, var(--bd) 50%, transparent); }
+.tmheat td.hu { background: color-mix(in srgb, var(--ac) 22%, transparent); color: var(--ac); }
+.tmheat td.hd { background: color-mix(in srgb, var(--rd) 18%, transparent); color: var(--rd); }
+.tmheat td.hm { color: #c78a00; }
 
 /* ---- φόρμα χρήστη ---- */
-.tmform { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.tmform { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; max-width: 560px; }
 .tmform label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--mu); font-weight: 600; }
 .tmform label.tmck { flex-direction: row; align-items: center; gap: 8px; color: var(--tx); font-weight: 400; font-size: 15px; }
 .tmform label.tmck input { width: 20px; height: 20px; }
-.tmform textarea { font: inherit; }
-.tmchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.tmchips button { padding: 4px 10px; border-radius: 999px; font-size: 13px; margin: 0; }
-.tmchips small { color: var(--mu); }
+
+/* ---- τάμπλετ / υπολογιστής: δύο ή τρεις στήλες ---- */
+@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
+  .tmgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; grid-auto-flow: dense; }
+  .tmgrid > .tmwide2 { grid-column: 1 / -1; }
+  .tmgrid > .tmrow2 { grid-row: span 2; }
+  .tmrows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tmkp { grid-template-columns: repeat(4, 1fr); }
+  .tmkp > div:nth-child(odd) { border-right: 0; }
+  .tmkp > div { border-right: 1px solid var(--bd); }
+  .tmkp > div:nth-child(4n) { border-right: 0; }
+  .tmkp > div:nth-last-child(-n+4) { border-bottom: 0; }
+}
+@media (min-width: 1300px) and (orientation: landscape) {
+  .tmgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tmrows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

@@ -14,7 +14,7 @@
     const lost = d.it.filter((x) => (+x.tc || 0) <= 0 && (+x.tp || 0) > 0).sort((a, b) => b.tp - a.tp).slice(0, 6).map((x) => x.n);
     return (gtx ? 'φέτος ανά κατηγορία: ' + gtx + ' | ' : '') + (now.length ? 'είδη φέτος: ' + now.join(', ') : '') + (lost.length ? ' | πέρσι ναι, φέτος όχι: ' + lost.join(', ') : '');
   };
-  const dealTag = (id) => { const x = (S.get('deals', 'all') || {})[id]; if (!x || !x.goal) return ''; const i = M.deal(x); return 'ΣΥΜΦΩΝΙΑ ' + r0(x.goal) + '€: έχει κάνει ' + r0(i.pct) + '%' + (i.done ? ' (ΤΗΝ ΠΙΑΣΕ)' : ', μένουν ' + r0(i.left) + '€' + (i.ahead < 0 ? ' — ΠΙΣΩ από τον ρυθμό κατά ' + r0(-i.ahead) + '€' : '')); };
+  const dealTag = (id) => { const x = M.dealsAll()[id]; if (!x || !x.goal) return ''; const i = M.deal(x); return 'ΣΥΜΦΩΝΙΑ ' + r0(x.goal) + '€: έχει κάνει ' + r0(i.pct) + '%' + (i.done ? ' (ΤΗΝ ΠΙΑΣΕ)' : ', μένουν ' + r0(i.left) + '€' + (i.ahead < 0 ? ' — ΠΙΣΩ από τον ρυθμό κατά ' + r0(-i.ahead) + '€' : '')); };
 
   /* Μία γραμμή πελάτη. tag = ετικέτες ειδικών περιπτώσεων. */
   const row = (c, t, tag) => {

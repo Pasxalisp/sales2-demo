@@ -6,9 +6,7 @@
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
   const COLS = ['clients', 'prospects', 'balances', 'balnotes', 'notes'];
   const st = { all: false, over: false, edit: null };
-  const bv = (id, k) => +((S.get('balances', id) || {})[k] || 0);
-  const has = (id) => M.byId(id) && (bv(id, 'amount') !== 0 || bv(id, 'over') !== 0 || bv(id, 'bounced') !== 0);
-  const big = (id) => Math.abs(bv(id, 'amount')) >= 1 || bv(id, 'over') >= 1 || bv(id, 'bounced') !== 0;
+  const { v: bv, big } = M.bal;   // υπόλοιπα: από το μοντέλο
   const fdd = (d) => (d ? String(d).split('-').reverse().join('/') : '');
 
   /* ουρά αποθήκευσης: {id: {v|del, st:'saving'|'err'}} */
@@ -42,7 +40,6 @@
   /* κατάσταση αποθήκευσης για εμφάνιση: '' (αποθηκεύτηκε) | 'saving' | 'err' */
   const state = (id) => (Q[id] ? Q[id].st : '');
   PL.balnotes = { get: note, put, drop, state, on: (f) => { subs.add(f); return () => subs.delete(f); }, flush };
-  PL.balances = { bv, has, big };
 
   function noteHtml(id) {
     const n = note(id);
@@ -65,7 +62,7 @@
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
       const paint = () => {
-        const all = Object.keys(S.all('balances')).filter(has), f = u.nn($('#bq').value);
+        const all = M.bal.ids(), f = u.nn($('#bq').value);
         if (!all.length) { $('#bsum').textContent = ''; $('#bchips').innerHTML = ''; $('#bl').innerHTML = '<div class="card" style="cursor:default">Δεν έχουν καταχωρηθεί ακόμα υπόλοιπα.</div>'; return; }
         const sm = (k) => all.reduce((a, id) => a + bv(id, k), 0), dt = all.map((id) => S.get('balances', id).d || '').sort().pop(), small = all.filter((id) => !big(id)).length;
         $('#bsum').innerHTML = `<div class="row"><span>Υπόλοιπο</span><b>${money(sm('amount'))}</b></div><div class="row"><span>Υπέρβαση</span><b class="dn">${money(sm('over'))}</b></div>${sm('bounced') ? `<div class="row"><span>Διαμαρτυρημένα</span><b class="dn">${money(sm('bounced'))}</b></div>` : ''}<div style="margin-top:4px">${all.length} πελάτες${dt ? ' · ενημέρωση ' + dt : ''}</div>`;

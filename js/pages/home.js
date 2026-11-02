@@ -44,15 +44,13 @@
       const setBits = () => {
         if (S.loaded('tech') && S.loaded('seminars')) $('#htc').textContent = Object.keys(S.all('tech')).filter((id) => M.byId(id)).length + ' τεχνικός · ' + Object.keys(S.all('seminars')).length + ' σεμινάρια';
         if (S.loaded('balances')) {
-          const bv = (id, k) => +((S.get('balances', id) || {})[k] || 0);
-          const has = (id) => M.byId(id) && (bv(id, 'amount') !== 0 || bv(id, 'over') !== 0 || bv(id, 'bounced') !== 0);
-          const big = (id) => Math.abs(bv(id, 'amount')) >= 1 || bv(id, 'over') >= 1 || bv(id, 'bounced') !== 0;
-          const L = Object.keys(S.all('balances')).filter(has), n = L.filter(big).length, tot = L.reduce((a, id) => a + bv(id, 'amount'), 0);
+          const { v: bv, big } = M.bal;
+          const L = M.bal.ids(), n = L.filter(big).length, tot = L.reduce((a, id) => a + bv(id, 'amount'), 0);
           $('#hbs').textContent = n ? n + ' πελάτες · ' + PL.u.money(tot) : 'Ανοιχτά υπόλοιπα';
         }
         if (S.loaded('deals')) {
           /* οι συμφωνίες είναι ΕΝΑ έγγραφο: deals/all = {πελάτης: {goal, ty, ly}, _d: ημερομηνία} */
-          const L = Object.entries(S.get('deals', 'all') || {}).filter(([k]) => k[0] !== '_' && M.byId(k)), n = L.length;
+          const L = Object.entries(M.dealsAll()).filter(([k]) => k[0] !== '_' && M.byId(k)), n = L.length;
           const tg = L.reduce((a, [, x]) => a + (x.goal || 0), 0), tt = L.reduce((a, [, x]) => a + (x.ty || 0), 0);
           $('#hdlc').textContent = n ? n + ' πελάτες · ' + (tg ? Math.round(tt / tg * 100) : 0) + '%' : 'Από το orders';
         }

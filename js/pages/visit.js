@@ -29,7 +29,7 @@
         const p = plan(), c = M.byId(id);
         if ((!free && !p) || !c) { $('#vstop').innerHTML = '<p class="mu">Φορτώνω…</p>'; return; }
         const stops = free ? [] : p.stops || [], k = stops.findIndex((s) => s.id === id), st = stops[k] || {}, done = isDone();
-        const ap = free ? E.apptOf(id) : (st.appt ? { appt: st.appt } : null), lv = E.lastVisit(id);
+        const ap = free ? E.apptOf(id) : (st.appt ? { appt: st.appt } : null), lv = M.lastVisit(id);
         const right = free ? (lv ? 'Τελευταία επίσκεψη ' + fmt(lv) : 'Καμία επίσκεψη') : `Στάση ${k + 1} από ${stops.length} · ✓ ${stops.filter((s) => s.done).length}`;
         $('#vstop').innerHTML =
           H.head(c, `${esc(c.addr || '')}${c.addr ? ', ' : ''}${esc(c.city)}${ap && !done ? ` · <b style="color:var(--tx)">🕐 Ραντεβού ${ap.d && ap.d !== u.today() ? fmt(ap.d) + ' ' : ''}${esc(ap.appt)}</b>` : ''}`, right, st.sos || S.get('sos', id)) +

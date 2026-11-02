@@ -112,7 +112,6 @@
   E.newProspect = async (x) => { const id = 'p' + Date.now(), doc = { name: x.name, city: x.city, addr: x.addr || '', phone: x.phone || '', created: u.today() }; await db().set('prospects/' + id, doc); S.put('prospects', id, doc); return id; };
   /* Επισκέψεις εκτός προγράμματος: το πρόγραμμα της ημέρας 'free-ΗΜΕΡΟΜΗΝΙΑ' (ένα ανά μέρα). */
   E.freeId = () => 'free-' + u.today();
-  E.lastVisit = (id) => { let m = ''; ((S.get('visits', id) || {}).dates || []).forEach((d) => { if (d > m) m = d; }); M.entries(id).forEach((e) => { if (e && e.d && e.d > m) m = e.d; }); return m; };
   E.openStop = (id) => { for (const [pid, p] of Object.entries(S.all('plans'))) { if (p.closed || p.mode === 'free') continue; const k = (p.stops || []).findIndex((s) => s.id === id); if (k >= 0) return [pid, p, k]; } return null; };
   E.visitedToday = (id) => {
     const t = u.today(), p = S.get('plans', E.freeId());

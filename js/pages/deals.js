@@ -5,7 +5,7 @@
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, esc = u.esc, eur = u.eur;
   const r10 = (v) => Math.ceil(v / 10) * 10;
-  const DL = () => S.get('deals', 'all') || {};
+  const DL = () => M.dealsAll();
   const list = () => Object.entries(DL()).filter(([k]) => k[0] !== '_' && M.byId(k));
   /* Δικές μου σημειώσεις ανά συμφωνία (συλλογή dealmsg/{cid}): d = τελευταία «✓ Ενημερώθηκε», ign = «Αγνόηση».
      Χωριστά από το deals/all, για να μη σβήνονται στον συγχρονισμό με το orders. */

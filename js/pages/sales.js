@@ -9,11 +9,8 @@
   const st = { g: '', city: '', sort: 'tc', open: null, q: '' };
   const SORTS = { tc: ['Αξία φέτος', (a, b) => b.tc - a.tc], qc: ['Τεμάχια φέτος', (a, b) => b.qc - a.qc], df: ['Μεγαλύτερη πτώση', (a, b) => (a.qc - a.qp) - (b.qc - b.qp)], up: ['Μεγαλύτερη άνοδος', (a, b) => (b.qc - b.qp) - (a.qc - a.qp)], nm: ['Όνομα', (a, b) => a.n.localeCompare(b.n)] };
 
-  function rows() { const out = []; let dd = ''; const IT = S.all('items');
-    for (const id in IT) { const c = M.byId(id); if (!c) continue; if (st.city && c.city !== st.city) continue; const d = IT[id]; if (!d || !Array.isArray(d.it)) continue; if (d.d && d.d > dd) dd = d.d; d.it.forEach((x) => out.push([id, x])); }
-    return [out, dd]; }
   let asidePaint = () => {};
-  const items = () => { const [L0, dd] = rows(); return [agg(st.g ? L0.filter(([, x]) => (x.g || 'Άλλα') === st.g) : L0), dd]; };
+  const items = () => { const [L0, dd] = M.itemRows(st.city); return [M.itemAgg(st.g ? L0.filter(([, x]) => (x.g || 'Άλλα') === st.g) : L0), dd]; };
   function asideHtml() {
     const H = PL.sheet; if (!S.loaded('items')) return '<p class="mu">Φορτώνω…</p>';
     const [A] = items(), row = (o, right, cls) => ({ attr: `data-sli2="${esc(o.n)}"`, name: esc(o.n), sub: esc(o.g) + ' · ' + o.cc.size + ' πελάτες φέτος · ' + o.cp.size + ' πέρσι', right, cls });
@@ -23,11 +20,6 @@
       H.box('▼ Μεγαλύτερη πτώση (τεμ. πέρσι → φέτος)', H.list(drop.map((o) => row(o, o.qp + ' → ' + o.qc, 'dn')), 'Καμία πτώση. 👌')) +
       H.box('Νέα φέτος', H.list(nw.map((o) => row(o, eur(o.tc), 'up')), 'Κανένα νέο είδος φέτος.'));
   }
-  function agg(list) { const m = {};
-    list.forEach(([id, x]) => { const o = m[x.n] || (m[x.n] = { n: x.n, g: x.g || 'Άλλα', qc: 0, qp: 0, qf: 0, tc: 0, tp: 0, tf: 0, cc: new Set(), cp: new Set(), who: [] });
-      o.qc += +x.qc || 0; o.qp += +x.qp || 0; o.qf += +x.qf || 0; o.tc += +x.tc || 0; o.tp += +x.tp || 0; o.tf += +x.tf || 0; if ((+x.qc || 0) > 0) o.cc.add(id); if ((+x.qp || 0) > 0) o.cp.add(id); o.who.push([id, x]); });
-    return Object.values(m); }
-
   PL.register('sales', {
     title: 'Πωλήσεις ανά κατηγορία',
     split: ['client', 'salesitem', 'buyer'],
@@ -43,14 +35,14 @@
       el.innerHTML = '<h2 style="color:#2f6f5e">📊 Πωλήσεις ανά κατηγορία</h2><div style="display:flex;gap:6px;margin:4px 0 8px"><select id="slg" style="flex:1;min-width:0" aria-label="Κατηγορία"></select><select id="slc" style="flex:1;min-width:0" aria-label="Περιοχή"></select></div><div id="slsum"></div><div id="slbody"></div><p class="mu" id="slsrc" style="font-size:12px"></p>';
       ['items', 'clients', 'prospects'].forEach((c) => S.use(c));
       const $ = (s) => el.querySelector(s);
-      const fillSel = () => { const [L] = rows(), gs = {}; L.forEach(([, x]) => { const g = x.g || 'Άλλα'; gs[g] = (gs[g] || 0) + (+x.tc || 0) + (+x.tp || 0) * 0.001; });
+      const fillSel = () => { const [L] = M.itemRows(st.city), gs = {}; L.forEach(([, x]) => { const g = x.g || 'Άλλα'; gs[g] = (gs[g] || 0) + (+x.tc || 0) + (+x.tp || 0) * 0.001; });
         $('#slg').innerHTML = '<option value="">Όλες οι κατηγορίες</option>' + Object.keys(gs).sort((a, b) => gs[b] - gs[a]).map((g) => `<option ${g === st.g ? 'selected' : ''}>${esc(g)}</option>`).join('');
         const IT = S.all('items'), cs = [...new Set(Object.keys(IT).map((id) => (M.byId(id) || {}).city).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'el'));
         $('#slc').innerHTML = '<option value="">Όλες οι περιοχές</option>' + cs.map((c) => `<option ${c === st.city ? 'selected' : ''}>${esc(c)}</option>`).join(''); };
       const render = () => {
         asidePaint();
         if (!S.loaded('items')) { $('#slbody').innerHTML = '<p class="mu">Φορτώνω…</p>'; return; }
-        const [L0, dd] = rows(), L = st.g ? L0.filter(([, x]) => (x.g || 'Άλλα') === st.g) : L0, A = agg(L);
+        const [L0, dd] = M.itemRows(st.city), L = st.g ? L0.filter(([, x]) => (x.g || 'Άλλα') === st.g) : L0, A = M.itemAgg(L);
         const T = A.reduce((t, o) => { ['qc', 'qp', 'qf', 'tc', 'tp', 'tf'].forEach((k) => { t[k] += o[k]; }); return t; }, { qc: 0, qp: 0, qf: 0, tc: 0, tp: 0, tf: 0 });
         const cN = new Set(), cP = new Set(); L.forEach(([id, x]) => { if ((+x.qc || 0) > 0) cN.add(id); if ((+x.qp || 0) > 0) cP.add(id); });
         $('#slsum').innerHTML = `<div class="slk"><div><div class="l">Αξία φέτος</div><div class="v">${eur(T.tc)}</div><div class="l">πέρσι ίδια περίοδο ${eur(T.tp)} · ${pct(T.tp, T.tc)}</div></div><div><div class="l">Τεμάχια φέτος</div><div class="v">${n0(T.qc)}</div><div class="l">πέρσι ίδια περίοδο ${n0(T.qp)} · ${pct(T.qp, T.qc)}</div></div><div><div class="l">Πέρσι όλο το έτος</div><div class="v" style="font-size:17px">${eur(T.tf)}</div><div class="l">${n0(T.qf)} τεμ. · φέτος έχεις πιάσει ${T.tf > 0 ? Math.round(T.tc / T.tf * 100) : 0}%</div></div><div><div class="l">Πελάτες που αγόρασαν</div><div class="v" style="font-size:17px">${cN.size} φέτος</div><div class="l">${cP.size} πέρσι ίδια περίοδο</div></div></div>`;
@@ -89,7 +81,7 @@
       ['items', 'clients', 'prospects'].forEach((c) => S.use(c));
       const paint = () => {
         if (!S.loaded('items')) { el.innerHTML = '<p class="mu">Φορτώνω…</p>'; return; }
-        const [L] = rows(), o = agg(L.filter(([, x]) => x.n === n))[0];
+        const [L] = M.itemRows(st.city), o = M.itemAgg(L.filter(([, x]) => x.n === n))[0];
         if (!o) { el.innerHTML = '<p class="mu">Δεν βρέθηκε το είδος' + (st.city ? ' στην περιοχή ' + esc(st.city) : '') + '.</p>' + H.nav(); return; }
         const W = o.who.filter(([id]) => M.byId(id)), row = ([id, x], cls) => ({ attr: `data-slb="${esc(id)}"`, name: esc(M.byId(id).name), sub: esc(M.byId(id).city), right: (+x.qp || 0) + ' → ' + (+x.qc || 0) + (+x.tc ? ' · ' + eur(+x.tc) : ''), cls });
         const now = W.filter(([, x]) => +x.qc > 0).sort((a, b) => (+b[1].qc || 0) - (+a[1].qc || 0)), stop = W.filter(([, x]) => !(+x.qc) && +x.qp > 0).sort((a, b) => (+b[1].qp || 0) - (+a[1].qp || 0));

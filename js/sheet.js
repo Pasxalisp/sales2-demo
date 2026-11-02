@@ -1,7 +1,7 @@
 /* ΦΥΛΛΑ ΔΕΞΙΑ (τάμπλετ): κοινά κομμάτια για τα φύλλα των σελίδων (επίσκεψη, εκκρεμότητα, είσπραξη, συμφωνία,
    τεχνικός, αγορά). Μόνο HTML, χωρίς εγγραφές. Τα πατήματα [data-callc] τα χειρίζεται το call.js. */
 (function () {
-  const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, esc = u.esc, money = u.money;
+  const PL = window.PL, u = PL.u, M = PL.model, esc = u.esc, money = u.money;
   const off = (icon, label) => `<button disabled>${icon}${label}</button>`;
   const chip = (t, cls) => `<span class="shchip ${cls || ''}">${t}</span>`;
 
@@ -17,7 +17,7 @@
     sms: (c, body, label) => { const h = c && PL.call.sms(c, body); return h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">${PL.icon.msg}${label || 'Μήνυμα'}</a>` : off(PL.icon.msg, label || 'Μήνυμα'); },
     /* με μια ματιά: Goldwell φέτος, χρέος, συμφωνία, δουλεύει (skip: {debt, deal, works} για όσα δείχνει ήδη το φύλλο) */
     facts: (c, skip) => {
-      skip = skip || {}; const id = c.i, g = M.gold(c), y = M.yoy(c), bal = +((S.get('balances', id) || {}).amount || 0), dl = (S.get('deals', 'all') || {})[id], w = M.works(id);
+      skip = skip || {}; const id = c.i, g = M.gold(c), y = M.yoy(c), bal = M.bal.v(id, 'amount'), dl = M.dealsAll()[id], w = M.works(id);
       return `<div class="shfacts">${g ? chip('Goldwell φέτος ' + money(g[1]) + (y ? ' · ' + y.txt : ''), y && y.cls === 'dn' ? 'dn' : 'up') : ''}${!skip.debt && bal >= 1 ? chip('💶 Χρωστάει ' + money(bal), 'dn') : ''}` +
         `${!skip.deal && dl ? chip('🤝 Συμφωνία ' + Math.round(M.deal(dl).pct) + '%', 'dl') : ''}${!skip.works && w.length ? chip('Δουλεύει: ' + esc(w.join(', '))) : ''}</div>`;
     },

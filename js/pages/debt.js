@@ -12,7 +12,7 @@
   const quick = (k) => { const d = new Date(Date.parse(u.today()) + 12 * 36e5);
     if (k === 'fri') { d.setDate(d.getDate() + (((5 - d.getDay() + 7) % 7) || 7)); } else if (k === 'eom') { d.setMonth(d.getMonth() + 1, 0); } else d.setDate(d.getDate() + +k);
     return ymd(d); };
-  const bv = (id, k) => +((S.get('balances', id) || {})[k] || 0);
+  const bv = M.bal.v;   // υπόλοιπα: από το μοντέλο
   const open = (n) => n && n.pay && n.pdone !== n.pay;   // υπόσχεση που δεν έχει κλείσει
   const reminder = (id) => PL.sheet.greet() + '\nΜια φιλική υπενθύμιση για το υπόλοιπο του λογαριασμού σας, ' + money(bv(id, 'amount')) + '.\nΕυχαριστώ πολύ!';
 
@@ -61,7 +61,7 @@
   /* Δεξί μέρος των Υπολοίπων χωρίς επιλογή: υποσχέσεις (πρώτα όσες πέρασαν), μεγάλα χωρίς ενημέρωση, υπερβάσεις. */
   function asideHtml() {
     if (!S.loaded('balances')) return '<p class="mu">Φορτώνω…</p>';
-    const B = PL.balances, t = u.today(), ids = Object.keys(S.all('balances')).filter(B.has), name = (id) => esc(M.byId(id).name);
+    const B = M.bal, t = u.today(), ids = B.ids(), name = (id) => esc(M.byId(id).name);
     const P = ids.filter((id) => open(PL.balnotes.get(id))).sort((a, b) => PL.balnotes.get(a).pay.localeCompare(PL.balnotes.get(b).pay));
     const row = (id, right, cls, sub) => ({ attr: `data-dbo="${esc(id)}"`, name: name(id), sub: esc(M.byId(id).city) + (sub ? ' · ' + sub : ''), right, cls });
     const noNote = ids.filter((id) => B.big(id) && bv(id, 'amount') >= 1 && !PL.balnotes.get(id)).sort((a, b) => bv(b, 'amount') - bv(a, 'amount'));

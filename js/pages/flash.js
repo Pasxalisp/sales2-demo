@@ -27,7 +27,7 @@
     L.forEach((x) => { ['target', 'sales', 'pend', 'bal', 'over', 'prot', 'coll', 'newc'].forEach((k) => { t[k] += x[k]; }); t.dw += x.disc * Math.max(0, x.sales); });
     t.disc = t.sales > 0 ? t.dw / t.sales : 0; return t; };
 
-  PL.flash = { yearRows, total, ach, curM };
+  PL.flash = { yearRows, total, ach, curM, row: R };
 
   PL.register('flash', {
     title: 'FLASH πωλήσεων & εισπράξεων',
@@ -37,7 +37,7 @@
       const $ = (q) => el.querySelector(q);
       S.use('flash');
       const paint = () => {
-        const ys = Object.keys(S.all('flash')).sort(), F = ys.length ? S.get('flash', ys[ys.length - 1]) : null;
+        const F = PL.model.flash();
         if (!F || !F.m) { $('#flb').innerHTML = `<p class="mu">${S.loaded('flash') ? 'Δεν υπάρχουν ακόμα στοιχεία. Έρχονται με την επόμενη ενημέρωση από το orders.' : 'Φορτώνω…'}</p>`; return; }
         const ms = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], cur = curM(F), rowsOf = (m) => (F.m[m] || []).map(R);
         if (!st.p) st.p = String(cur);
