@@ -70,9 +70,11 @@
       };
       const all = () => { setCnt(); setDue(); setPlans(); setBits(); setMatch(); setBak(); };
       all();
+      /* δοκιμαστικά (φάκελος lab/, μόνο στη δοκιμαστική έκδοση): PL.labActs με page 'home' και mount(#home) → καθάρισμα */
+      const labs = (PL.labActs || []).filter((x) => x.page === 'home' && x.mount).map((x) => x.mount($('#home') || el));
       const offs = ['clients', 'prospects', 'plans', 'tech', 'seminars', 'balances', 'deals', 'settings'].map((c) => S.on(c, all));
       offs.push(PL.bus.on('due', setDue));
-      return () => { document.body.classList.remove('home'); offs.forEach((f) => f && f()); };
+      return () => { document.body.classList.remove('home'); offs.concat(labs).forEach((f) => f && f()); };
     },
   });
 })();

@@ -1,0 +1,102 @@
+/* ΔΟΚΙΜΑΣΤΙΚΟ «Χρήστες και ρόλοι» (lab/team/team.js) — μόνο στη δοκιμαστική έκδοση. */
+
+/* ---- οθόνη εισόδου ---- */
+body.tmlock { overflow: hidden; }
+#tmlogin { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: max(28px, env(safe-area-inset-top)) 16px 28px; }
+.tmlb { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; }
+.tmlogo { display: flex; align-items: center; gap: 10px; font-size: 30px; font-weight: 800; color: var(--tx); margin-top: 6px; }
+.tmlogo svg { width: 44px; height: 44px; }
+.tmlogo small { font-size: 16px; font-weight: 700; color: #2f6f5e; margin-left: 3px; vertical-align: super; }
+.tmlb > p.mu { margin: 0 0 6px; }
+.tmlb label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--mu); font-weight: 600; }
+.tmlb input { font-size: 17px; padding: 12px; }
+#tmgo { padding: 13px; font-size: 17px; margin-top: 4px; }
+#tmerr { margin: 0; min-height: 1.2em; }
+.tmq { border-top: 1px solid var(--bd); padding-top: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 8px; }
+.tmq h3 { margin: 0 0 2px; font-size: 13px; color: var(--mu); text-transform: uppercase; letter-spacing: .3px; }
+.tmq button { display: flex; align-items: center; gap: 12px; text-align: left; padding: 11px 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--bd); color: var(--tx); }
+.tmq button b { display: block; font-size: 16px; }
+.tmq button small { display: block; color: var(--mu); font-size: 13px; font-weight: 400; }
+.tmqi { font-size: 24px; width: 36px; text-align: center; flex: none; }
+.tmhint { font-size: 13px; text-align: center; }
+
+/* ---- αρχική: ποιος είναι μέσα + πλακίδια ρόλου ---- */
+#tmhome { display: flex; flex-direction: column; gap: clamp(8px, 1.5vh, 12px); flex: none; }
+#home .tmme { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 4px; border: 1px solid var(--hbd); border-radius: 999px; background: var(--hc1); }
+#home .tmme > div { flex: 1; min-width: 0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#home .tmme .mu { font-size: 13px; }
+#home .tmme .tmav { width: 30px; height: 30px; font-size: 12px; }
+#home .tmme button { flex: none; display: inline-block; font-size: 13px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+/* δοκιμαστική έκδοση με χρήστες: η υπενθύμιση αντιγράφου ασφαλείας δεν έχει νόημα (ψεύτικα δεδομένα) */
+#home #hbak { display: none; }
+#home button.duec.tmtile { padding-top: clamp(6px, 1vh, 12px); padding-bottom: clamp(6px, 1vh, 12px); border-radius: 18px; }
+#home button.duec.tmtile .dc { width: clamp(32px, 4.6vh, 42px); height: clamp(32px, 4.6vh, 42px); }
+#home button.duec.tmtile .dt { flex-direction: row; align-items: baseline; flex-wrap: wrap; column-gap: 10px; }
+#home button.duec.tmtile .dm { font-size: clamp(13px, 1.8vh, 15px); font-weight: 600; opacity: .85; }
+#home button.duec.tmtile .dl { font-size: clamp(16px, 2.2vh, 19px); font-weight: 800; opacity: 1; }
+#home button.duec.tmtile .dc svg { width: 24px; height: 24px; }
+#home button.duec.tmtile.lead { background: linear-gradient(115deg, #c9dcfb 0%, #8fb6f2 100%); color: #10284f; box-shadow: 0 8px 22px rgba(37, 99, 201, .18); }
+#home button.duec.tmtile.lead .dc { color: #10284f; }
+#home button.duec.tmtile.lead::after { background: #10284f; }
+#home button.duec.tmtile.dir { background: linear-gradient(115deg, #2f6f5e 0%, #1f4f43 100%); color: #fff; }
+#home button.duec.tmtile.dir .dc { color: #1f4f43; }
+#home button.duec.tmtile.dir::after { background: #fff; }
+#home button.duec.tmtile.adm { background: var(--hc1); border: 1px solid var(--hbd); color: var(--tx); box-shadow: none; }
+#home button.duec.tmtile.adm .dc { background: var(--hch); color: var(--hic); }
+#home button.duec.tmtile.adm::after { background: var(--mu); }
+/* ο διευθυντής δεν έχει δικούς του πελάτες: στην αρχική μόνο οι ομάδες */
+body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hbak, body.tmdir #home #hmatch { display: none; }
+
+.tmav { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #2f6f5e; color: #fff; font-weight: 700; font-size: 15px; flex: none; margin-right: 8px; vertical-align: middle; letter-spacing: .5px; }
+.tmav.s { width: 28px; height: 28px; font-size: 12px; margin-right: 8px; }
+#home .tmme .tmav { margin-right: 0; }
+
+/* ---- σελίδες ομάδας ---- */
+.tmh { display: flex; align-items: center; gap: 8px; }
+.tmh svg { color: var(--ac); }
+.tmro { display: inline-block; font-size: 12px; font-weight: 600; color: var(--mu); border: 1px solid var(--bd); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.tmrole { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 9px; white-space: nowrap; background: var(--ac2); color: var(--ac); }
+.tmrole.lead { background: rgba(37, 99, 201, .12); color: #2563c9; }
+.tmrole.director { background: rgba(122, 63, 184, .12); color: var(--sem); }
+.card.tmm, .card.tmteam, .card.tmu { cursor: pointer; }
+.card.tmu.off { opacity: .55; }
+.card.tmm.me { border-left: 4px solid #2563c9; }
+.tmm .nm, .tmu .nm { display: flex; align-items: center; }
+.tmfl { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 14.5px; }
+.tmfl.big { font-size: 17px; margin-top: 0; }
+.tmfl.big > b { font-size: 22px; }
+.tmbar { height: 8px; border-radius: 4px; background: var(--bd); overflow: hidden; margin-top: 5px; }
+.tmbar i { display: block; height: 100%; border-radius: 4px; background: #e0a11b; }
+.tmbar i.up { background: var(--ac); }
+.tmbar i.dn { background: var(--rd); }
+b.mid, .shk b.mid { color: #c78a00; }
+.tmmini { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13.5px; color: var(--mu); }
+.tmmini b { color: inherit; }
+b.up, .tmmini b.up { color: var(--ac); }
+b.dn, .tmmini b.dn { color: var(--rd); }
+.tmn { padding: 7px 0; border-bottom: 1px solid var(--bd); }
+.tmn:last-child { border-bottom: 0; }
+.tmn > .mu { font-size: 13px; }
+.tmppl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tmppl button { display: inline-flex; align-items: center; gap: 2px; padding: 4px 10px 4px 4px; border-radius: 999px; font-size: 13.5px; margin: 0; }
+.tmppl .tmav.s { width: 24px; height: 24px; font-size: 11px; margin-right: 4px; }
+.tmrk { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--bd); cursor: pointer; }
+.tmrk:last-child { border-bottom: 0; }
+.tmrk > div { flex: 1; min-width: 0; }
+.tmrk .mu { font-size: 12.5px; }
+.tmn1 { width: 24px; height: 24px; border-radius: 50%; background: var(--ac2); color: var(--ac); font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.tmrl { padding: 7px 0; border-bottom: 1px solid var(--bd); display: flex; flex-direction: column; gap: 2px; }
+.tmrl:last-child { border-bottom: 0; }
+.tmrl span { color: var(--mu); font-size: 14px; }
+.tmfoot { font-size: 13px; margin-top: 14px; }
+.shk b small { font-size: 12px; font-weight: 400; }
+
+/* ---- φόρμα χρήστη ---- */
+.tmform { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.tmform label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--mu); font-weight: 600; }
+.tmform label.tmck { flex-direction: row; align-items: center; gap: 8px; color: var(--tx); font-weight: 400; font-size: 15px; }
+.tmform label.tmck input { width: 20px; height: 20px; }
+.tmform textarea { font: inherit; }
+.tmchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tmchips button { padding: 4px 10px; border-radius: 999px; font-size: 13px; margin: 0; }
+.tmchips small { color: var(--mu); }
