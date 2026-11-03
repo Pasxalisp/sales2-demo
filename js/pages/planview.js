@@ -50,7 +50,7 @@
   }
   function areaBox(cities, k, label) {
     const a = areaStats(cities), op = aOpen.has(k);
-    return `<div class="warn" style="margin:8px 0;padding:0"><div data-atog="${esc(k)}" style="display:flex;align-items:center;gap:8px;padding:10px;cursor:pointer"><span style="font-size:18px;width:16px">${op ? '▾' : '▸'}</span><span style="flex:1">${label}</span><b>${money(a.tz)}</b> ${pctTxt(a.pct)}</div>${op ? `<div style="padding:0 10px 10px">${areaBody(cities)}</div>` : ''}</div>`;
+    return `<div class="warn" style="margin:6px 0;padding:0"><div data-atog="${esc(k)}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><span style="font-size:14px;width:14px">${op ? '▾' : '▸'}</span><span style="flex:1">${label}</span><b>${money(a.tz)}</b> ${pctTxt(a.pct)}</div>${op ? `<div style="padding:0 10px 10px">${areaBody(cities)}</div>` : ''}</div>`;
   }
   function areaSum(cities) {
     const key = cities.slice().sort().join('|');
@@ -122,7 +122,7 @@
         const p = cur; if (!p || !alive) return; const scr = PL.scroller(el), sc = scr.scrollTop;
         $('#plt').textContent = p.cities.join(' + ') + E.modeLbl(p.mode); $('#plsum').innerHTML = areaSum(p.cities);
         const d = p.stops.filter((s) => s.done).length;
-        $('#plp').textContent = p.saved ? d + '/' + p.stops.length + ' επισκέψεις · ' + p.created + ' · Κράτα πατημένο έναν πελάτη ή σύρε το ≡ για να αλλάξεις σειρά' : 'Πρόχειρο: αφαίρεσε ή πρόσθεσε πελάτες και πάτα ΟΚ για να αποθηκευτεί. Αν βγεις, κρατιέται στα «Πρόχειρα» του Προγράμματος ημέρας. Τα τικ για τις επισκέψεις εμφανίζονται μετά το ΟΚ.';
+        $('#plp').textContent = p.saved ? d + '/' + p.stops.length + ' επισκέψεις · ' + u.fd(p.created) : 'Πρόχειρο: αφαίρεσε ή πρόσθεσε πελάτες και πάτα ΟΚ για να αποθηκευτεί. Αν βγεις, κρατιέται στα «Πρόχειρα» του Προγράμματος ημέρας. Τα τικ για τις επισκέψεις εμφανίζονται μετά το ΟΚ.';
         const SOS = S.all('sos');
         let h = '', cc = '', ga = '';
         h += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span class="mu" style="font-size:13px">Ταξινόμηση:</span><button class="chip ${p.sort !== 'tz' ? 'on' : ''}" data-psort="area">📍 Κατά περιοχή</button><button class="chip ${p.sort === 'tz' ? 'on' : ''}" data-psort="tz">💶 Κατά τζίρο</button></div>`;
@@ -140,6 +140,8 @@
         });
         const A = p.stops.filter((s) => s.appt && !s.done && M.byId(s.id)).sort((a, b) => ((a.apptD || '') + a.appt).localeCompare((b.apptD || '') + b.appt));
         if (A.length) h = `<div class="apsum"><b>📅 Ραντεβού:</b> ${A.map((s) => '<b>' + (s.apptD && s.apptD !== p.created ? esc(s.apptD.split('-').reverse().slice(0, 2).join('/')) + ' ' : '') + esc(s.appt) + '</b> ' + esc(M.byId(s.id).name)).join(' · ')}</div>` + h;
+        /* η οδηγία για τη σειρά κάτω από τη λίστα (όχι στην κορυφή: εκεί πρέπει να φαίνονται οι πελάτες) */
+        if (h && p.saved) h += '<p class="mu" style="font-size:12.5px;margin:10px 2px">Κράτα πατημένο έναν πελάτη ή σύρε το ≡ για να αλλάξεις σειρά.</p>';
         $('#plb').innerHTML = h || '<p class="mu">Κανένας πελάτης.</p>'; scr.scrollTop = sc;
         $('#plact').innerHTML = p.saved ? (p.stops.length && p.stops.every((x) => x.done) ? '<div class="warn" style="font-weight:600">✅ Το πρόγραμμα ολοκληρώθηκε</div>' : '') + '<p style="display:flex;gap:6px;flex-wrap:wrap"><button class="pri" id="plxls">📤 Excel</button><button id="ploff">📴 Για χωρίς σήμα</button><button id="pldel">🗑 Διαγραφή προγράμματος</button></p><div id="plxst" class="mu"></div>' : '<button class="pri" id="plok">ΟΚ — αποθήκευση προγράμματος</button>';
         $('#dclh').innerHTML = PL.dcl() + `<datalist id="ccl">${[...new Set(M.clients().map((c) => c.city))].sort((a, b) => a.localeCompare(b, 'el')).map((k) => `<option value="${esc(k)}">`).join('')}</datalist>`;

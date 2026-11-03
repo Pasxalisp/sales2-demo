@@ -169,11 +169,11 @@
 .apsum {
   background: #e6eef5;
   color: #173a52;
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin: 8px 0;
-  font-size: 14px;
-  line-height: 1.5;
+  border-radius: 10px;
+  padding: 7px 10px;
+  margin: 6px 0;
+  font-size: 13.5px;
+  line-height: 1.4;
 }
 .aped {
   display: flex;

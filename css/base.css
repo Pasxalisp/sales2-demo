@@ -29,9 +29,21 @@
 * {
   box-sizing: border-box;
 }
-h1 {
+/* Μεγέθη επικεφαλίδων για όλες τις σελίδες (κινητό πρώτα): τίτλος σελίδας h1/h2 = 20px, ενότητα h3 = 16px.
+   Χωρίς αυτά ο browser δίνει 24px/19px και ο τίτλος με τον υπότιτλο πιάνουν μισή οθόνη στο κινητό. */
+h1,
+h2 {
   font-size: 20px;
+  line-height: 1.2;
   margin: 0 0 8px;
+}
+h2 {
+  margin-top: 4px;
+}
+h3 {
+  font-size: 16px;
+  line-height: 1.25;
+  margin: 14px 0 6px;
 }
 input,
 textarea,
@@ -987,7 +999,7 @@ main {
 }
 .shh h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 19px;
 }
 .shstep {
   font-size: 13px;
