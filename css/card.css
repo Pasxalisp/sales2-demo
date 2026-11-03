@@ -1,6 +1,6 @@
 /* card.css — «Η κάρτα μου»: QR μεγάλο, πάντα μαύρο σε λευκό (και στο σκούρο θέμα), για εύκολο σκανάρισμα.
    Με κλειστή την «Αλλαγή στοιχείων» (.cdlock) η οθόνη δεν κυλάει και το QR μικραίνει όσο χρειάζεται για να χωράνε όλα.
-   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 .cdqr {
   background: #fff;
   border-radius: 18px;

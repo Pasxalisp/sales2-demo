@@ -77,8 +77,26 @@
   /* Το στοιχείο που κυλά για μια σελίδα: η δική της στήλη σε οριζόντια οθόνη με δύο στήλες, αλλιώς όλη η σελίδα. */
   PL.scroller = (el) => (el && el.closest('main.split>.page')) || document.scrollingElement;
 
+  /* Σπάνιες σελίδες (Γραφήματα, FLASH, Τζίρος, Κάρτα QR): δεν φορτώνουν στην εκκίνηση, αλλά την πρώτη φορά που ανοίγουν.
+     PL.lazy({σελίδα: [αρχεία]}) τις δηλώνει (pelatologio.html) · PL.need(σελίδα) φορτώνει τα αρχεία της (μία φορά). */
+  const LAZY = {}, got = {};
+  PL.lazy = (map) => Object.assign(LAZY, map);
+  const load = (f) => got[f] || (got[f] = new Promise((ok, no) => {
+    const css = f.endsWith('.css'), x = document.createElement(css ? 'link' : 'script');
+    if (css) { x.rel = 'stylesheet'; x.href = f; } else { x.src = f; x.async = false; }
+    x.onload = ok; x.onerror = () => { delete got[f]; x.remove(); no(new Error(f)); };
+    document.head.appendChild(x);
+  }));
+  PL.need = (id) => (pages[id] || !LAZY[id] ? Promise.resolve() : Promise.all(LAZY[id].map(load)));
+
   PL.nav = {
     push(id, params) {
+      if (!pages[id] && LAZY[id]) {
+        /* «Φορτώνει…» μόνο αν αργήσει (με αδύναμο σήμα)· μετά ανοίγει κανονικά */
+        const tm = setTimeout(() => PL.dlg.toast('Φορτώνει…'), 300);
+        PL.need(id).then(() => { clearTimeout(tm); PL.nav.push(id, params); }, () => { clearTimeout(tm); PL.dlg.toast('Δεν φόρτωσε. Έλεγξε τη σύνδεση και ξαναπάτα.'); });
+        return;
+      }
       const e = { id, params: params || {} }, m = masterOf(), top = stack[stack.length - 1];
       /* Δίπλα στη λίστα: νέα λεπτομέρεια αντικαθιστά την προηγούμενη (το «Πίσω» γυρνά στη λίστα, όχι από πελάτη σε πελάτη). */
       if (m && m !== top && details(m).includes(id)) stack[stack.length - 1] = e; else stack.push(e);

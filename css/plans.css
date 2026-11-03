@@ -1,5 +1,5 @@
 /* plans.css — Προγράμματα: μήνα, ημέρας, ανοιχτό πρόγραμμα, εκτός προγράμματος, τα προγράμματά μου.
-   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 .pcard {
   -webkit-user-select: none;
   user-select: none;

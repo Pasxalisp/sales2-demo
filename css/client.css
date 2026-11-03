@@ -1,5 +1,5 @@
 /* client.css — Καρτέλα πελάτη.
-   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 .ent {
   border-left: 3px solid var(--ac);
   padding: 4px 0 4px 10px;

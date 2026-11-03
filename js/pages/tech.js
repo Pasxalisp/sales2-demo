@@ -17,8 +17,8 @@
       COLS.forEach((c) => S.use(c));
       const paint = () => {
         $('#hubtc').textContent = Object.keys(S.all('tech')).filter((id) => M.byId(id)).length;
-        $('#hubsc').textContent = Object.keys(S.all('seminars')).length;
-        $('#hubcc').textContent = Object.values(S.all('campaigns')).filter(M.campOn).length;
+        $('#hubsc').textContent = PL.actions.seminar.active();
+        $('#hubcc').textContent = PL.actions.campaign.active();
       };
       paint();
       $('#hubt').onclick = () => PL.nav.push('techlist');

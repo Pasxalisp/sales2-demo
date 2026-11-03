@@ -1,5 +1,6 @@
-/* Ανοιχτό πρόγραμμα ημέρας (ίδιο με της παλιάς σελίδας): στοιχεία περιοχής, ταξινόμηση, κάρτες στάσεων με σύρσιμο, ραντεβού,
-   αφαίρεση με λόγο, αλλαγή πελάτη χωρίς τζίρο, προσθήκη πελάτη / νέο κομμωτήριο, Excel, «Για χωρίς σήμα», ΟΚ-αποθήκευση πρόχειρου.
+/* Ανοιχτό πρόγραμμα ημέρας (ίδιο με της παλιάς σελίδας): ταξινόμηση, κάρτες στάσεων, ραντεβού, αφαίρεση με λόγο,
+   αλλαγή πελάτη χωρίς τζίρο, προσθήκη πελάτη / νέο κομμωτήριο, ΟΚ-αποθήκευση πρόχειρου.
+   Χωριστά κομμάτια (js/plans/): area.js «Στοιχεία περιοχής» · drag.js σύρσιμο · export.js Excel και «Για χωρίς σήμα».
    Το «cur» είναι το ανοιχτό πρόγραμμα· αλλαγές γίνονται σε αυτό και γράφονται με savePlan(). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
@@ -7,58 +8,13 @@
   let cur = null;                                    // ανοιχτό πρόγραμμα: {id, saved, cities, created, stops, note, mode, sort, did}
   const plOpen = new Set();                          // στάσεις με ανοιχτές «Προτάσεις»
   let apEdit = -1;                                   // στάση με ανοιχτό πεδίο ραντεβού
-  let aOpen = new Set(); try { aOpen = new Set(JSON.parse(localStorage.getItem('aopen') || '[]')); } catch (e) { /* τίποτα */ }
-  const aPick = {};
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const pctOf = (ly, ty) => (ly > 0 ? (ty - ly) / ly * 100 : null);
-  const pctTxt = (x) => (x == null ? '' : `<span class="${x >= 0 ? 'up' : 'dn'}">${x >= 0 ? '▲ +' : '▼ −'}${Math.abs(x).toFixed(0)}%</span>`);
   const cleanPlan = (p) => ({ sort: p.sort || '', mode: p.mode || '', cities: p.cities, created: p.created, closed: p.mode === 'free' || (p.stops.length > 0 && p.stops.every((s) => s.done)), stops: p.stops, note: p.note || '' });
 
   /* ---------- Άνοιγμα ---------- */
   PV.open = (id) => PL.nav.push('planview', { id });
   PV.openNew = (p) => { cur = p; if (p.saved) PL.nav.push('planview', { id: p.id }); else { if (!p.did) p.did = 'd' + Date.now(); PL.nav.push('planview', { did: p.did }); } };   // μόλις δημιουργημένο (ίσως και μη αποθηκευμένο)
   PV.current = () => cur;
-
-  /* ---------- Στοιχεία περιοχής ---------- */
-  function areaStats(cities) {
-    const L = M.clients().filter((c) => cities.includes(c.city) && !c.prospect); let tz = 0, ty = 0, ly = 0, lf = 0, nT = 0, nL = 0, up = 0, dn = 0, lost = 0, debt = 0, over = 0;
-    L.forEach((c) => {
-      const t = M.tz(c); tz += t; if (t > 0) nT++;
-      const g = M.gold(c); if (g) { ly += g[0] || 0; ty += g[1] || 0; lf += g[2] || 0; if ((g[0] || 0) > 0) nL++; if ((g[0] || 0) > 0 && (g[1] || 0) <= 0) lost++; else if ((g[1] || 0) > (g[0] || 0)) up++; else if ((g[1] || 0) < (g[0] || 0)) dn++; }
-      const b = S.get('balances', c.i); if (b) { debt += +b.amount || 0; over += +b.over || 0; }
-    });
-    return { n: L.length, tz, ty, ly, lf, nT, nL, up, dn, lost, debt, over, pct: ly > 0 ? (ty - ly) / ly * 100 : null };
-  }
-  function areaCats(cities) {
-    const CAT = S.get('cats', 'all') || {}, T = {};
-    M.clients().forEach((c) => {
-      if (!cities.includes(c.city)) return; const d = CAT[c.i]; if (!d) return;
-      M.CATN.forEach((k) => { if (!Array.isArray(d[k])) return; const o = T[k] || (T[k] = [0, 0, 0, 0, 0]); o[0] += +d[k][0] || 0; o[1] += +d[k][1] || 0; o[2] += +d[k][2] || 0; if ((+d[k][0] || 0) > 0 && (+d[k][1] || 0) <= 0) o[3]++; if ((+d[k][1] || 0) > 0) o[4]++; });
-    });
-    const r = M.CATN.filter((k) => T[k] && (T[k][0] || T[k][1] || T[k][2])); if (!r.length) return '';
-    return `<div style="margin-top:8px;font-weight:600">Ανά κατηγορία</div><div style="overflow-x:auto"><table class="ctab"><tr><th></th><th>Πέρσι ίδια περ.</th><th>Φέτος</th><th>%</th><th>Πελάτες</th></tr>${r.map((k) => { const [a, b, , l, n] = T[k]; return `<tr><td>${esc(M.CATL[k] || k)}</td><td>${money(a)}</td><td>${money(b)}</td><td>${pctTxt(pctOf(a, b))}</td><td>${n}${l ? ` <span class="dn">−${l}</span>` : ''}</td></tr>`; }).join('')}</table></div>`;
-  }
-  function areaBody(cities) {
-    const a = areaStats(cities);
-    return `<div class="row"><span>Τζίρος περιοχής φέτος</span><b>${money(a.tz)}</b></div>
- <div class="row"><span>Goldwell φέτος / πέρσι ίδια περίοδο</span><b>${money(a.ty)} / ${money(a.ly)}</b></div>
- <div class="row"><span>Διαφορά</span><b>${pctTxt(a.pct)} <span class="${a.ty >= a.ly ? 'up' : 'dn'}">(${a.ty >= a.ly ? '+' : '−'}${money(Math.abs(a.ty - a.ly))})</span></b></div>
- <div class="row"><span>Goldwell όλο το περσινό έτος</span><b>${money(a.lf)}</b>${a.lf > 0 ? ` <span class="mu">· έχεις πιάσει ${Math.round(a.ty / a.lf * 100)}%</span>` : ''}</div>
- <div class="row"><span>Πελάτες που αγόρασαν</span><b>${a.nT} φέτος · ${a.nL} πέρσι</b></div>
- <div class="mu" style="margin-top:4px"><span class="up">▲ ${a.up} ανεβαίνουν</span> · <span class="dn">▼ ${a.dn} πέφτουν</span>${a.lost ? ` · <span class="dn">${a.lost} δεν αγόρασαν φέτος</span>` : ''}</div>
- ${areaCats(cities)}${a.debt >= 1 || a.over > 0 ? `<div class="row" style="margin-top:4px"><span>💶 Χρέη περιοχής</span><b>${money(a.debt)}${a.over > 0 ? ` · <span class="dn">υπέρβαση ${money(a.over)}</span>` : ''}</b></div>` : ''}`;
-  }
-  function areaBox(cities, k, label) {
-    const a = areaStats(cities), op = aOpen.has(k);
-    return `<div class="warn" style="margin:6px 0;padding:0"><div data-atog="${esc(k)}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><span style="font-size:14px;width:14px">${op ? '▾' : '▸'}</span><span style="flex:1">${label}</span><b>${money(a.tz)}</b> ${pctTxt(a.pct)}</div>${op ? `<div style="padding:0 10px 10px">${areaBody(cities)}</div>` : ''}</div>`;
-  }
-  function areaSum(cities) {
-    const key = cities.slice().sort().join('|');
-    if (cities.length < 2) return areaBox(cities, 'all:' + key, 'Στοιχεία περιοχής');
-    const pk = (cur && cur.id) || 'x', sel = aPick[pk] && cities.includes(aPick[pk]) ? aPick[pk] : '';
-    const chips = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0">${['', ...cities].map((c) => `<button class="chip${c === sel ? ' on' : ''}" data-apick="${esc(c)}" style="padding:6px 12px;border-radius:99px${c === sel ? ';background:var(--ac);color:#fff;border-color:var(--ac)' : ''}">${c ? esc(c) : 'Όλες οι περιοχές'}</button>`).join('')}</div>`;
-    return chips + (sel ? areaBox([sel], 'city:' + sel, 'Στοιχεία ' + esc(sel)) : areaBox(cities, 'all:' + key, 'Στοιχεία όλων των περιοχών'));
-  }
 
   /* καμπάνιες που ενδιαφέρεται (ενεργές, δεν την πήρε ακόμα) */
   const campLine = (id) => M.campsInt(id).map((t) => `<div class="camp">${PL.pct} ${esc(t)}: ενδιαφέρεται</div>`).join('');
@@ -113,19 +69,27 @@
       $('#pllab').innerHTML = LA.map((x, k) => `<button class="chip" data-plab="${k}">${x.label}</button>`).join('');
       $('#pllab').hidden = !LA.length;
       $('#pllab').addEventListener('click', (ev) => { const b = ev.target.closest('[data-plab]'); if (b && cur && cur.saved) LA[+b.dataset.plab].fn(cur.id); });
-      let pDrag = null, pLP = null, pNoClick = false, alive = true;
+      let alive = true;
       const canon = E.canonCity;
 
       const savePlan = async () => { if (!cur || !cur.saved) return; try { await E.savePlan(cur.id, cleanPlan(cur)); } catch (e) { D.toast('Δεν αποθηκεύτηκε η αλλαγή'); } };
 
+      /* σύρσιμο: η στάση μπαίνει πριν/μετά τον στόχο· σε σειρά «κατά περιοχή» η εφαρμογή μαθαίνει τη διαδρομή */
+      const drag = E.drag({ root: el, list: () => $('#plb'), card: '.pcard', onCancel: () => renderPlan(),
+        onDrop: (a, b, after) => {
+          const mv = cur && cur.stops[+a.dataset.sk], tg = cur && cur.stops[+b.dataset.sk];
+          if (!mv || !tg) { renderPlan(); return; }
+          cur.stops.splice(cur.stops.indexOf(mv), 1); const i = cur.stops.indexOf(tg); cur.stops.splice(after ? i + 1 : i, 0, mv);
+          if (cur.sort !== 'tz') E.learnRoute(cur.stops).catch(() => {}); renderPlan(); savePlan();
+        } });
+
       /* ---- σχεδίαση ---- */
       function renderPlan() {
-        if (pDrag) { pDrag.pending = true; return; }
+        if (drag.busy()) return;   /* όσο σέρνεις δεν ξαναζωγραφίζεται· στο τέλος ζωγραφίζεται */
         const p = cur; if (!p || !alive) return; const scr = PL.scroller(el), sc = scr.scrollTop;
-        $('#plt').textContent = p.cities.join(' + ') + E.modeLbl(p.mode); $('#plsum').innerHTML = areaSum(p.cities);
+        $('#plt').textContent = p.cities.join(' + ') + E.modeLbl(p.mode); $('#plsum').innerHTML = E.area.sum(p.cities, p.id || 'x');
         const d = p.stops.filter((s) => s.done).length;
         $('#plp').textContent = p.saved ? d + '/' + p.stops.length + ' επισκέψεις · ' + u.fd(p.created) : 'Πρόχειρο: αφαίρεσε ή πρόσθεσε πελάτες και πάτα ΟΚ για να αποθηκευτεί. Αν βγεις, κρατιέται στα «Πρόχειρα» του Προγράμματος ημέρας. Τα τικ για τις επισκέψεις εμφανίζονται μετά το ΟΚ.';
-        const SOS = S.all('sos');
         let h = '', cc = '', ga = '';
         h += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><span class="mu" style="font-size:13px">Ταξινόμηση:</span><button class="chip ${p.sort !== 'tz' ? 'on' : ''}" data-psort="area">📍 Κατά περιοχή</button><button class="chip ${p.sort === 'tz' ? 'on' : ''}" data-psort="tz">💶 Κατά τζίρο</button></div>`;
         const gkey = (c) => (E.areaOf(c) || '') + '|' + (c.zip || ''), gcnt = {};
@@ -136,9 +100,8 @@
           if (s.done && !dh) { dh = true; cc = ''; ga = ''; h += `<h3 class="mu" style="margin-top:22px">✓ Ολοκληρωμένες (${doneL.length})</h3>`; }
           if (!s.done && c.city !== cc) { cc = c.city; ga = ''; h += `<h3>${esc(cc)}</h3>`; }
           if (!s.done) { const g = p.sort === 'tz' || (gcnt[c.city] || new Set()).size < 2 ? '' : gkey(c); if (g && g !== ga) { ga = g; h += `<div class="mu" style="margin:10px 0 2px;font-size:12px;letter-spacing:.04em">📍 ${esc(E.areaOf(c) || 'ΤΚ')}${c.zip ? ' · ' + esc(c.zip) : ''}</div>`; } }
-          const callb = PL.call.cbtn(c, true), mapb = PL.call.map(c, true), tz = M.tz(c), sos = s.sos || !!SOS[s.id];
+          const callb = PL.call.cbtn(c, true), mapb = PL.call.map(c, true), tz = M.tz(c);
           h += `<div class="card pcard" data-sk="${k}" style="cursor:default${s.done ? ';opacity:.55' : ''}"><div style="display:flex;gap:10px;align-items:flex-start">${p.saved ? `<input type="checkbox" data-done="${k}" ${s.done ? 'checked' : ''} style="width:24px;height:24px;margin-top:2px;flex:none">` : ''}<div style="flex:1;min-width:0"><div class="nm" data-open="${esc(c.i)}" style="cursor:pointer${s.done ? ';text-decoration:line-through' : ''}">${s.appt ? `<span class="appt">🕐 ${esc(s.appt)}</span> ` : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}${s.sos ? ' <span class="dn">🆘 SOS</span>' : ''}${s.zero ? ' <span class="mu">· χωρίς τζίρο</span>' : ''}${tz > 0 ? ' <span class="mu" style="font-weight:600;white-space:nowrap">· ' + money(tz) + '</span>' : ''}</div><div class="mu pvad">${esc(c.addr)}</div>${callb || mapb ? `<div class="pvbt">${callb}${mapb}</div>` : ''}${debtLine(c.i)}${campLine(c.i)}${(s.why || (s.say || []).length) && plOpen.has(s.id) ? `<div style="margin-top:4px">${esc(s.why || '')}</div>${(s.say || []).length ? `<ul style="margin:4px 0 6px;padding-left:20px">${s.say.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}` : ''}</div><div style="display:flex;flex-direction:column;gap:6px;flex:none;align-items:center"><span class="grip" data-grip="1" aria-label="Μετακίνηση">≡</span><button data-rm="${k}" aria-label="Αφαίρεση" style="padding:2px 10px">✕</button>${s.zero && !s.done ? `<button data-swap="${k}" aria-label="Αλλαγή πελάτη" style="padding:2px 8px">🔄</button>` : ''}</div></div><div class="acts">${s.why || (s.say || []).length ? `<button data-exp="${k}">${plOpen.has(s.id) ? '▾ Λιγότερα' : '▸ Προτάσεις'}</button>` : ''}<button data-open="${esc(c.i)}">Καρτέλα</button>${s.done ? '' : `<button data-appt="${k}">🕐 ${s.appt ? 'Ώρα' : 'Ραντεβού'}</button>`}</div>${apEdit === k ? `<div class="aped"><label style="margin:0;color:var(--tx)">Ραντεβού</label><input type="date" id="apd" value="${esc(s.apptD || p.created || u.today())}"><input type="time" id="apt" value="${esc(s.appt || '')}"><button class="pri" data-apsave="${k}">OK</button>${s.appt ? `<button data-apdel="${k}">Χωρίς ραντεβού</button>` : ''}<button data-apx="1">Άκυρο</button></div>` : ''}</div>`;
-          void sos;
         });
         const A = p.stops.filter((s) => s.appt && !s.done && M.byId(s.id)).sort((a, b) => ((a.apptD || '') + a.appt).localeCompare((b.apptD || '') + b.appt));
         if (A.length) h = `<div class="apsum"><b>📅 Ραντεβού:</b> ${A.map((s) => '<b>' + (s.apptD && s.apptD !== p.created ? esc(s.apptD.split('-').reverse().slice(0, 2).join('/')) + ' ' : '') + esc(s.appt) + '</b> ' + esc(M.byId(s.id).name)).join(' · ')}</div>` + h;
@@ -165,97 +128,6 @@
       };
       Promise.all([E.use(), S.use('pdrafts'), S.use('campaigns')]).then(start);
 
-      /* ---- σύρσιμο ---- */
-      const pdStart = (card, x, y) => {
-        const cards = [...$('#plb').querySelectorAll('.pcard')], p = cards.indexOf(card); if (p < 0) return;
-        const top0 = PL.scroller(el).scrollTop, mids = cards.map((c) => { const r = c.getBoundingClientRect(); return r.top + r.height / 2 + top0; });
-        const cs = getComputedStyle(card), h = card.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
-        pDrag = { card, cards, p, t: p, mids, h, y0: y + top0 }; card.classList.add('drag'); cards.forEach((c) => { if (c !== card) c.classList.add('shift'); });
-        try { navigator.vibrate && navigator.vibrate(25); } catch (e) { /* τίποτα */ }
-      };
-      const pdMove = (y) => {
-        const d = pDrag; if (!d) return;
-        const scr = PL.scroller(el); if (y < 90) scr.scrollBy(0, -14); else if (y > innerHeight - 130) scr.scrollBy(0, 14);
-        const dy = y + scr.scrollTop - d.y0; d.card.style.transform = 'translateY(' + dy + 'px)';
-        const c = d.mids[d.p] + dy; let t = 0; d.mids.forEach((m, i) => { if (i !== d.p && m < c) t++; }); d.t = t;
-        d.cards.forEach((e2, i) => { if (i === d.p) return; let o = 0; if (d.p < t && i > d.p && i <= t) o = -d.h; else if (d.p > t && i >= t && i < d.p) o = d.h; e2.style.transform = o ? 'translateY(' + o + 'px)' : ''; });
-      };
-      const pdEnd = () => {
-        const d = pDrag; if (!d) return; pDrag = null; pNoClick = true; setTimeout(() => { pNoClick = false; }, 350);
-        if (cur && d.t !== d.p) {
-          const mv = cur.stops[+d.cards[d.p].dataset.sk], tg = cur.stops[+d.cards[d.t].dataset.sk];
-          if (mv && tg) { cur.stops.splice(cur.stops.indexOf(mv), 1); const i = cur.stops.indexOf(tg); cur.stops.splice(d.t > d.p ? i + 1 : i, 0, mv); if (cur.sort !== 'tz') E.learnRoute(cur.stops).catch(() => {}); renderPlan(); savePlan(); return; }
-        }
-        renderPlan();
-      };
-      const onDown = (ev) => {
-        const card = ev.target.closest('.pcard'); if (!card || pDrag || !$('#plb').contains(card)) return;
-        if (ev.target.closest('[data-grip]')) { ev.preventDefault(); pdStart(card, ev.clientX, ev.clientY); return; }
-        if (ev.target.closest('button,input,a')) return;
-        const x0 = ev.clientX, y0 = ev.clientY; clearTimeout(pLP && pLP.t);
-        pLP = { x0, y0, x: x0, y: y0, t: setTimeout(() => { if (pLP) { pdStart(card, pLP.x, pLP.y); pLP = null; } }, 450) };
-      };
-      const onMove = (ev) => {
-        if (pLP) { pLP.x = ev.clientX; pLP.y = ev.clientY; if (Math.abs(ev.clientX - pLP.x0) > 8 || Math.abs(ev.clientY - pLP.y0) > 8) { clearTimeout(pLP.t); pLP = null; } }
-        if (pDrag) { ev.preventDefault(); pdMove(ev.clientY); }
-      };
-      const onTouch = (ev) => { if (pDrag) ev.preventDefault(); };
-      const onUp = () => { if (pLP) { clearTimeout(pLP.t); pLP = null; } if (pDrag) pdEnd(); };
-      const onClickCap = (ev) => { if (pNoClick) { ev.stopPropagation(); ev.preventDefault(); } };
-      $('#plb').addEventListener('pointerdown', onDown);
-      document.addEventListener('pointermove', onMove); document.addEventListener('touchmove', onTouch, { passive: false });
-      document.addEventListener('pointerup', onUp); document.addEventListener('pointercancel', onUp);
-      el.addEventListener('click', onClickCap, true);
-      el.addEventListener('contextmenu', (ev) => { if (ev.target.closest('.pcard')) ev.preventDefault(); });
-
-      /* ---- Για χωρίς σήμα / Excel ---- */
-      const planOffline = async () => {
-        const p = cur, st = $('#plxst'); if (!p) return;
-        const e = (x) => String(x ?? '').replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
-        const key = 'off_' + (p.id || 'x'); let h = '', cc = '';
-        p.stops.forEach((x, k) => {
-          const c = M.byId(x.id); if (!c) return;
-          if (c.city !== cc) { cc = c.city; h += `<h2>${e(cc)}</h2>`; }
-          const tels = [c.t1, c.t2].concat(c.more || []).filter(Boolean), b = S.get('balances', x.id) || {}, es = M.entries(x.id).slice(0, 2);
-          h += `<div class="c${x.done ? ' d' : ''}"><label><input type="checkbox" data-k="${k}" ${x.done ? 'checked' : ''}> <b>${e(c.name)}</b>${x.sos ? ' <span class="r">SOS</span>' : ''}</label>
-  <div class="m">${e(c.addr)}${c.area ? ' · ' + e(c.area) : ''}${M.tz(c) > 0 ? ' · τζίρος ' + e(money(M.tz(c))) : ''}</div>
-  ${tels.length ? `<div>${tels.map((t) => `<a href="tel:${e(String(t).replace(/[^\d+]/g, ''))}">📞 ${e(t)}</a>`).join(' ')}</div>` : ''}
-  ${(+b.amount || 0) >= 1 ? `<div class="r">💶 Χρέος ${e(money(+b.amount))}${(+b.over || 0) > 0 ? ' · υπέρβαση ' + e(money(+b.over)) : ''}</div>` : ''}
-  ${x.why ? `<div>${e(x.why)}</div>` : ''}${(x.say || []).length ? `<ul>${x.say.map((y) => `<li>${e(y)}</li>`).join('')}</ul>` : ''}
-  ${es.map((n) => `<div class="m">[${e(n.d)}] ${e(n.text || '')}${n.todo ? ' — Να πω: ' + e(n.todo) : ''}</div>`).join('')}
-  <textarea data-n="${k}" placeholder="Σημείωση (θα την περάσεις μετά με υπαγόρευση)"></textarea></div>`;
-        });
-        const html = `<!doctype html><html lang="el"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Πρόγραμμα ${e(p.cities.join(' + '))}</title><style>body{font:16px -apple-system,sans-serif;margin:0;padding:14px;background:#f6f4ef;color:#1f2421}h1{font-size:20px;margin:0 0 4px}h2{font-size:17px;margin:20px 0 6px;color:#2f6f5e}.c{background:#fff;border:1px solid #e2ded4;border-radius:12px;padding:10px;margin:8px 0}.d{opacity:.55}.m{color:#6b716c;font-size:14px;margin:3px 0}.r{color:#b3402e;font-weight:600}a{display:inline-block;margin:4px 6px 4px 0;color:#2f6f5e;font-weight:600}ul{margin:4px 0;padding-left:20px}textarea{width:100%;box-sizing:border-box;margin-top:6px;font:inherit;border:1px solid #e2ded4;border-radius:8px;padding:6px;min-height:40px}input[type=checkbox]{width:20px;height:20px;vertical-align:-4px}</style></head><body>
- <h1>${e(p.cities.join(' + '))}</h1><div class="m">Αντίγραφο για χωρίς σήμα · ${e(p.created)} · τα τικ και οι σημειώσεις εδώ ΔΕΝ περνάνε στο Πελατολόγιο· πέρασέ τα μετά με υπαγόρευση.</div>${h}
- <script>try{var K=${JSON.stringify(key)},S=JSON.parse(localStorage.getItem(K)||'{}');document.querySelectorAll('[data-k]').forEach(function(b){var k='t'+b.dataset.k;if(k in S)b.checked=S[k];b.closest('.c').classList.toggle('d',b.checked);b.onchange=function(){S[k]=b.checked;b.closest('.c').classList.toggle('d',b.checked);localStorage.setItem(K,JSON.stringify(S))}});document.querySelectorAll('[data-n]').forEach(function(t){var k='n'+t.dataset.n;if(S[k])t.value=S[k];t.oninput=function(){S[k]=t.value;localStorage.setItem(K,JSON.stringify(S))}})}catch(e){}<\/script></body></html>`;
-        if (!PL.adapter.files.available()) { st.textContent = 'Η λήψη δουλεύει μόνο μέσα στο claude.ai.'; return; }
-        try { await PL.adapter.files.save('Programma ' + p.cities.join('-').replace(/[\\/:*?"<>|]/g, '-') + ' ' + p.created + '.html', html); st.textContent = '✓ Αποθηκεύτηκε. Άνοιξέ το από τα Αρχεία του iPhone όταν δεν έχεις σήμα.'; }
-        catch (err) { const c = err && err.code; st.textContent = c === 'declined' ? 'Ακυρώθηκε.' : 'Δεν έγινε η λήψη (' + (c || 'σφάλμα') + ').'; }
-      };
-      let XP = null;
-      const loadXlsx = () => { if (window.XLSX) return Promise.resolve(); if (!XP) XP = new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload = ok; sc.onerror = () => { XP = null; no(new Error('load')); }; document.head.appendChild(sc); }); return XP; };
-      const planXlsx = async () => {
-        const p = cur, st = $('#plxst'); if (!p) return; st.textContent = 'Ετοιμάζω το Excel…';
-        try { await loadXlsx(); } catch (e) { st.textContent = 'Δεν φόρτωσε το Excel. Έλεγξε τη σύνδεση και ξαναπάτα.'; return; }
-        const r2 = (x) => Math.round((+x || 0) * 100) / 100;
-        const rows = p.stops.map((s, k) => {
-          const c = M.byId(s.id) || {}, g = (c.i && M.gold(c)) || [], b = S.get('balances', s.id) || {}, es = M.entries(s.id).filter((e) => e.d >= p.created), e = es[0] || {};
-          return { '#': k + 1, 'Πόλη': c.city || '', 'Πελάτης': c.name || '', 'Κωδικός': c.code || '', 'Διεύθυνση': c.addr || '', 'Τηλέφωνο': [c.t1, c.t2].filter(Boolean).join(' / '), 'Επίσκεψη': s.done ? '✓' : '', 'Ημερομηνία': s.doneDate || '', 'Τι συζητήσαμε': es.map((x) => x.text).filter(Boolean).join(' | '), 'Προϊόντα': es.map((x) => x.products).filter(Boolean).join(', '),
-            'Να πω': e.todo || '', 'Εκκρεμότητα για': e.next || '', 'Τζίρος φέτος': r2(c.i ? M.tz(c) : 0), 'Goldwell φέτος': r2(g[1]), 'Goldwell πέρσι ίδια περίοδο': r2(g[0]), 'Υπόλοιπο': r2(b.amount), 'Υπέρβαση': r2(b.over), 'SOS': s.sos ? 'SOS' : '', 'Χωρίς τζίρο': s.zero ? 'ναι' : '', 'Πρόταση': s.why || '' };
-        });
-        const ws = XLSX.utils.json_to_sheet(rows); ws['!cols'] = [4, 14, 28, 9, 26, 22, 9, 11, 40, 22, 30, 13, 12, 12, 14, 11, 11, 6, 10, 40].map((w) => ({ wch: w })); ws['!autofilter'] = { ref: ws['!ref'] };
-        const a = areaStats(p.cities);
-        const ss = XLSX.utils.aoa_to_sheet([['Πρόγραμμα', p.cities.join(' + ')], ['Ημερομηνία', p.created], ['Επισκέψεις', p.stops.filter((x) => x.done).length + ' / ' + p.stops.length], [],
-          ['Τζίρος περιοχής φέτος', r2(a.tz)], ['Goldwell φέτος', r2(a.ty)], ['Goldwell πέρσι ίδια περίοδο', r2(a.ly)], ['Διαφορά %', a.pct == null ? '' : Math.round(a.pct)], ['Goldwell όλο το περσινό', r2(a.lf)],
-          ['Πελάτες που αγόρασαν φέτος', a.nT], ['Πελάτες που αγόρασαν πέρσι', a.nL], ['Ανεβαίνουν', a.up], ['Πέφτουν', a.dn], ['Χρέη περιοχής', r2(a.debt)], ['Υπέρβαση', r2(a.over)]]);
-        ss['!cols'] = [{ wch: 30 }, { wch: 30 }];
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Πρόγραμμα'); XLSX.utils.book_append_sheet(wb, ss, 'Σύνοψη');
-        const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        const fn = 'Programma ' + p.cities.join('-').replace(/[\\/:*?"<>|]/g, '-') + ' ' + p.created + '.xlsx';
-        if (!PL.adapter.files.available()) { st.textContent = 'Η λήψη δουλεύει μόνο μέσα στο claude.ai.'; return; }
-        try { await PL.adapter.files.save(fn, new Blob([buf])); st.textContent = '✓ Έτοιμο. Από το αρχείο πάτα Κοινοποίηση για να το στείλεις.'; }
-        catch (e) { const c = e && e.code; st.textContent = c === 'declined' ? 'Ακυρώθηκε.' : 'Δεν έγινε η λήψη (' + (c || 'σφάλμα') + '). Πες στη συνομιλία του project «στείλε μου σε Excel το πρόγραμμα ' + p.cities.join(' + ') + '» και θα σου το στείλω από εκεί.'; }
-      };
 
       /* ---- αλλαγή πελάτη χωρίς τζίρο ---- */
       async function swapStop(k) {
@@ -267,7 +139,7 @@
         if (!cur) return; const kk = cur.stops.findIndex((x) => x.id === s.id); if (kk < 0) return;
         if (!nx) { D.toast('Δεν υπάρχει άλλος πελάτης χωρίς τζίρο στην περιοχή.'); return; }
         cur.stops[kk] = { id: nx.i, why: 'Νέα πρόταση πελάτη χωρίς τζίρο', say: [], done: false, zero: true }; renderPlan(); savePlan();
-        if (PL.adapter.ai.available()) { try { const r = await E.suggestOne(nx); if (!cur) return; const i2 = cur.stops.findIndex((y) => y.id === nx.i); if (i2 >= 0) { cur.stops[i2].why = r.why || cur.stops[i2].why; cur.stops[i2].say = r.say; renderPlan(); savePlan(); } } catch (e) { /* τίποτα */ } }
+        try { const r = await E.suggestOne(nx); if (!cur) return; const i2 = cur.stops.findIndex((y) => y.id === nx.i); if (i2 >= 0) { cur.stops[i2].why = r.why || cur.stops[i2].why; cur.stops[i2].say = r.say; renderPlan(); savePlan(); } } catch (e) { /* μένει η «Νέα πρόταση» */ }
       }
 
       /* ---- τικ επίσκεψης ---- */
@@ -290,9 +162,9 @@
         const t = ev.target;
         try {
           const at = t.closest('[data-atog]');
-          if (at) { const k = at.dataset.atog; aOpen.has(k) ? aOpen.delete(k) : aOpen.add(k); try { localStorage.setItem('aopen', JSON.stringify([...aOpen])); } catch (e) { /* τίποτα */ } renderPlan(); return; }
+          if (at) { E.area.toggle(at.dataset.atog); renderPlan(); return; }
           const ap = t.closest('[data-apick]');
-          if (ap && cur) { aPick[cur.id || 'x'] = ap.dataset.apick; $('#plsum').innerHTML = areaSum(cur.cities); return; }
+          if (ap && cur) { E.area.pick(cur.id || 'x', ap.dataset.apick); $('#plsum').innerHTML = E.area.sum(cur.cities, cur.id || 'x'); return; }
           if (!cur) return;
           /* τάμπλετ: πάτημα στην κάρτα ή στο όνομα (όχι σε κουμπί) → φύλλο επίσκεψης δεξιά */
           const pc = t.closest('.pcard');
@@ -315,8 +187,7 @@
             renderPlan();
           }
           else if (t.dataset.psort) { const m = t.dataset.psort; cur.stops = m === 'tz' ? E.tzSort(cur.stops) : E.routeSort(cur.stops); cur.sort = m === 'tz' ? 'tz' : 'area'; renderPlan(); savePlan(); }
-          else if (t.id === 'ploff') { t.disabled = true; await planOffline(); t.disabled = false; }
-          else if (t.id === 'plxls') { t.disabled = true; await planXlsx(); t.disabled = false; }
+          else if (t.id === 'ploff' || t.id === 'plxls') { t.disabled = true; const st = $('#plxst'); st.textContent = t.id === 'plxls' ? 'Ετοιμάζω το Excel…' : ''; st.textContent = await (t.id === 'plxls' ? E.exportXlsx : E.exportOffline)(cur); t.disabled = false; }
           else if (t.id === 'pldel') { $('#plact').innerHTML = `<span>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(cur.cities.join(' + '))}»;</span><br><button class="pri" id="pldy" style="background:#d9382f;border-color:#d9382f;margin-top:8px">Ναι, διαγραφή</button> <button id="pldn" style="margin-top:8px">Άκυρο</button>`; }
           else if (t.id === 'pldn') renderPlan();
           else if (t.id === 'pldy') { const id = cur.id; cur = null; try { await E.deletePlan(id); } catch (e) { /* τίποτα */ } PL.nav.back(); }
@@ -369,10 +240,7 @@
       });
 
       return () => {
-        alive = false; offs.forEach((f) => f()); PV.repaint = null; apEdit = -1;
-        document.removeEventListener('pointermove', onMove); document.removeEventListener('touchmove', onTouch);
-        document.removeEventListener('pointerup', onUp); document.removeEventListener('pointercancel', onUp);
-        clearTimeout(pLP && pLP.t);
+        alive = false; offs.forEach((f) => f()); PV.repaint = null; apEdit = -1; drag.off();
       };
     },
   });

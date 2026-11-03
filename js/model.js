@@ -136,7 +136,7 @@
       return out;
     };
 
-    /* FLASH της εταιρείας (αναφορά 07): το έγγραφο της πιο πρόσφατης χρονιάς, ή null. Υπολογισμοί πάνω του: PL.flash (flash.js). */
+    /* FLASH της εταιρείας (αναφορά 07): το έγγραφο της πιο πρόσφατης χρονιάς, ή null. Υπολογισμοί πάνω του: PL.flash (πιο κάτω). */
     M.flash = () => { const A = S().all('flash'), ys = Object.keys(A).sort(); return ys.length ? A[ys[ys.length - 1]] : null; };
 
     /* Είδη (από το orders, items/{πελάτης}): όλες οι γραμμές [[πελάτης, είδος]] και η πιο πρόσφατη ημερομηνία· city προαιρετικό. */
@@ -150,6 +150,29 @@
       return Object.values(m); };
     return M;
   }
+
+  /* FLASH (αναφορά 07): υπολογισμοί πάνω στο έγγραφο flash/{έτος} (M.flash()). Τους χρησιμοποιούν η σελίδα FLASH και οι οθόνες ομάδας. */
+  PL.flash = (function () {
+    const R = (r) => ({ code: r[0], name: r[1], target: r[2], sales: r[3], pend: r[4], bal: r[7], over: r[8], prot: r[9], coll: r[10], disc: r[11], newc: r[12] });
+    const ach = (x) => (x.target > 0 ? x.sales / x.target * 100 : null);
+    /* ο τρέχων μήνας = ο μήνας των στοιχείων (μετά από αυτόν, οι μήνες έχουν μόνο στόχο) */
+    const curM = (F) => (String(F.d).slice(0, 4) === String(F.y) ? +String(F.d).slice(5, 7) : 12);
+
+    /* σύνολο έτους ανά πωλητή: άθροισμα μηνών· υπόλοιπα και «προς εκτέλεση» από τον τρέχοντα μήνα· εκπτώσεις σταθμισμένες με τις πωλήσεις */
+    function yearRows(F) {
+      const ms = Object.keys(F.m).map(Number).sort((a, b) => a - b), c = curM(F), snap = Math.max(...ms.filter((m) => m <= c), ms[0]), by = {};
+      ms.forEach((m) => F.m[m].map(R).forEach((x) => {
+        const y = by[x.code] || (by[x.code] = { code: x.code, name: x.name, target: 0, sales: 0, pend: 0, bal: 0, over: 0, prot: 0, coll: 0, newc: 0, dw: 0 });
+        y.target += x.target; y.sales += x.sales; y.coll += x.coll; y.newc += x.newc; y.dw += x.disc * Math.max(0, x.sales);
+        if (m === snap) Object.assign(y, { pend: x.pend, bal: x.bal, over: x.over, prot: x.prot });
+      }));
+      return Object.values(by).map((y) => Object.assign(y, { disc: y.sales > 0 ? y.dw / y.sales : 0 }));
+    }
+    const total = (L) => { const t = { name: 'Σύνολο', target: 0, sales: 0, pend: 0, bal: 0, over: 0, prot: 0, coll: 0, newc: 0, dw: 0 };
+      L.forEach((x) => { ['target', 'sales', 'pend', 'bal', 'over', 'prot', 'coll', 'newc'].forEach((k) => { t[k] += x[k]; }); t.dw += x.disc * Math.max(0, x.sales); });
+      t.disc = t.sales > 0 ? t.dw / t.sales : 0; return t; };
+    return { yearRows, total, ach, curM, row: R };
+  })();
 
   const M = (PL.model = make(PL.store));
   /* οι ίδιοι υπολογισμοί πάνω σε άλλη πηγή (π.χ. τα δεδομένα ενός πωλητή της ομάδας, μόνο για ανάγνωση) */

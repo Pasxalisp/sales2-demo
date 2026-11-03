@@ -10,8 +10,6 @@
 <link rel="stylesheet" href="css/tech.css">
 <link rel="stylesheet" href="css/products.css">
 <link rel="stylesheet" href="css/deals.css">
-<link rel="stylesheet" href="css/charts.css">
-<link rel="stylesheet" href="css/card.css">
 <main id="app"></main>
 <nav id="nav" aria-label="Πλοήγηση"></nav>
 <div id="pm"></div><div id="pmb" role="menu"></div>
@@ -27,7 +25,6 @@
 <script src="js/drafts.js"></script>
 <script src="js/call.js"></script>
 <script src="js/namedays.js"></script>
-<script src="js/lib/qr.js"></script>
 <script src="js/dictation/find.js"></script>
 <script src="js/picker.js"></script>
 <script src="js/dictation/tools.js"></script>
@@ -36,6 +33,10 @@
 <script src="js/orders/catalog.js"></script>
 <script src="js/plans/engine.js"></script>
 <script src="js/plans/ai.js"></script>
+<script src="js/plans/rules.js"></script>
+<script src="js/plans/area.js"></script>
+<script src="js/plans/drag.js"></script>
+<script src="js/plans/export.js"></script>
 <script src="js/plans/monthplan.js"></script>
 <script src="js/prospects.js"></script>
 <script src="js/dataio.js"></script>
@@ -60,20 +61,17 @@
 <script src="js/pages/debt.js"></script>
 <script src="js/pages/tech.js"></script>
 <script src="js/pages/techreq.js"></script>
-<script src="js/pages/seminar.js"></script>
-<script src="js/pages/campaign.js"></script>
+<script src="js/pages/actions.js"></script>
 <script src="js/pages/deals.js"></script>
 <script src="js/pages/deal.js"></script>
-<script src="js/pages/charts.js"></script>
-<script src="js/pages/flash.js"></script>
 <script src="js/pages/orders.js"></script>
 <script src="js/pages/order.js"></script>
 <script src="js/pages/products.js"></script>
 <script src="js/pages/whobought.js"></script>
 <script src="js/pages/buyer.js"></script>
-<script src="js/pages/sales.js"></script>
 <script src="js/pages/data.js"></script>
-<script src="js/pages/card.js"></script>
+<script>/* σπάνιες σελίδες: φορτώνουν την πρώτη φορά που ανοίγουν (core.js, PL.lazy) */
+PL.lazy({ charts: ['css/charts.css', 'js/pages/charts.js'], flash: ['css/charts.css', 'js/pages/flash.js'], sales: ['js/pages/sales.js'], salesitem: ['js/pages/sales.js'], card: ['css/card.css', 'js/lib/qr.js', 'js/pages/card.js'] });</script>
 <link rel="stylesheet" href="lab/map/map.css"><script src="lab/map/map.js"></script>
 <link rel="stylesheet" href="lab/team/team.css"><script src="lab/team/team.js"></script>
 <script>PL.start(); PL.model.boot();</script>

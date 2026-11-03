@@ -51,10 +51,6 @@
     const a = +b.amount || 0, o = +b.over || 0, d = +b.bounced || 0; if (Math.abs(a) < 1 && o < 1 && !d) return '';
     return `<div class="debt">💶 Χρέος ${money(a)}${o > 0 ? ` · <span class="dn">υπέρβαση ${money(o)}</span>` : ''}${d ? ` · <span class="dn">διαμαρτυρημένα ${money(d)}</span>` : ''}${b.d ? ` <span class="mu">(${esc(b.d)})</span>` : ''}</div>`;
   }
-  function semLine(id) {
-    const L = Object.values(S.all('seminars')).filter((x) => (x.cust || []).includes(id)).map((x) => x.title + ((x.conf || []).includes(id) ? ' (✅ επιβεβαιωμένο)' : ' (⏳ σε εκκρεμότητα)'));
-    return L.length ? `<div class="debt">🎓 Σεμινάρια: ${esc(L.join(', '))}</div>` : '';
-  }
   const XOL = { closed: 'Έκλεισε', no: 'Δεν ενδιαφέρεται', later: 'Άλλη φορά' };
   const xoBlocked = (x) => x && (x.r === 'closed' || x.r === 'no');
   function xoLine(id) {
@@ -71,10 +67,10 @@
     return `<div class="warn">${mc ? `Μάλλον πέρασε στο orders ως <b>${esc(mc.name)}</b>${mc.code ? ' (κωδ. ' + esc(mc.code) + ')' : ''} · ${esc(m.why)}.<p style="margin:8px 0"><button class="pri" data-pmy="${esc(mc.i)}">Ένωση</button> <button data-pmn="${esc(mc.i)}">Όχι, άλλος</button></p>` : ''}🆕 Προσωρινός πελάτης (δεν έχει περάσει στο orders). Όταν περάσει, θα σου προταθεί η ένωση στην Αρχική. Ή ένωσέ τον τώρα με τον κανονικό:<input id="pmc" list="dcl" placeholder="γράψε το όνομα του κανονικού πελάτη…" style="margin-top:6px"><datalist id="dcl">${M.clients().map((c) => `<option value="${esc(c.name)} · ${esc(c.city)} · ${c.i}">`).join('')}</datalist><p style="margin:8px 0 0"><button id="pmg">Ένωση</button> <button id="pdel">Διαγραφή</button></p></div>`; };
 
   /* ---- πάνω μέρος ---- */
-  /* σεμινάρια του πελάτη: '' (κανένα) · 'p' (κάποιο περιμένει επιβεβαίωση) · 'c' (όλα επιβεβαιωμένα) */
-  const semState = (id) => { const L = Object.values(S.all('seminars')).filter((x) => (x.cust || []).includes(id)); return !L.length ? '' : L.some((x) => !(x.conf || []).includes(id)) ? 'p' : 'c'; };
+  /* σεμινάριο / καμπάνια (actions.js): ⏳ περιμένει · ✅ επιβεβαιώθηκε / την πήρε */
+  const MARK = { '': '', wait: ' ⏳', ok: ' ✅', in: '' };
   function topHtml(id, c) {
-    const SOS = !!S.get('sos', id), T = S.get('tech', id), sem = semState(id), cmp = PL.campaigns.state(id), I = PL.icon, map = PL.call.mapUrl(c);
+    const SOS = !!S.get('sos', id), T = S.get('tech', id), A = PL.actions, sem = A.seminar.state(id), cmp = A.campaign.state(id), I = PL.icon, map = PL.call.mapUrl(c);
     const tz = M.tz(c);
     const nd = PL.names.feastOf(c), ndD = nd ? PL.names.dateOf(nd, +PL.names.today().slice(0, 4)) : '';
     return `<h2 style="margin:4px 0 2px">${SOS ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}</h2>` +
@@ -84,14 +80,14 @@
       `<button class="cat" id="ordb">${I.cart}<span>Παραγγελία</span></button></div>` +
       `<div class="cchips"><button class="cchip${SOS ? ' sos' : ''}" id="sosb" aria-pressed="${SOS}">${I.star}SOS</button>` +
       `<button class="cchip${T ? ' tech' : ''}" id="techb" aria-pressed="${!!T}">${I.tech16}Τεχνικός</button>` +
-      `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${sem === 'p' ? ' ⏳' : sem === 'c' ? ' ✅' : ''}</button>` +
-      `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${cmp === 'int' ? ' ⏳' : cmp === 'won' ? ' ✅' : ''}</button></div>` +
+      `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${MARK[sem]}</button>` +
+      `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${MARK[cmp]}</button></div>` +
       `${T && T.note ? `<div class="mu">Τεχνικός: ${esc(T.note)}</div>` : ''}` +
       `${nd ? `<div class="mu">🎉 Γιορτάζει: ${esc(nd.t)} (${esc(u.fd(ndD))})${ndD === PL.names.today() ? ' · <b class="up">σήμερα!</b>' : ''}</div>` : ''}` +
       `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${tz !== 0 ? `<p class="tz">Τζίρος: ${money(tz)}</p>` : ''}` +
       `${c.ex ? `<div class="mu">Έχουν αφαιρεθεί: ${esc(c.exn)} (αρχικός τζίρος ${money(c.tz0)})</div>` : ''}` +
       `${c.tzold != null ? `<div class="mu">Ο τζίρος ενημερώθηκε στο μεγαλύτερο ποσό (Goldwell φέτος· πριν ${money(c.tzold)})</div>` : ''}` +
-      `${debtLine(id)}${semLine(id)}${PL.campaigns.line(id)}${xoLine(id)}${ordLine(id)}${PL.deals.line(id)}${goldDetail(c)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
+      `${debtLine(id)}${A.seminar.line(id)}${A.campaign.line(id)}${xoLine(id)}${ordLine(id)}${PL.deals.line(id)}${goldDetail(c)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
       `${c.prospect ? prospPanel(id) : ''}<h3>Δουλεύει ήδη</h3><div class="chips" style="flex-wrap:wrap">${M.PR.map((p) => `<button class="chip ${M.works(id).includes(p) ? 'on' : ''}" data-w="${p}">${p}</button>`).join('')}</div>`;
   }
 
@@ -151,20 +147,8 @@
             if (S.get('tech', id)) { if (!await D.confirm('Να αφαιρεθεί ο «' + (c ? c.name : '') + '» από τη λίστα τεχνικής υποστήριξης;', 'Ναι, αφαίρεση')) return; await db().remove('tech/' + id); D.toast('Αφαιρέθηκε από τη λίστα τεχνικού'); }
             else { await db().set('tech/' + id, { d: u.today(), note: '' }); D.toast('Μπήκε στη λίστα τεχνικής υποστήριξης'); }
           }
-          else if (t.closest('#semb')) {
-            const L = Object.entries(S.all('seminars')).sort((a, b) => String(a[1].date || '9999').localeCompare(String(b[1].date || '9999')));
-            if (!L.length) { D.toast('Δεν έχεις φτιάξει σεμινάρια ακόμα. Φτιάξε ένα από την αρχική: Ενέργειες → Σεμινάρια.'); return; }
-            const opts = L.map(([, x]) => ((x.cust || []).includes(id) ? '✓ ' : '') + (x.title || 'Σεμινάριο') + ' · ' + (x.date ? u.fd(x.date) : 'χωρίς ημερομηνία') + (x.time ? ' ' + x.time : '')); opts.push('Άκυρο');
-            const k = await D.choice('Σε ποιο σεμινάριο να μπει ο «' + (c ? c.name : '') + '»;' + (L.some(([, x]) => (x.cust || []).includes(id)) ? ' (✓ = είναι ήδη μέσα, πάτα για αφαίρεση)' : ''), opts);
-            if (k == null || k >= L.length) return;
-            const [sid, x0] = L[k], x = Object.assign({}, x0), cu = x.cust || [];
-            const rm = cu.includes(id);
-            if (rm) { if (!await D.confirm('Να αφαιρεθεί ο «' + (c ? c.name : '') + '» από το σεμινάριο «' + (x.title || '') + '»;', 'Ναι, αφαίρεση')) return; x.cust = cu.filter((v) => v !== id); x.conf = (x.conf || []).filter((v) => v !== id); }
-            else x.cust = cu.concat([id]);
-            await db().set('seminars/' + sid, x); S.put('seminars', sid, x);
-            D.toast((rm ? 'Αφαιρέθηκε από το σεμινάριο «' : '🎓 Μπήκε στο σεμινάριο «') + (x.title || 'Σεμινάριο') + '»');
-          }
-          else if (t.closest('#campb')) await PL.campaigns.pick(id);
+          else if (t.closest('#semb')) await PL.actions.seminar.pick(id);
+          else if (t.closest('#campb')) await PL.actions.campaign.pick(id);
           else if (t.closest('#ordb')) await PL.orders.openFor(id);
           else if (t.closest('[data-oo]')) PL.nav.push('order', { id: t.closest('[data-oo]').dataset.oo });
           else if (PL.deals.click(t)) { /* Συμφωνία: μήνυμα / ενημερώθηκε */ }

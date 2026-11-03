@@ -1,5 +1,5 @@
 /* clients.css — Πελατολόγιο (λίστα).
-   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 header {
   position: sticky;
   top: env(safe-area-inset-top,0px);

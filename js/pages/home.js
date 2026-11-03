@@ -42,8 +42,8 @@
         $('#hps').textContent = L.length ? (L.length === 1 ? '1 ενεργό πρόγραμμα' : L.length + ' ενεργά προγράμματα') : 'Πού να πας και τι να πεις';
       };
       const setBits = () => {
-        /* Ενέργειες: 🔧 τεχνικός · 🎓 σεμινάρια · % ενεργές καμπάνιες (μία γραμμή, χωράει και στο μικρό πλακίδιο) */
-        if (S.loaded('tech') && S.loaded('seminars') && S.loaded('campaigns')) $('#htc').innerHTML = '🔧 ' + Object.keys(S.all('tech')).filter((id) => M.byId(id)).length + ' · 🎓 ' + Object.keys(S.all('seminars')).length + ' · ' + PL.pct + ' ' + Object.values(S.all('campaigns')).filter(M.campOn).length;
+        /* Ενέργειες: 🔧 τεχνικός · 🎓 ενεργά σεμινάρια · % ενεργές καμπάνιες (μία γραμμή, χωράει και στο μικρό πλακίδιο) */
+        if (S.loaded('tech') && S.loaded('seminars') && S.loaded('campaigns')) $('#htc').innerHTML = '🔧 ' + Object.keys(S.all('tech')).filter((id) => M.byId(id)).length + ' · 🎓 ' + PL.actions.seminar.active() + ' · ' + PL.pct + ' ' + PL.actions.campaign.active();
         if (S.loaded('balances')) {
           const { v: bv, big } = M.bal;
           const L = M.bal.ids(), n = L.filter(big).length, tot = L.reduce((a, id) => a + bv(id, 'amount'), 0);

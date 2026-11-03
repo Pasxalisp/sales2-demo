@@ -33,7 +33,6 @@
       async function create() {
         if (st.busy) return;
         if (!st.sel.size) return say('Διάλεξε τουλάχιστον μία περιοχή.');
-        if (!PL.adapter.ai.available()) return say('Το πρόγραμμα δουλεύει μόνο όταν ανοίξεις τη σελίδα συνδεδεμένος στο claude.ai.');
         st.busy = true; $('#pgo').disabled = true;
         let clock = null;
         try {
@@ -60,7 +59,7 @@
           const zeros = E.zeroQueue(sel, excl).slice(0, Math.max(0, Math.min(10, st.n))), zset = new Set(zeros.map((x) => x.i)), all = act.concat(zeros);
           if (!all.length) return say('Δεν υπάρχουν ενεργοί ή νέοι πελάτες στις περιοχές αυτές.');
           const T0 = Date.now(), N = all.length;
-          $('#pst').innerHTML = `<div class="pbw"><div class="pbt"><span id="pbm">Διαβάζω ${N} πελάτες…</span><span id="pbe">0″</span></div><div class="pbar ind" id="pbb"><i></i></div><div class="pbs">Σε μεγάλες περιοχές μπορεί να πάρει έως δύο λεπτά. Μην κλείσεις τη σελίδα.</div></div>`;
+          $('#pst').innerHTML = `<div class="pbw"><div class="pbt"><span id="pbm">Διαβάζω ${N} πελάτες…</span><span id="pbe">0″</span></div><div class="pbar ind" id="pbb"><i></i></div>${PL.adapter.ai.available() ? '<div class="pbs">Σε μεγάλες περιοχές μπορεί να πάρει έως δύο λεπτά. Μην κλείσεις τη σελίδα.</div>' : ''}</div>`;
           clock = PL.tick.add(() => { const e = document.getElementById('pbe'); if (e) { const s = Math.round((Date.now() - T0) / 1000); e.textContent = s < 60 ? s + '″' : Math.floor(s / 60) + '′ ' + u.pad(s % 60) + '″'; } }, 1);
           const g = await E.generate(cs, all, { mode, zset, touch: c.touch, recentTouch: c.recentTouch }, (k, n) => {
             const b = document.getElementById('pbb'), m = document.getElementById('pbm'); if (!b || !m) return;
@@ -73,7 +72,7 @@
           if (alive) $('#pst').textContent = '';
           PL.planview.openNew(plan);
         } catch (e) {
-          say(e && e.code === 'not_granted' ? 'Χρειάζεται να επιτρέψεις στη σελίδα να χρησιμοποιήσει το Claude.' : 'Δεν ολοκληρώθηκε (' + ((e && e.code) || 'σφάλμα') + (e && e.message ? ': ' + String(e.message).slice(0, 160) : '') + '). Δοκίμασε ξανά.');
+          say('Δεν ολοκληρώθηκε (' + ((e && e.code) || 'σφάλμα') + (e && e.message ? ': ' + String(e.message).slice(0, 160) : '') + '). Δοκίμασε ξανά.');
         } finally { if (clock) PL.tick.remove(clock); st.busy = false; const b = document.getElementById('pgo'); if (b) b.disabled = false; }
       }
 

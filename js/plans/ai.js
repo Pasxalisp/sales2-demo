@@ -1,5 +1,6 @@
-/* Σημειώσεις προγράμματος από το Claude: χτίζει τις γραμμές πελατών και το αίτημα, και διαβάζει την απάντηση.
-   Δεν αποφασίζει το Claude ποιοι μπαίνουν (το κάνει η μηχανή)· γράφει μόνο why (γιατί) και say (τι να πεις). */
+/* Σημειώσεις προγράμματος από το Claude (μόνο όπου υπάρχει, π.χ. claude.ai): χτίζει τις γραμμές πελατών και το αίτημα,
+   και διαβάζει την απάντηση. Δεν αποφασίζει το Claude ποιοι μπαίνουν (το κάνει η μηχανή)· γράφει μόνο why και say.
+   Το καλεί το rules.js (E.generate / E.suggestOne), που χωρίς Claude γράφει τις σημειώσεις με κανόνες. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans;
   const r0 = (x) => Math.round(+x || 0);
@@ -39,8 +40,8 @@
     return t.join(', ');
   };
 
-  /* Παράγει τις στάσεις. all = πελάτες που μπαίνουν. onProgress(k, N). */
-  E.generate = async function (cities, all, ctx, onProgress) {
+  /* Σημειώσεις για τους πελάτες all → {notes: {id: {why, say}}, note}. onProgress(k, N). */
+  E.aiNotes = async function (cities, all, ctx, onProgress) {
     const t = u.today(), d = new Date(), days = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
     const rows = all.map((c) => row(c, t, tagOf(c, ctx))).join('\n');
     const prompt = `Είσαι βοηθός πωλητή προϊόντων κομμωτηρίου με κατηγορίες: Topchic, Colorance, Gloss tones, Silklift, Subbrand, Dualsenses, Styling, Elumen. Ετοίμασε σημειώσεις για πρόγραμμα επισκέψεων στις περιοχές: ${cities.join(', ')}. Σήμερα είναι ${t} (${days[d.getDay()]}).
@@ -55,14 +56,13 @@
 ${rows}`;
     const N = all.length;
     const r = await PL.adapter.ai.json(prompt, { modelTier: 'default', cache: false, onText: ({ text }) => { onProgress && onProgress(Math.min(N, (String(text).match(/"customer_id"/g) || []).length), N); } });
-    const ids = new Set(all.map((c) => c.i)), seen = new Set(), stops = [];
-    ((r && r.stops) || []).forEach((s) => { if (ids.has(s.customer_id) && !seen.has(s.customer_id)) { seen.add(s.customer_id); stops.push({ id: s.customer_id, why: s.why || '', say: Array.isArray(s.say) ? s.say : [], done: false, zero: ctx.zset.has(s.customer_id), sos: !!S.get('sos', s.customer_id) }); } });
-    all.forEach((c) => { if (!seen.has(c.i)) stops.push({ id: c.i, why: '', say: [], done: false, zero: ctx.zset.has(c.i), sos: !!S.get('sos', c.i) }); });
-    return { stops: E.routeSort(stops), note: (r && r.note) || '' };
+    const ids = new Set(all.map((c) => c.i)), notes = {};
+    ((r && r.stops) || []).forEach((s) => { if (ids.has(s.customer_id) && !notes[s.customer_id] && s.why) notes[s.customer_id] = { why: s.why, say: Array.isArray(s.say) ? s.say : [] }; });
+    return { notes, note: (r && r.note) || '' };
   };
 
   /* Νέα πρόταση για πελάτη χωρίς τζίρο που αντικαθιστά άλλον (🔄). */
-  E.suggestOne = async (c) => {
+  E.aiOne = async (c) => {
     const r = await PL.adapter.ai.json(`Είσαι βοηθός πωλητή προϊόντων κομμωτηρίου (κατηγορίες: Topchic, Colorance, Gloss tones, Silklift, Subbrand, Dualsenses, Styling, Elumen). Ο πελάτης παρακάτω δεν αγοράζει (χωρίς τζίρο) και ο πωλητής θα τον επισκεφθεί για να τον ξανανοίξει. Γράψε why (μία πρόταση με τα πραγματικά στοιχεία) και say (2-3 σύντομα σημεία, π.χ. 1-2 προϊόντα να δοκιμάσει). Μην επινοείς γεγονότα ή ποσά. Απάντησε ΜΟΝΟ με JSON: {"why":"","say":[""]}\n\n${row(c, u.today(), 'ΧΩΡΙΣ ΤΖΙΡΟ')}`, { modelTier: 'quick', cache: false });
     return { why: (r && r.why) || '', say: Array.isArray(r && r.say) ? r.say : [] };
   };
