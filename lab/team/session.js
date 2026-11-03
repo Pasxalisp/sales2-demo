@@ -47,6 +47,7 @@
       if (MAPS.has(p)) { const m = {}; Object.entries(d).forEach(([k, v]) => { if (k[0] === '_' || mine.has(k)) m[k] = v; }); out[p] = m; return; }
       if (c === 'tasks' || c === 'orders') { if (mine.has(d.cid)) out[p] = d; return; }
       if (c === 'plans') { const stops = (d.stops || []).filter((s) => mine.has(s.id)); if (stops.length) out[p] = Object.assign({}, d, { stops }); return; }
+      if (c === 'campaigns') { const cu = {}; Object.entries(d.cust || {}).forEach(([k, v]) => { if (mine.has(k)) cu[k] = v; }); out[p] = Object.assign({}, d, { cust: cu }); return; }
       if (c === 'seminars') { out[p] = Object.assign({}, d, { cust: (d.cust || []).filter((x) => mine.has(x)), conf: (d.conf || []).filter((x) => mine.has(x)) }); return; }
       if (PERSONAL.has(c)) { if (uid === FIRST) out[p] = d; return; }
       if (p === 'settings/card') { out[p] = Object.assign({}, d, { name: u.name, email: u.email }); return; }

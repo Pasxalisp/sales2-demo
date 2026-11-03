@@ -4,7 +4,7 @@
    Και το δεξί μέρος των Υπολοίπων όταν δεν έχεις πατήσει πελάτη: PL.debt.aside(el). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, H = PL.sheet, esc = u.esc, money = u.money;
-  const COLS = ['clients', 'prospects', 'balances', 'balnotes', 'notes', 'deals'];
+  const COLS = ['clients', 'prospects', 'balances', 'balnotes', 'notes', 'deals', 'campaigns'];
   const fdd = (d) => (d ? String(d).split('-').reverse().join('/') : '');
   const ymd = (d) => d.getFullYear() + '-' + u.pad(d.getMonth() + 1) + '-' + u.pad(d.getDate());
   /* γρήγορες ημερομηνίες: σήμερα, αύριο, την (επόμενη) Παρασκευή, τέλος του μήνα */

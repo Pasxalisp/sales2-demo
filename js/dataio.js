@@ -4,7 +4,7 @@
    Μιλάει μόνο με PL.adapter (δεν ξέρει πού ζει η βάση). */
 (function () {
   const PL = window.PL;
-  const COLS = ['balances','balnotes','brands','cats','deals','dealmsg','extra','flash','items','manual','month','notes','ocat','orders','pdrafts','plans','prospects','route','seminars','settings','sos','tasks','tech','visits','wish','xout','zskip'];
+  const COLS = ['balances','balnotes','brands','campaigns','cats','deals','dealmsg','extra','flash','items','manual','month','notes','ocat','orders','pdrafts','plans','prospects','route','seminars','settings','sos','tasks','tech','visits','wish','xout','zskip'];
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   let baseDelay = 600;

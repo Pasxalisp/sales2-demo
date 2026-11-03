@@ -4,7 +4,7 @@
    Και το δεξί μέρος των Συμφωνιών χωρίς επιλογή: PL.dealSheet.aside(el). Γράφει μόνο μέσω PL.deals (dealmsg). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, H = PL.sheet, esc = u.esc, eur = u.eur;
-  const COLS = ['deals', 'dealmsg', 'clients', 'prospects', 'notes', 'balances', 'items', 'cats'];
+  const COLS = ['deals', 'dealmsg', 'clients', 'prospects', 'notes', 'balances', 'items', 'cats', 'campaigns'];
   const dmy = (d) => (d ? d.split('-').reverse().join('/') : '');
   const X = (id) => M.dealsAll()[id];
 

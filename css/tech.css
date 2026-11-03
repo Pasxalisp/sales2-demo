@@ -1,9 +1,9 @@
-/* tech.css — Τεχνικός και σεμινάρια.
+/* tech.css — Ενέργειες: τεχνικός, σεμινάρια, καμπάνιες.
    Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals → charts → card. */
 #smsh {
   z-index: 12;
 }
-/* αρχική «Τεχνικός – Σεμινάρια»: δύο κάρτες με εικονίδιο σε κύκλο, μετρητή και βελάκι */
+/* αρχική «Ενέργειες»: τρεις κάρτες με εικονίδιο σε κύκλο, μετρητή και βελάκι */
 .hubk {
   display: flex;
   align-items: center;
@@ -39,6 +39,10 @@
   background: var(--sembg);
   color: var(--sem);
 }
+#hubc .hubi {
+  background: var(--campbg);
+  color: var(--camp);
+}
 .hubx {
   flex: 1;
   min-width: 0;
@@ -72,6 +76,51 @@
 }
 #smsh h2 {
   color: var(--sem);
+}
+#cmsh {
+  z-index: 12;
+}
+#cmsh h2 {
+  color: var(--camp);
+}
+/* καμπάνια: όνομα πελάτη → καρτέλα· κατάσταση σε τρία μικρά κουμπιά σε μία σειρά, το τρέχον χρωματισμένο */
+.cmnm {
+  cursor: pointer;
+}
+.cmseg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.cmseg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.cmseg button span {
+  font-size: 11px;
+}
+.cmseg button.on {
+  background: var(--campbg);
+  border-color: var(--camp);
+  color: var(--camp);
+  font-weight: 600;
+}
+.cmold .card {
+  opacity: .7;
+}
+/* υπενθύμιση καμπάνιας στο κουτί του προγράμματος */
+.camp {
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: var(--camp);
+  font-weight: 600;
 }
 /* «Προσθήκη» στην επιλογή πελατών: κολλά κάτω, πάνω από την κάτω μπάρα. */
 .smbar {

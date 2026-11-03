@@ -3,7 +3,7 @@
    ό,τι γράφεις όταν ανανεώνονται τα δεδομένα) και ιστορικό. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
-  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'balances', 'seminars', 'xout', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
+  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'balances', 'seminars', 'campaigns', 'xout', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
   const SM = 'font-weight:400;font-size:13px';
 
   /* ---- τμήματα με νούμερα ---- */
@@ -74,7 +74,7 @@
   /* σεμινάρια του πελάτη: '' (κανένα) · 'p' (κάποιο περιμένει επιβεβαίωση) · 'c' (όλα επιβεβαιωμένα) */
   const semState = (id) => { const L = Object.values(S.all('seminars')).filter((x) => (x.cust || []).includes(id)); return !L.length ? '' : L.some((x) => !(x.conf || []).includes(id)) ? 'p' : 'c'; };
   function topHtml(id, c) {
-    const SOS = !!S.get('sos', id), T = S.get('tech', id), sem = semState(id), I = PL.icon, map = PL.call.mapUrl(c);
+    const SOS = !!S.get('sos', id), T = S.get('tech', id), sem = semState(id), cmp = PL.campaigns.state(id), I = PL.icon, map = PL.call.mapUrl(c);
     const tz = M.tz(c);
     const nd = PL.names.feastOf(c), ndD = nd ? PL.names.dateOf(nd, +PL.names.today().slice(0, 4)) : '';
     return `<h2 style="margin:4px 0 2px">${SOS ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}</h2>` +
@@ -84,13 +84,14 @@
       `<button class="cat" id="ordb">${I.cart}<span>Παραγγελία</span></button></div>` +
       `<div class="cchips"><button class="cchip${SOS ? ' sos' : ''}" id="sosb" aria-pressed="${SOS}">${I.star}SOS</button>` +
       `<button class="cchip${T ? ' tech' : ''}" id="techb" aria-pressed="${!!T}">${I.tech16}Τεχνικός</button>` +
-      `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${sem === 'p' ? ' ⏳' : sem === 'c' ? ' ✅' : ''}</button></div>` +
+      `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${sem === 'p' ? ' ⏳' : sem === 'c' ? ' ✅' : ''}</button>` +
+      `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${cmp === 'int' ? ' ⏳' : cmp === 'won' ? ' ✅' : ''}</button></div>` +
       `${T && T.note ? `<div class="mu">Τεχνικός: ${esc(T.note)}</div>` : ''}` +
       `${nd ? `<div class="mu">🎉 Γιορτάζει: ${esc(nd.t)} (${esc(u.fd(ndD))})${ndD === PL.names.today() ? ' · <b class="up">σήμερα!</b>' : ''}</div>` : ''}` +
       `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${tz !== 0 ? `<p class="tz">Τζίρος: ${money(tz)}</p>` : ''}` +
       `${c.ex ? `<div class="mu">Έχουν αφαιρεθεί: ${esc(c.exn)} (αρχικός τζίρος ${money(c.tz0)})</div>` : ''}` +
       `${c.tzold != null ? `<div class="mu">Ο τζίρος ενημερώθηκε στο μεγαλύτερο ποσό (Goldwell φέτος· πριν ${money(c.tzold)})</div>` : ''}` +
-      `${debtLine(id)}${semLine(id)}${xoLine(id)}${ordLine(id)}${PL.deals.line(id)}${goldDetail(c)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
+      `${debtLine(id)}${semLine(id)}${PL.campaigns.line(id)}${xoLine(id)}${ordLine(id)}${PL.deals.line(id)}${goldDetail(c)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
       `${c.prospect ? prospPanel(id) : ''}<h3>Δουλεύει ήδη</h3><div class="chips" style="flex-wrap:wrap">${M.PR.map((p) => `<button class="chip ${M.works(id).includes(p) ? 'on' : ''}" data-w="${p}">${p}</button>`).join('')}</div>`;
   }
 
@@ -152,7 +153,7 @@
           }
           else if (t.closest('#semb')) {
             const L = Object.entries(S.all('seminars')).sort((a, b) => String(a[1].date || '9999').localeCompare(String(b[1].date || '9999')));
-            if (!L.length) { D.toast('Δεν έχεις φτιάξει σεμινάρια ακόμα. Φτιάξε ένα από την αρχική: Τεχνικός – Σεμινάρια → Σεμινάρια.'); return; }
+            if (!L.length) { D.toast('Δεν έχεις φτιάξει σεμινάρια ακόμα. Φτιάξε ένα από την αρχική: Ενέργειες → Σεμινάρια.'); return; }
             const opts = L.map(([, x]) => ((x.cust || []).includes(id) ? '✓ ' : '') + (x.title || 'Σεμινάριο') + ' · ' + (x.date ? u.fd(x.date) : 'χωρίς ημερομηνία') + (x.time ? ' ' + x.time : '')); opts.push('Άκυρο');
             const k = await D.choice('Σε ποιο σεμινάριο να μπει ο «' + (c ? c.name : '') + '»;' + (L.some(([, x]) => (x.cust || []).includes(id)) ? ' (✓ = είναι ήδη μέσα, πάτα για αφαίρεση)' : ''), opts);
             if (k == null || k >= L.length) return;
@@ -163,6 +164,7 @@
             await db().set('seminars/' + sid, x); S.put('seminars', sid, x);
             D.toast((rm ? 'Αφαιρέθηκε από το σεμινάριο «' : '🎓 Μπήκε στο σεμινάριο «') + (x.title || 'Σεμινάριο') + '»');
           }
+          else if (t.closest('#campb')) await PL.campaigns.pick(id);
           else if (t.closest('#ordb')) await PL.orders.openFor(id);
           else if (t.closest('[data-oo]')) PL.nav.push('order', { id: t.closest('[data-oo]').dataset.oo });
           else if (PL.deals.click(t)) { /* Συμφωνία: μήνυμα / ενημερώθηκε */ }

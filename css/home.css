@@ -262,7 +262,7 @@ main,
 #home #htech {
   --tc: #a8700a;
 }
-/* πλακίδιο «Τεχνικός – Σεμινάρια»: καπέλο αποφοίτησης (σεμινάρια/εκπαίδευση) */
+/* πλακίδιο «Ενέργειες»: καπέλο αποφοίτησης (σεμινάρια/εκπαίδευση) */
 #home #htech.tl {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0.4' y2='1'%3E%3Cstop offset='0' stop-color='%23a8700a' stop-opacity='.85'/%3E%3Cstop offset='1' stop-color='%23a8700a' stop-opacity='.2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg transform='translate%2830 10%29 scale%281.55%29'%3E%3Cg fill='url%28%23g%29'%3E%3Cpath d='M0 14 L28 2 L56 14 L28 26 Z'/%3E%3Cpath d='M12 21 L12 33 C12 41 44 41 44 33 L44 21 L28 28 Z'/%3E%3Crect x='51' y='14' width='3.5' height='18' rx='1.75'/%3E%3Ccircle cx='52.7' cy='34' r='4'/%3E%3C/g%3E%3Cpath d='M0 14 L28 2 L56 14 L28 26 Z' fill='%23fff' fill-opacity='.18'/%3E%3C/g%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60' preserveAspectRatio='none'%3E%3Cpath d='M0 46C45 26 110 58 200 14V60H0Z' fill='%23a8700a' fill-opacity='.10'/%3E%3Cpath d='M0 46C45 26 110 58 200 14' fill='none' stroke='%23a8700a' stroke-opacity='.45' stroke-width='1.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E"),linear-gradient(165deg,color-mix(in srgb,var(--tc) var(--tmix),var(--tb)) 0%,var(--tb2) 72%);
   background-repeat: no-repeat;

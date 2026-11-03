@@ -59,6 +59,16 @@
   gap: 6px;
   margin-bottom: 10px;
 }
+/* κινητό: τα τέσσερα (SOS, Τεχνικός, Σεμινάριο, Καμπάνια) σε 2 × 2, ίσα */
+@media (max-width: 520px) {
+  .cchips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .cchip {
+    justify-content: center;
+  }
+}
 .cchip {
   display: inline-flex;
   align-items: center;
@@ -86,6 +96,11 @@
   background: var(--sembg);
   border-color: var(--sem);
   color: var(--sem);
+}
+.cchip.camp {
+  background: var(--campbg);
+  border-color: var(--camp);
+  color: var(--camp);
 }
 @media (prefers-color-scheme:dark) {
   :root:not([data-theme="light"]) .cchip.sos {

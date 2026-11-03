@@ -1,14 +1,14 @@
 /* Προσωρινοί πελάτες («🆕 Όχι στο orders»): σήμα, αναγνώριση όταν περάσουν στο orders, ένωση με τον κανονικό.
    matches(): για κάθε προσωρινό ο πιο πιθανός κανονικός πελάτης (τηλέφωνο, όνομα, πόλη, διεύθυνση).
    merge(pid, cid): περνά ΟΛΑ του προσωρινού στον κανονικό (σημειώσεις, επισκέψεις, προγράμματα, ραντεβού, SOS,
-   τεχνικός, σεμινάρια, εκκρεμότητες, παραγγελίες…) και μετά σβήνει τον προσωρινό. Μόνο με έγκριση του πωλητή.
+   τεχνικός, σεμινάρια, καμπάνιες, εκκρεμότητες, παραγγελίες…) και μετά σβήνει τον προσωρινό. Μόνο με έγκριση του πωλητή.
    Γράφει μόνο μέσω του adapter. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, db = () => PL.adapter.db;
   const P = (PL.prospects = {});
   /* συλλογές με εγγραφές ανά πελάτη (κλειδί = id πελάτη) και συλλογές που αναφέρουν πελάτη μέσα τους */
   const BYID = ['manual', 'xout', 'zskip', 'sos', 'tech', 'balnotes'];
-  P.COLS = ['clients', 'prospects', 'notes', 'visits', 'plans', 'pdrafts', 'route', 'tasks', 'seminars', 'orders', 'extra'].concat(BYID);
+  P.COLS = ['clients', 'prospects', 'notes', 'visits', 'plans', 'pdrafts', 'route', 'tasks', 'seminars', 'campaigns', 'orders', 'extra'].concat(BYID);
   P.use = () => Promise.all(P.COLS.map((c) => S.use(c)));
 
   /* σήμα δίπλα στο όνομα, σε κάθε σελίδα */
@@ -106,6 +106,8 @@
     Object.entries(S.all('extra')).forEach(([id, x]) => { if (x.cid === pid) W.push(put('extra', id, Object.assign({}, x, { cid, cname: c.name }))); });
     /* σεμινάρια */
     Object.entries(S.all('seminars')).forEach(([id, x]) => { if (!(x.cust || []).includes(pid) && !(x.conf || []).includes(pid)) return; W.push(put('seminars', id, Object.assign({}, x, { cust: swap(x.cust, pid, cid), conf: swap(x.conf, pid, cid) }))); });
+    /* καμπάνιες: η κατάσταση του προσωρινού περνά στον κανονικό (αν ο κανονικός είναι ήδη μέσα, μένει η δική του) */
+    Object.entries(S.all('campaigns')).forEach(([id, x]) => { const cu = x.cust || {}; if (!cu[pid]) return; const n = Object.assign({}, cu); if (!n[cid]) n[cid] = n[pid]; delete n[pid]; W.push(put('campaigns', id, Object.assign({}, x, { cust: n }))); });
     await Promise.all(W);
     /* στο τέλος, αφού πέρασαν όλα: σβήνει ο προσωρινός */
     await drop('prospects', pid);

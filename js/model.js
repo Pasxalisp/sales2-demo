@@ -104,6 +104,10 @@
     };
     /* Συμφωνίες: ΕΝΑ έγγραφο deals/all = {πελάτης: {goal, ty, ly, cats…}, _d} */
     M.dealsAll = () => S().get('deals', 'all') || {};
+    /* Καμπάνιες: campaigns/{id} = {title, until, products, notes, cust: {πελάτης: 'int'|'won'|'no'}}. Ενεργή = χωρίς λήξη ή until ≥ σήμερα.
+       campsInt: τίτλοι ενεργών καμπανιών όπου ο πελάτης «ενδιαφέρεται» (υπενθύμιση στο πρόγραμμα και στα φύλλα). */
+    M.campOn = (x) => !!x && (!x.until || x.until >= u.today());
+    M.campsInt = (id) => Object.values(S().all('campaigns')).filter((x) => M.campOn(x) && x.cust && x.cust[id] === 'int').map((x) => x.title || 'Καμπάνια');
 
     /* Τζίρος (σελίδα «Τζίρος» και οθόνες ομάδας). Κλειδιά: 'ALL' = γενικός (όλες οι μάρκες εκτός EXB), 'Goldwell',
        κατηγορίες Goldwell (CATN), 'B:ΜΑΡΚΑ'. Τα cats/all και brands/all είναι ΕΝΑ έγγραφο το καθένα: {πελάτης: {κλειδί: [πέρσι ίδια περ., φέτος, πέρσι όλο]}}. */

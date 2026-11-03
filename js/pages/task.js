@@ -3,7 +3,7 @@
    params: {key} όπως το PL.tasks.keyOf (ραντεβού A|…, πληρωμή P|…, εκκρεμότητα T|…, επόμενη επαφή πελάτης|θέση). */
 (function () {
   const PL = window.PL, u = PL.u, S = PL.store, D = PL.dlg, H = PL.sheet, esc = u.esc;
-  const COLS = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'deals'];
+  const COLS = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'deals', 'campaigns'];
   const plus = (n) => new Date(Date.parse(u.today()) + n * 864e5).toISOString().slice(0, 10);
 
   PL.register('task', {

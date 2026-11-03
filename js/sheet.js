@@ -15,11 +15,12 @@
     call: (c) => (c && PL.call.tels(c).length ? `<button data-callc="${esc(c.i)}">${PL.icon.phone}Κλήση</button>` : off(PL.icon.phone, 'Κλήση')),
     map: (c) => { const h = PL.call.mapUrl(c); return h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">${PL.icon.pin}Οδηγίες</a>` : off(PL.icon.pin, 'Οδηγίες'); },
     sms: (c, body, label) => { const h = c && PL.call.sms(c, body); return h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">${PL.icon.msg}${label || 'Μήνυμα'}</a>` : off(PL.icon.msg, label || 'Μήνυμα'); },
-    /* με μια ματιά: Goldwell φέτος, χρέος, συμφωνία, δουλεύει (skip: {debt, deal, works} για όσα δείχνει ήδη το φύλλο) */
+    /* με μια ματιά: Goldwell φέτος, χρέος, συμφωνία, δουλεύει, καμπάνιες που ενδιαφέρεται (skip: {debt, deal, works} για όσα δείχνει ήδη το φύλλο) */
     facts: (c, skip) => {
       skip = skip || {}; const id = c.i, g = M.gold(c), y = M.yoy(c), bal = M.bal.v(id, 'amount'), dl = M.dealsAll()[id], w = M.works(id);
       return `<div class="shfacts">${g ? chip('Goldwell φέτος ' + money(g[1]) + (y ? ' · ' + y.txt : ''), y && y.cls === 'dn' ? 'dn' : 'up') : ''}${!skip.debt && bal >= 1 ? chip('💶 Χρωστάει ' + money(bal), 'dn') : ''}` +
-        `${!skip.deal && dl ? chip('🤝 Συμφωνία ' + Math.round(M.deal(dl).pct) + '%', 'dl') : ''}${!skip.works && w.length ? chip('Δουλεύει: ' + esc(w.join(', '))) : ''}</div>`;
+        `${!skip.deal && dl ? chip('🤝 Συμφωνία ' + Math.round(M.deal(dl).pct) + '%', 'dl') : ''}${!skip.works && w.length ? chip('Δουλεύει: ' + esc(w.join(', '))) : ''}` +
+        M.campsInt(id).map((t) => chip(PL.pct + ' ' + esc(t) + ': ενδιαφέρεται', 'cm')).join('') + '</div>';
     },
     box: (title, body, cls) => `<div class="shbox${cls ? ' ' + cls : ''}"><h3>${title}</h3>${body}</div>`,
     /* τελευταία καταγραφή στην καρτέλα (κείμενο, προϊόντα, «να πω») */

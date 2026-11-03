@@ -3,7 +3,7 @@
    Και το δεξί μέρος της λίστας χωρίς επιλογή: PL.techSheet.aside(el) — οι πελάτες ανά πόλη, για να στήσει διαδρομή. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, H = PL.sheet, esc = u.esc, db = () => PL.adapter.db;
-  const COLS = ['clients', 'prospects', 'tech', 'notes', 'balances', 'deals'];
+  const COLS = ['clients', 'prospects', 'tech', 'notes', 'balances', 'deals', 'campaigns'];
   const brief = (c, t) => [c.name, [c.addr, c.zip, c.city].filter(Boolean).join(', '), PL.call.tels(c).join(' / '), t.note ? 'Χρειάζεται: ' + t.note : '', M.works(c.i).length ? 'Δουλεύει: ' + M.works(c.i).join(', ') : ''].filter(Boolean).join('\n');
   const copy = async (txt) => { let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch (x) { /* τίποτα */ } D.toast(ok ? '📋 Αντιγράφηκε: επικόλλησέ το στο Viber ή στα Μηνύματα του τεχνικού' : 'Δεν αντιγράφηκε. Επίλεξε το κείμενο και αντέγραψέ το.'); };
 

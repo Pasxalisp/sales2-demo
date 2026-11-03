@@ -3,7 +3,7 @@
    params: {id, q} = αναζήτηση όπως στο «Ποιος αγόρασε» (δέχεται παρατσούκλια) ή {id, n} = ακριβώς ένα είδος (Πωλήσεις). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, H = PL.sheet, esc = u.esc, nn = u.nn;
-  const COLS = ['items', 'clients', 'prospects', 'notes', 'balances', 'deals'];
+  const COLS = ['items', 'clients', 'prospects', 'notes', 'balances', 'deals', 'campaigns'];
   const tok = (s) => nn(s).replace(/[()/,+&]/g, ' ').split(/\s+/).filter(Boolean);
 
   PL.register('buyer', {

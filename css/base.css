@@ -417,6 +417,8 @@ a.btn.callo {
   --techbg: rgba(242,190,40,.16);
   --sem: #7a3fb8;
   --sembg: rgba(122,63,184,.09);
+  --camp: #b5470f;
+  --campbg: rgba(214,96,30,.10);
   --nbk: #eef0f2;
   --nbkf: #4a5560;
   --nbkb: #d5dadf;
@@ -455,6 +457,8 @@ a.btn.callo {
     --techbg: rgba(242,201,76,.14);
     --sem: #b98cf0;
     --sembg: rgba(185,140,240,.13);
+    --camp: #ff9d61;
+    --campbg: rgba(255,157,97,.14);
     --nbk: #2c3236;
     --nbkf: #c9d1d8;
     --nbkb: #3d454b;
@@ -1066,6 +1070,24 @@ main {
 }
 .shchip.dl {
   color: var(--sem);
+}
+.shchip.cm {
+  color: var(--camp);
+}
+/* σήμα καμπάνιας «%» μέσα σε κείμενο (PL.pct) */
+.pct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  background: var(--camp);
+  color: var(--card);
+  font-size: .78em;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: .08em;
 }
 .shbox {
   border: 1px solid var(--bd);

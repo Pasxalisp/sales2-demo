@@ -5,7 +5,7 @@
    Γράφει μόνο μέσω PL.notes (σημειώσεις) και PL.plans (✓). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, H = PL.sheet, esc = u.esc;
-  const COLS = ['plans', 'clients', 'prospects', 'notes', 'balances', 'deals', 'sos', 'visits', 'settings'];
+  const COLS = ['plans', 'clients', 'prospects', 'notes', 'balances', 'deals', 'sos', 'visits', 'settings', 'campaigns'];
   const PRODUCTS = ['Topchic', 'Colorance', 'Gloss tones', 'Elumen', 'Silklift', 'Subbrand', 'Dualsenses', 'Styling'];
   const fmt = (d) => (d ? String(d).split('-').reverse().slice(0, 2).join('/') : '');
 
