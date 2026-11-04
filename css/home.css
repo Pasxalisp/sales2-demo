@@ -595,6 +595,10 @@ html.big #home {
 }
 html.big #home .hg {
   flex: none;
-  grid-template-columns: repeat(auto-fit, minmax(max(calc(160 * var(--u)), 30%), 1fr));
-  grid-auto-rows: minmax(min-content,170px);
+  grid-template-columns: repeat(auto-fit, minmax(max(calc(140 * var(--u)), 30%), 1fr));
+  grid-auto-rows: auto;
+}
+/* χώρος για την εικόνα κάτω από το κείμενο του πλακιδίου */
+html.big #home button.tl {
+  min-height: calc(100 * var(--u));
 }
