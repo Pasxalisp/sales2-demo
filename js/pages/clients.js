@@ -2,8 +2,8 @@
    Η καρτέλα είναι στο client.js. Η κατάσταση των φίλτρων μένει όταν γυρνάς πίσω. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, money = u.money, nn = u.nn;
-  const st = (PL.clientsState = PL.clientsState || { q: '', city: '', onlyT: false, yf: '', open: false });
-  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'brands', 'cats'];
+  const st = (PL.clientsState = PL.clientsState || { q: '', city: '', onlyT: false, yf: '', open: false, out: false });
+  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'brands', 'cats', 'xout'];
 
   const HEAD = `<header>
 <div class="row"><h1 id="hm">Πελατολόγιο</h1>
@@ -37,14 +37,15 @@
       $('#q').value = st.q; $('#qc').value = st.city; $('#fbox').hidden = !st.open;
       COLS.forEach((c) => S.use(c));
 
-      const cities = () => { const cm = {}; M.clients().forEach((c) => { cm[c.city] = (cm[c.city] || 0) + 1; }); return cm; };
+      const cities = () => { const cm = {}; M.live().forEach((c) => { cm[c.city] = (cm[c.city] || 0) + 1; }); return cm; };
       const panel = (f) => { const cm = cities(), k = Object.keys(cm).filter((x) => !f || nn(x).includes(nn(f))).sort((a, b) => a.localeCompare(b, 'el')), p = $('#cp');
         p.innerHTML = k.map((x) => `<div class="pk" data-pick="${esc(x)}"><span>${esc(x)}</span><span class="mu">${cm[x]}</span></div>`).join('') || '<div class="pk mu">Καμία περιοχή</div>'; return p; };
 
       const draw = () => {
-        const C = M.clients(), cq = nn(st.city), t = nn(st.q), yf = st.yf, onlyT = st.onlyT;
-        $('#chips').innerHTML = `<button class="chip ${!cq && !onlyT && !yf ? 'on' : ''}" data-c="">Όλοι</button><button class="chip ${onlyT ? 'on' : ''}" data-t="1">Με τζίρο</button><button class="chip ${yf === 'up' ? 'on' : ''}" data-y="up">▲ Θετικοί</button><button class="chip ${yf === 'dn' ? 'on' : ''}" data-y="dn">▼ Αρνητικοί</button>`;
-        const base = C.filter((c) => (!cq || nn(c.city).includes(cq)) && (!yf || (M.yoy(c) && M.yoy(c).cls === yf)) &&
+        /* οι εκτός (M.out) δεν φαίνονται· μόνο με «Εκτός» ή όταν ψάχνεις με όνομα/τηλέφωνο/κωδικό */
+        const C = M.clients(), cq = nn(st.city), t = nn(st.q), yf = st.yf, onlyT = st.onlyT, nOut = C.filter((c) => M.out(c.i)).length;
+        $('#chips').innerHTML = `<button class="chip ${!cq && !onlyT && !yf && !st.out ? 'on' : ''}" data-c="">Όλοι</button><button class="chip ${onlyT ? 'on' : ''}" data-t="1">Με τζίρο</button><button class="chip ${yf === 'up' ? 'on' : ''}" data-y="up">▲ Θετικοί</button><button class="chip ${yf === 'dn' ? 'on' : ''}" data-y="dn">▼ Αρνητικοί</button>` + (nOut ? `<button class="chip ${st.out ? 'on' : ''}" data-xo="1">🚫 Εκτός (${nOut})</button>` : '');
+        const base = C.filter((c) => (st.out ? M.out(c.i) : !M.out(c.i) || t) && (!cq || nn(c.city).includes(cq)) && (!yf || (M.yoy(c) && M.yoy(c).cls === yf)) &&
           (!t || nn(c.name + ' ' + (c.alt || []).join(' ') + ' ' + c.addr + ' ' + c.city + ' ' + c.t1 + ' ' + c.t2 + ' ' + (c.more || []).join(' ') + ' ' + (c.codes || [c.code]).join(' ')).includes(t)));
         const tz = new Map(base.map((c) => [c.i, M.tz(c)]));
         const L = base.filter((c) => !onlyT || tz.get(c.i) > 0);
@@ -54,7 +55,7 @@
           const e = M.entries(c.i), nx = M.nextOf(c.i), due = nx && nx <= today, y = M.yoy(c), w = M.works(c.i), td = e.find((z) => z.todo), z = tz.get(c.i);
           return `<div class="card" data-id="${esc(c.i)}"><div class="row"><span class="nm">${TECH[c.i] ? `<span class="ti">${PL.icon.tech16}</span> ` : ''}${PL.prospects.tag(c)}${esc(c.name)}</span>` +
             `<span style="display:flex;align-items:center;gap:4px"><span class="tz">${z > 0 ? money(z) : ''}</span><button data-star="${esc(c.i)}" aria-label="SOS" style="padding:0 4px;border:none;background:none;font-size:22px;line-height:1">${SOS[c.i] ? '⭐' : '☆'}</button></span></div>` +
-            `<div class="mu">${esc(c.city)}</div>` + (y ? `<div class="${y.cls}" style="font-size:14px">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
+            `<div class="mu">${esc(c.city)}</div>` + (M.out(c.i) ? `<div class="dn">🚫 ${esc(M.OUTL[M.out(c.i)])}</div>` : '') + (y ? `<div class="${y.cls}" style="font-size:14px">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
             (w.length ? `<div class="mu">Δουλεύει: ${esc(w.join(', '))}</div>` : '') +
             (e.length ? `<div class="mu">Τελευταία: ${esc(e[0].d)}${e[0].products ? ' · ' + esc(e[0].products) : ''}</div>` : '') +
             (td ? `<div class="say">Να πω: ${esc(td.todo)}</div>` : '') + (due ? `<div class="due">Επικοινωνία: ${esc(nx)}</div>` : '') + '</div>';
@@ -96,7 +97,8 @@
         else if (t.id === 'fb') { st.open = !st.open; $('#fbox').hidden = !st.open; draw(); }
         else if (t.id === 'tzb') PL.nav.push('charts');
         else if (t.id === 'fsb') PL.nav.push('flash');
-        else if (t.dataset.c !== undefined && t.classList.contains('chip')) { st.city = ''; st.yf = ''; $('#qc').value = ''; st.onlyT = false; draw(); }
+        else if (t.dataset.c !== undefined && t.classList.contains('chip')) { st.city = ''; st.yf = ''; $('#qc').value = ''; st.onlyT = false; st.out = false; draw(); }
+        else if (t.dataset.xo) { st.out = !st.out; draw(); }
         else if (t.dataset.t) { st.onlyT = !st.onlyT; draw(); }
         else if (t.dataset.y) { st.yf = st.yf === t.dataset.y ? '' : t.dataset.y; draw(); }
         else if (t.closest('[data-star]')) {

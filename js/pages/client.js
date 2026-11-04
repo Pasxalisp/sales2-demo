@@ -52,9 +52,8 @@
     return `<div class="debt">💶 Χρέος ${money(a)}${o > 0 ? ` · <span class="dn">υπέρβαση ${money(o)}</span>` : ''}${d ? ` · <span class="dn">διαμαρτυρημένα ${money(d)}</span>` : ''}${b.d ? ` <span class="mu">(${esc(b.d)})</span>` : ''}</div>`;
   }
   const XOL = { closed: 'Έκλεισε', no: 'Δεν ενδιαφέρεται', later: 'Άλλη φορά' };
-  const xoBlocked = (x) => x && (x.r === 'closed' || x.r === 'no');
   function xoLine(id) {
-    const x = S.get('xout', id); if (!x) return ''; const bl = xoBlocked(x);
+    const x = S.get('xout', id); if (!x) return ''; const bl = !!M.out(id);
     return `<div class="warn" style="margin-top:6px">${bl ? '⛔' : '↩️'} Βγήκε από πρόγραμμα: <b>${esc(XOL[x.r] || x.r)}</b> (${u.fd(x.d)})${bl ? '. Δεν προτείνεται σε νέα προγράμματα.' : ''} <button data-xorest="${id}" style="margin-top:6px;padding:4px 10px">${bl ? 'Να ξαναμπαίνει' : 'Απόκρυψη σημείωσης'}</button></div>`;
   }
   function ordLine(id) {
@@ -153,7 +152,7 @@
           else if (t.closest('[data-oo]')) PL.nav.push('order', { id: t.closest('[data-oo]').dataset.oo });
           else if (PL.deals.click(t)) { /* Συμφωνία: μήνυμα / ενημερώθηκε */ }
           else if (t.dataset.xorest) {
-            if (xoBlocked(S.get('xout', id)) && !await D.confirm('Να ξαναμπαίνει ο «' + (c ? c.name : '') + '» στα προγράμματα;', 'Ναι', 'Άκυρο')) return;
+            if (M.out(id) && !await D.confirm('Να ξαναμπαίνει ο «' + (c ? c.name : '') + '» στα προγράμματα;', 'Ναι', 'Άκυρο')) return;
             await PL.plans.clearExit(id);
           }
           else if (t.id === 'pmg' || t.dataset.pmy) {

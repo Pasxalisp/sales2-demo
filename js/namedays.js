@@ -127,7 +127,7 @@
   const feastsOn = (day) => { const y = +day.slice(0, 4); return F.filter((f) => dateOf(f, y) === day); };
   function celebrants(day) {
     const fs = new Set(feastsOn(day)); if (!fs.size) return { feasts: [], list: [] };
-    return { feasts: [...fs], list: M.clients().filter((c) => fs.has(feastOf(c))) };
+    return { feasts: [...fs], list: M.live().filter((c) => fs.has(feastOf(c))) };
   }
   const tomorrow = (day) => ymd(addDays(new Date(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10)), 1));
   const mobile = (c) => [c.t2, c.t1].concat(c.more || []).map((x) => String(x || '').replace(/[^\d+]/g, '').replace(/^(\+|00)?30(?=69\d{8}$)/, '')).find((x) => /^69\d{8}$/.test(x)) || '';

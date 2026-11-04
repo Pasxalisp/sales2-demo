@@ -5,7 +5,7 @@
    όσοι δεν έχουν, μπαίνουν κατά προσέγγιση στο κέντρο της περιοχής/πόλης τους (πίνακας CENTRES), με μικρή διασπορά. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, esc = u.esc, money = u.money;
-  const COLS = ['clients', 'prospects', 'balances', 'sos', 'deals', 'plans', 'visits', 'notes', 'geo'];
+  const COLS = ['clients', 'prospects', 'balances', 'sos', 'deals', 'plans', 'visits', 'notes', 'geo', 'xout'];
   const LEAFLET = 'lab/map/leaflet/';   /* Leaflet 1.9.4 μαζί με τη σελίδα (όχι από CDN) */
 
   /* κέντρα πόλεων / περιοχών (κατά προσέγγιση) */
@@ -43,6 +43,7 @@
   const owes = (id) => +((S.get('balances', id) || {}).amount || 0) >= 1;
   const behind = (id) => { const d = (S.get('deals', 'all') || {})[id]; if (!d) return false; const i = M.deal(d); return !i.done && i.ahead < 0; };
   const KINDS = [
+    ['no', 'Δεν ενδιαφέρεται', '#3a6fd8', (c) => M.out(c.i) === 'no'],
     ['sos', '⭐ SOS', '#e0a100', (c) => !!S.get('sos', c.i)],
     ['owe', 'Χρωστάνε', '#c8463c', (c) => owes(c.i)],
     ['deal', 'Συμφωνία πίσω', '#7a3fb8', (c) => behind(c.i)],
@@ -51,7 +52,7 @@
   ];
   const kindOf = (c) => KINDS.find((k) => k[3](c));
   const FILTERS = { all: ['Όλοι', () => true], tz: ['Με τζίρο', (c) => M.tz(c) > 0], owe: ['Χρωστάνε', (c) => owes(c.i)], sos: ['SOS', (c) => !!S.get('sos', c.i)],
-    old: ['60+ μέρες χωρίς επίσκεψη', (c) => { const v = E.lastVisit(c.i); return M.tz(c) > 0 && (!v || v < m60()); }], deal: ['Συμφωνία πίσω', (c) => behind(c.i)] };
+    old: ['60+ μέρες χωρίς επίσκεψη', (c) => { const v = M.lastVisit(c.i); return M.tz(c) > 0 && (!v || v < m60()); }], deal: ['Συμφωνία πίσω', (c) => behind(c.i)] };
   const st = { f: 'all', mode: 'all', city: '' };   // mode: all | plan | near
 
   let lib = null;
@@ -76,8 +77,9 @@
       let map = null, layer = null, here = null, alive = true;
       $('#lmleg').innerHTML = KINDS.map((k) => `<span><i style="background:${k[2]}"></i>${k[1]}</span>`).join('') + '<span><i class="lmx"></i>θέση κατά προσέγγιση</span>';
 
-      const items = () => M.clients().map((c) => ({ c, p: pos(c) })).filter((x) => x.p);
-      const popup = (c, p, n) => { const g = M.gold(c), v = E.lastVisit(c.i), b = +((S.get('balances', c.i) || {}).amount || 0), h = PL.call.mapUrl(c);
+      /* όσοι «Έκλεισε» δεν υπάρχουν στον χάρτη· όσοι «Δεν ενδιαφέρεται» φαίνονται με δικό τους χρώμα */
+      const items = () => M.clients().filter((c) => M.out(c.i) !== 'closed').map((c) => ({ c, p: pos(c) })).filter((x) => x.p);
+      const popup = (c, p, n) => { const g = M.gold(c), v = M.lastVisit(c.i), b = +((S.get('balances', c.i) || {}).amount || 0), h = PL.call.mapUrl(c);
         return `<div class="lmpop"><b>${n ? n + '. ' : ''}${esc(c.name)}</b><div class="mu">${esc(c.addr || '')}${c.addr ? ', ' : ''}${esc(c.city)}</div>` +
           `<div>${g ? 'Goldwell φέτος ' + money(g[1]) : 'Χωρίς τζίρο'}${b >= 1 ? ` · <span class="dn">χρωστάει ${money(b)}</span>` : ''}</div><div class="mu">${v ? 'Τελευταία επίσκεψη ' + esc(u.fd(v)) : 'Καμία επίσκεψη'}${p[2] ? '' : ' · θέση κατά προσέγγιση'}</div>` +
           `<div class="lmpb"><button data-lmo="${esc(c.i)}">Καρτέλα</button>${h ? `<a class="btn" href="${esc(h)}" target="_blank" rel="noopener">Οδηγίες</a>` : ''}</div></div>`; };

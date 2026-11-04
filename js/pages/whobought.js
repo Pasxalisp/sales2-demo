@@ -26,7 +26,7 @@
     if (!S.loaded('items')) return '<p class="mu">Φορτώνω…</p>';
     if (!r) return '<h2 style="margin-top:0">Ποιος αγόρασε</h2><p class="mu">Γράψε ένα προϊόν αριστερά. Εδώ θα δεις ποιοι το έπαιρναν πέρσι και φέτος όχι, και τους μεγαλύτερους φέτος. Πάτα έναν πελάτη για τι ακριβώς πήρε.</p>';
     const row = (x, right, cls) => ({ attr: `data-byo="${esc(x.c.i)}"`, name: esc(x.c.name), sub: esc(x.c.city) + (x.c.area ? ' · ' + esc(x.c.area) : ''), right, cls });
-    const lost = r.rows.filter((x) => x.qp && !x.qc).sort((a, b) => b.qp - a.qp), top = r.rows.filter((x) => x.qc).slice(0, 8);
+    const lost = r.rows.filter((x) => x.qp && !x.qc && !M.out(x.c.i)).sort((a, b) => b.qp - a.qp), top = r.rows.filter((x) => x.qc).slice(0, 8);
     return `<h2 style="margin-top:0">«${esc(st.q)}»</h2><p class="mu" style="margin-top:-6px">${r.rows.length} πελάτες${st.sel.size ? ' σε ' + esc([...st.sel].join(', ')) : ''}. Πάτα έναν για τι ακριβώς πήρε.</p>` +
       H.box(`⚠️ Πέρσι το έπαιρναν, φέτος όχι (${lost.length})`, H.list(lost.slice(0, 12).map((x) => row(x, 'πέρσι ' + x.qp + ' τεμ.', 'dn')), 'Κανένας. 👌')) +
       H.box(`Οι μεγαλύτεροι φέτος`, H.list(top.map((x) => row(x, x.qc + ' τεμ.' + (x.tc ? ' · ' + u.money(Math.round(x.tc)) : ''), 'up')), 'Κανένας φέτος.'));

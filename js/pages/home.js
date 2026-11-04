@@ -28,7 +28,7 @@
       const S = PL.store, M = PL.model;
       /* settings: για να ανοίγει αμέσως «Η κάρτα μου» (QR) */
       ['clients', 'prospects', 'notes', 'tasks', 'plans', 'balances', 'tech', 'seminars', 'campaigns', 'deals', 'settings'].forEach((c) => S.use(c));
-      const setCnt = () => { const n = S.loaded('clients') ? M.clients().length : 0; if (n) $('#hcnt').textContent = n + ' πελάτες'; };
+      const setCnt = () => { const n = S.loaded('clients') ? M.live().length : 0; if (n) $('#hcnt').textContent = n + ' πελάτες'; };
       const setDue = () => {
         const n = S.loaded('notes') ? M.dueList().length : 0, G = S.loaded('clients') ? PL.names.celebrants(PL.names.today()) : { list: [] };
         $('#hdue').innerHTML = '<span class="dc">' + (n ? n : '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>') + '</span><span class="dt"><span class="dl">Εκκρεμότητες</span><span class="dm">' + (n ? n + (n === 1 ? ' πελάτης περιμένει' : ' πελάτες περιμένουν') : 'Καμία σήμερα') + '</span>' +

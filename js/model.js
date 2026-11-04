@@ -26,6 +26,13 @@
       Object.entries(S().all('prospects')).forEach(([i, p]) => out.push({ i, prospect: true, name: p.name || '', city: p.city || '', addr: p.addr || '', zip: '', code: '', t1: p.phone || '', t2: '', tz: 0 }));
       return out;
     };
+    /* Εκτός πελατολογίου: «Έκλεισε το κομμωτήριο» / «Δεν ενδιαφέρεται» (συλλογή xout, γράφεται από το ✕ του προγράμματος
+       ή από την καρτέλα). Δεν σβήνονται: δεν εμφανίζονται σε λίστες, προτάσεις, προγράμματα, γιορτές, χάρτη (όσοι «Δεν
+       ενδιαφέρεται» μένουν στον χάρτη με δικό τους χρώμα) και μετρήματα. Μένουν: αναζήτηση με το όνομα, «Εκτός» στο
+       Πελατολόγιο, χρέη, εκκρεμότητες, τζίροι/στατιστικά. «Να ξαναμπαίνει» στην καρτέλα τους φέρνει πίσω. */
+    M.OUTL = { closed: 'Έκλεισε το κομμωτήριο', no: 'Δεν ενδιαφέρεται' };
+    M.out = (id) => { const x = S().get('xout', id); return x && M.OUTL[x.r] ? x.r : ''; };
+    M.live = () => M.clients().filter((c) => !M.out(c.i));
     M.byId = (id) => { const c = S().get('clients', id); return c ? Object.assign({}, c, { i: id }) : (M.clients().find((x) => x.i === id) || null); };
 
     /* Γενικός τζίρος φέτος: όλες οι μάρκες εκτός Kerasilk & Moroccanoil (από brands/all). Αλλιώς ο αρχικός τζίρος της λίστας. */
@@ -180,7 +187,7 @@
 
   /* Εκκίνηση: φορτώνει ό,τι χρειάζεται η αρχική και η μπάρα (λίστα πελατών και εκκρεμότητες). */
   M.boot = async function () {
-    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans'];
+    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout'];
     /* ο γενικός τζίρος (M.tz) και το Goldwell (M.gold) χρειάζονται brands/cats σε ΚΑΘΕ σελίδα, όπως στην παλιά */
     ['brands', 'cats'].forEach((c) => PL.store.use(c));
     const upd = () => { const n = M.dueList().length; PL.bar.setBadge(n); PL.bus.emit('due', n); };

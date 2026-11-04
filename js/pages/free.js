@@ -41,10 +41,10 @@
       const $ = (s) => el.querySelector(s);
       E.use(); S.use('settings');
       let asking = false, apEdit = '';   // apEdit: πελάτης με ανοιχτό πεδίο ραντεβού
-      const custs = () => { const set = new Set(XV.city ? [XV.city] : xvCities()); return M.clients().filter((c) => set.has(c.city)); };
+      const custs = () => { const set = new Set(XV.city ? [XV.city] : xvCities()); return M.live().filter((c) => set.has(c.city)); };
 
       function chips() {
-        const CS = xvCities(), L = custs(), all = M.clients().filter((c) => CS.includes(c.city)), cc = {}; all.forEach((c) => { cc[c.city] = (cc[c.city] || 0) + 1; });
+        const CS = xvCities(), L = custs(), all = M.live().filter((c) => CS.includes(c.city)), cc = {}; all.forEach((c) => { cc[c.city] = (cc[c.city] || 0) + 1; });
         $('#xvc').innerHTML = `<button class="chip${!XV.city ? ' on' : ''}" data-xvc="">Όλες (${all.length})</button>` + CS.filter((c) => cc[c]).map((c) => `<button class="chip${XV.city === c ? ' on' : ''}" data-xvc="${esc(c)}">${esc(c)} (${cc[c]})</button>`).join('');
         let A = []; if (XV.city) { const ac = {}; L.forEach((c) => { const a = E.areaOf(c) || ''; if (a) ac[a] = (ac[a] || 0) + 1; }); A = Object.entries(ac).sort((a, b) => b[1] - a[1]); }
         $('#xva').innerHTML = A.length > 1 ? `<button class="chip${!XV.area ? ' on' : ''}" data-xva="">Όλη η πόλη</button>` + A.map(([a, n]) => `<button class="chip${XV.area === a ? ' on' : ''}" data-xva="${esc(a)}">${esc(a)} (${n})</button>`).join('') : '';

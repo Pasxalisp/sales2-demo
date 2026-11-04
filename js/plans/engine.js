@@ -48,7 +48,6 @@
   /* ---- κανόνες ---- */
   E.owB = (id) => { const b = S.get('balances', id) || {}; return { a: +b.amount || 0, o: +b.over || 0, x: +b.bounced || 0 }; };
   E.owes = (id) => { const b = E.owB(id); return b.a >= 1 || b.o >= 1 || b.x > 0; };
-  E.blocked = (id) => { const x = S.get('xout', id); return !!(x && (x.r === 'closed' || x.r === 'no')); };
   E.manual = (id) => {
     if (S.get('manual', id)) return true;
     return Object.values(S.all('plans')).some((p) => (p.stops || []).some((x) => x.id === id && (x.added || (p.mode === 'free' && x.done && !(M.tz(M.byId(id) || {}) > 0)))));
@@ -60,7 +59,7 @@
     Object.values(S.all('plans')).forEach((pl) => (pl.stops || []).forEach((s) => { if (s.zero && (!last[s.id] || pl.created > last[s.id])) last[s.id] = pl.created; }));
     Object.entries(S.all('zskip')).forEach(([id, z]) => { if (z.d && (!last[id] || z.d > last[id])) last[id] = z.d; });
     const m6 = dateAgo(6);
-    return M.clients().filter((c) => cities.has(c.city) && !c.prospect && !S.get('sos', c.i) && M.tz(c) <= 0 && !excl.has(c.i) && !E.blocked(c.i) &&
+    return M.live().filter((c) => cities.has(c.city) && !c.prospect && !S.get('sos', c.i) && M.tz(c) <= 0 && !excl.has(c.i) &&
       !(((S.get('zskip', c.i) || {}).n >= 2) && String((S.get('zskip', c.i) || {}).d || '') >= m6))
       .sort((a, b) => { const x = last[a.i] || '', y = last[b.i] || ''; return x < y ? -1 : x > y ? 1 : a.name.localeCompare(b.name, 'el'); });
   };
@@ -68,7 +67,8 @@
   /* Ποιοι μπαίνουν αυτόματα σε πρόγραμμα για τις πόλεις sel (Set). */
   E.candidates = (sel) => {
     const plans = S.all('plans'), lim = u.today().slice(0, 8) + '01', m6 = dateAgo(6);
-    const inArea = M.clients().filter((c) => sel.has(c.city));
+    /* εκτός (M.out) δεν μπαίνουν ποτέ αυτόματα, ούτε με SOS ούτε με χρέος· μόνο αν τους προσθέσεις εσύ */
+    const inArea = M.live().filter((c) => sel.has(c.city));
     const recent = Object.values(plans).filter((p) => (p.created || '') >= lim && (p.cities || []).some((x) => sel.has(x)));
     const visited = new Set();
     Object.values(plans).forEach((p) => (p.stops || []).forEach((x) => { if (x.done && (x.doneDate || p.created || '') >= lim && M.byId(x.id) && sel.has(M.byId(x.id).city)) visited.add(x.id); }));
@@ -80,7 +80,7 @@
     Object.values(plans).forEach((p) => (p.stops || []).forEach((x) => { if (x.done) tch(x.id, x.doneDate || p.created); }));
     const recentTouch = new Set(inArea.filter((c) => !(M.tz(c) > 0) && touch[c.i] && touch[c.i] >= m6).map((c) => c.i));
     const sos = (id) => !!S.get('sos', id);
-    const act = inArea.filter((c) => c.prospect || M.tz(c) > 0 || sos(c.i) || recentTouch.has(c.i) || E.owes(c.i) || E.manual(c.i)).filter((c) => sos(c.i) || E.owes(c.i) || !E.blocked(c.i));
+    const act = inArea.filter((c) => c.prospect || M.tz(c) > 0 || sos(c.i) || recentTouch.has(c.i) || E.owes(c.i) || E.manual(c.i));
     const actPl = Object.entries(plans).filter(([, p]) => !p.closed && (p.cities || []).some((x) => sel.has(x)));
     const inPlan = new Set(); actPl.forEach(([, p]) => (p.stops || []).forEach((x) => inPlan.add(x.id)));
     return { act, visited, recent, actPl, inPlan, touch, recentTouch };

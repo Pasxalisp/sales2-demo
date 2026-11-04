@@ -57,7 +57,7 @@
       weeks: Array.from({ length: 8 }, (_, w) => visits.filter(([, d]) => d > ago((8 - w) * 7) && d <= ago((7 - w) * 7)).length),
       due: M.dueList().map((x) => ({ name: x.c ? x.c.name : '—', d: x.e.next, t: x.e.todo || x.e.nt || 'Επόμενη επαφή' })),
       notes: notes.sort((a, b) => (a.d < b.d ? 1 : -1)),
-      cold: cls.map((c) => ({ c, g: M.gold(c) })).filter((x) => x.g && (+x.g[2] || 0) >= 800 && !(last[x.c.i] >= d60))
+      cold: cls.filter((c) => !M.out(c.i)).map((c) => ({ c, g: M.gold(c) })).filter((x) => x.g && (+x.g[2] || 0) >= 800 && !(last[x.c.i] >= d60))
         .sort((a, b) => b.g[2] - a.g[2]).map((x) => ({ name: x.c.name, city: x.c.city, ly: +x.g[2], last: last[x.c.i] })),
       deals: deals.sort((a, b) => b.pct - a.pct), dg: sum(deals, (x) => x.goal), dt: sum(deals, (x) => x.ty),
       debt: sum(balIds, (id) => Math.max(0, M.bal.v(id, 'amount'))), over: sum(balIds, (id) => Math.max(0, M.bal.v(id, 'over'))),

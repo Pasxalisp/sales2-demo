@@ -210,7 +210,7 @@
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
       let sel = new Set();
-      const C = M.clients(), cs = params.cities || null;
+      const C = M.live(), cs = params.cities || null;
       const cm = {}; C.forEach((c) => { if (!cs || cs.includes(c.city)) cm[c.city] = (cm[c.city] || 0) + 1; });
       const cityKeys = cs ? cs : Object.keys(cm).sort((a, b) => a.localeCompare(b, 'el'));
       $('#smpc').innerHTML = (cs ? (cs.length > 1 ? '<option value="">Όλες οι περιοχές του προγράμματος</option>' : '') : '<option value="">Όλες οι περιοχές</option>') + cityKeys.map((k) => `<option value="${esc(k)}">${esc(k)} (${cm[k] || 0})</option>`).join('');
