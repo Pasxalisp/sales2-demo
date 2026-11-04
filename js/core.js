@@ -79,6 +79,8 @@
   const stack = [];           // [{id, params}]
   PL.pages = pages;
   PL.register = (id, def) => { pages[id] = def; };
+  PL.pageTitle = (id) => (pages[id] && pages[id].title) || id;
+  PL.pageIds = () => [...new Set(Object.keys(pages).concat(Object.keys(LAZY)))];   // και όσες φορτώνουν με το πάτημα
 
   /* Οριζόντια οθόνη (τάμπλετ): μια σελίδα-λίστα με `split: ['client', …]` δείχνεται αριστερά και η λεπτομέρεια που
      ανοίγει από αυτήν δεξιά. Η ίδια συνθήκη υπάρχει στο CSS (base.css, «Οριζόντια οθόνη»).
@@ -181,6 +183,7 @@
     }
     placeDiv();
     PL.bar.update();
+    PL.bus.emit('page', cur.id);   /* ποια σελίδα φαίνεται τώρα (π.χ. μέτρηση χρήσης στη δοκιμαστική) */
   }
   PL.WIDE.addEventListener('change', () => { if (stack.length) { unmount('L'); unmount('R'); show(); } });
 

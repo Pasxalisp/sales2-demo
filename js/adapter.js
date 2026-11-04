@@ -59,6 +59,7 @@
     org: (LOCAL && LOCAL.org) || null,
     isAdmin: async () => (user ? !!(await user.isOwner()) : false),
 
+    /* Κάθε εγγραφή ανακοινώνεται στο PL.bus ('write', διαδρομή) — π.χ. για τη μέτρηση χρήσης. */
     db: {
       async get(path) {
         if (!db) return mem.has(path) ? mem.get(path) : null;
@@ -66,14 +67,17 @@
         return s.exists ? s.data() : null;
       },
       async set(path, obj) {
+        PL.bus.emit('write', path);
         if (!db) { mem.set(path, JSON.parse(JSON.stringify(obj))); memChanged(path); return; }
         await db.doc(path).set(obj);
       },
       async merge(path, obj) {
+        PL.bus.emit('write', path);
         if (!db) { mem.set(path, Object.assign({}, mem.get(path) || {}, obj)); memChanged(path); return; }
         await db.doc(path).update(obj);
       },
       async remove(path) {
+        PL.bus.emit('write', path);
         if (!db) { mem.delete(path); memChanged(path); return; }
         await db.doc(path).delete();
       },

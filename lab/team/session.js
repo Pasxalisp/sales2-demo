@@ -33,7 +33,7 @@
   const KEYED = new Set(['clients', 'prospects', 'notes', 'balances', 'balnotes', 'items', 'manual', 'visits', 'xout', 'zskip', 'tech', 'sos', 'dealmsg', 'geo']);
   const MAPS = new Set(['deals/all', 'cats/all', 'brands/all']);
   const PERSONAL = new Set(['month', 'extra', 'route', 'wish', 'pdrafts']);   // του αρχικού χρήστη των ψεύτικων δεδομένων
-  const SERVER = new Set(['users', 'teams']);                                   // μόνο μέσω της «org» παρακάτω
+  const SERVER = new Set(['users', 'teams', 'usage']);                          // μόνο μέσω της «org» παρακάτω
   const FIRST = (table('users').find((x) => x.admin) || {}).id;                 // σε αυτόν ανήκουν τα προσωπικά έγγραφα του σπόρου
 
   function seedFor(uid) {
@@ -73,6 +73,31 @@
   const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' &&
     (me.role === 'director' || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
 
+  /* ---- χρήση εφαρμογής: ένα έγγραφο ανά χρήστη και μέρα {u, d, p: {σελίδα: [φορές, δευτερόλεπτα]}, a: {ενέργεια: φορές}, last}.
+     Ο server τα κρατά USAGE_DAYS μέρες· μόνο ο διαχειριστής τα διαβάζει. Εδώ: σπόρος + ό,τι μετρήθηκε σε αυτή τη συσκευή. */
+  const USAGE_DAYS = 90;
+  const addUse = (x, y) => {
+    const o = { u: x.u, d: x.d, p: Object.assign({}, x.p), a: Object.assign({}, x.a), last: x.last > y.last ? x.last : y.last };
+    Object.entries(y.p || {}).forEach(([k, [n, s]]) => { const c = o.p[k] || [0, 0]; o.p[k] = [c[0] + n, c[1] + s]; });
+    Object.entries(y.a || {}).forEach(([k, n]) => { o.a[k] = (o.a[k] || 0) + n; });
+    return o;
+  };
+  const usage = {
+    record(delta) {
+      if (!me) return;
+      const all = ls.get(NS + ':usage') || {}, k = me.id + '_' + delta.d, lim = new Date(Date.now() - USAGE_DAYS * 864e5).toISOString().slice(0, 10);
+      all[k] = addUse(all[k] || { u: me.id, d: delta.d, p: {}, a: {}, last: '' }, delta);
+      Object.keys(all).forEach((x) => { if (all[x].d < lim) delete all[x]; });
+      ls.set(NS + ':usage', all);
+    },
+    all() {
+      if (!me || !me.admin) return [];
+      const m = {}; table('usage').forEach((x) => { m[x.u + '_' + x.d] = x; });
+      Object.entries(ls.get(NS + ':usage') || {}).forEach(([k, x]) => { m[k] = m[k] ? addUse(m[k], x) : x; });
+      return Object.values(m);
+    },
+  };
+
   /* Η «org»: ό,τι στην κανονική έκδοση θα ζητούσε ο adapter από τον server. Ο adapter την εκθέτει ως PL.adapter.org. */
   const org = {
     ROLES,
@@ -85,6 +110,7 @@
     /* δεδομένα ενός πωλητή, μόνο αν τα δικαιούται ο συνδεδεμένος (αλλιώς null) */
     data: (uid) => (visible().some((x) => x.id === uid) ? source(uid) : null),
     /* ---- διαχειριστής ---- */
+    usage,
     users: () => (me && me.admin ? users() : []),
     clientCounts: () => { const n = {}; Object.entries(SEED).forEach(([p, d]) => { const c = col(p); if ((c === 'clients' || c === 'prospects') && d.owner) n[d.owner] = (n[d.owner] || 0) + 1; }); return n; },
     saveUser: (x) => {

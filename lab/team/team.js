@@ -284,6 +284,7 @@
 
   /* ---------- Αρχική: ποιος είναι μέσα + πλακίδια ρόλου ---------- */
   const ICON = {
+    usage: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
     team: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
     org: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-2.5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1V17"/></svg>',
     users: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 9-5.2"/><circle cx="18" cy="17" r="2.5"/><path d="M18 13v1.5M18 19.5V21M14.5 17H16M20 17h1.5"/></svg>',
@@ -301,7 +302,8 @@
       tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${ppl(U)} · FLASH ${teamPct(S)}%`, 'dir');
       tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = U.map((x) => figOf(x.id)); return tile('team', tt.id, ICON.team, esc(tt.name), `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }).join('');
     }
-    if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm');
+    if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
+      tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', new Set(O.usage.all().filter((x) => x.d === u.today()).map((x) => x.u)).size + ' μπήκαν σήμερα · ποιες οθόνες δουλεύονται', 'adm');
     box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;
     const hh = root.querySelector('.hh'); hh.parentNode.insertBefore(box, hh.nextSibling);
     document.body.classList.toggle('tmdir', me.role === 'director');
