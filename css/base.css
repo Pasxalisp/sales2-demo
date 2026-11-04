@@ -1,9 +1,16 @@
 /* base.css — Κοινά: θέμα (χρώματα ανοιχτό/σκούρο), βασικά στοιχεία, κουμπιά, κάρτες, πεδία, κάτω μπάρα, μενού «Νέο», παράθυρα, μηνύματα, κινήσεις.
    Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 
-/* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ---- */
+/* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ----
+   Αυτόματο = όπως το κινητό (prefers-color-scheme). Η επιλογή «Θέμα» στις Ρυθμίσεις βάζει data-theme="light"|"dark" στο <html>
+   (core.js, PL.theme). ΚΑΘΕ κανόνας σκούρου γράφεται δύο φορές: μέσα στο @media με :root:not([data-theme="light"]) και με
+   :root[data-theme="dark"]. Το color-scheme κάνει και τα πεδία, τις λίστες επιλογής και τις μπάρες κύλισης του browser να ακολουθούν. */
+:root {
+  color-scheme: light;
+}
 @media (prefers-color-scheme:dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #171a18;
     --card: #212623;
     --tx: #ecefe9;
@@ -15,6 +22,7 @@
   }
 }
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #171a18;
   --card: #212623;
   --tx: #ecefe9;
@@ -482,7 +490,7 @@ a.btn.callo {
 
 /* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ---- */
 @media (prefers-color-scheme:dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --pmon: #6ea2f0;
     --pmonbg: rgba(110,162,240,.13);
     --pday: #4fc48c;
@@ -505,6 +513,29 @@ a.btn.callo {
     --glt: #d3dade;
     --glm: rgba(40,46,50,.82);
   }
+}
+:root[data-theme="dark"] {
+  --pmon: #6ea2f0;
+  --pmonbg: rgba(110,162,240,.13);
+  --pday: #4fc48c;
+  --pdaybg: rgba(79,196,140,.13);
+  --tech: #f2c94c;
+  --techbg: rgba(242,201,76,.14);
+  --sem: #b98cf0;
+  --sembg: rgba(185,140,240,.13);
+  --camp: #ff9d61;
+  --campbg: rgba(255,157,97,.14);
+  --nbk: #2c3236;
+  --nbkf: #c9d1d8;
+  --nbkb: #3d454b;
+  --nhm: #1d2c42;
+  --nhmf: #8db8f5;
+  --nhmb: #2e4566;
+  --gl: rgba(40,46,50,.34);
+  --glb: rgba(255,255,255,.12);
+  --gli: rgba(255,255,255,.08);
+  --glt: #d3dade;
+  --glm: rgba(40,46,50,.82);
 }
 
 /* ---- Κοινά κομμάτια (κάρτες, γραμμές, ετικέτες, κουμπιά) ---- */
@@ -842,13 +873,20 @@ main {
   height: 19px;
 }
 @media (prefers-color-scheme:dark) {
-  #nav .nmic {
+  :root:not([data-theme="light"]) #nav .nmic {
     color: #f08a82;
   }
-  #nav .nmic .mc {
+  :root:not([data-theme="light"]) #nav .nmic .mc {
     background: rgba(240,138,130,.16);
     color: #f08a82;
   }
+}
+:root[data-theme="dark"] #nav .nmic {
+  color: #f08a82;
+}
+:root[data-theme="dark"] #nav .nmic .mc {
+  background: rgba(240,138,130,.16);
+  color: #f08a82;
 }
 #nav .nplus.on .pc {
   background: #2f6f5e;
@@ -871,12 +909,18 @@ main {
   margin-top: 1px;
 }
 @media (prefers-color-scheme:dark) {
-  #nav .nplus {
+  :root:not([data-theme="light"]) #nav .nplus {
     color: #6fc4a2;
   }
-  #nav .nplus .pc {
+  :root:not([data-theme="light"]) #nav .nplus .pc {
     background: rgba(111,196,162,.16);
   }
+}
+:root[data-theme="dark"] #nav .nplus {
+  color: #6fc4a2;
+}
+:root[data-theme="dark"] #nav .nplus .pc {
+  background: rgba(111,196,162,.16);
 }
 #fs {
   position: fixed;
@@ -909,12 +953,18 @@ main {
   background: #2f6f5e;
 }
 @media (prefers-color-scheme:dark) {
-  #fs i {
+  :root:not([data-theme="light"]) #fs i {
     background: rgba(111,196,162,.6);
   }
-  #fs.drag i {
+  :root:not([data-theme="light"]) #fs.drag i {
     background: #6fc4a2;
   }
+}
+:root[data-theme="dark"] #fs i {
+  background: rgba(111,196,162,.6);
+}
+:root[data-theme="dark"] #fs.drag i {
+  background: #6fc4a2;
 }
 
 /* ---- Παράθυρα, μηνύματα, ειδοποίηση, τικ ολοκλήρωσης ---- */

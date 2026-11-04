@@ -1,4 +1,4 @@
-/* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): μέγεθος γραμμάτων και έλεγχος (μέτρηση της βάσης).
+/* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): θέμα, μέγεθος γραμμάτων και έλεγχος (μέτρηση της βάσης).
    Δεν γράφει τίποτα στη βάση. Τα δεδομένα του orders τα περνά το Claude απευθείας. */
 (function () {
   const PL = window.PL, D = () => PL.dataio;
@@ -8,6 +8,9 @@
       el.innerHTML =
         `<h2>⚙️ Ρυθμίσεις</h2>
          <div>
+           <div class="card" style="cursor:default;margin-bottom:10px"><b>Θέμα</b>
+             <p class="mu">Για αυτή τη συσκευή. «Αυτόματο» ακολουθεί το ανοιχτό ή σκούρο θέμα του κινητού.</p>
+             <div class="chips wrap" id="thm">${PL.theme.L.map(([v, l]) => `<button class="chip${PL.theme.get() === v ? ' on' : ''}" data-th="${v}">${l}</button>`).join('')}</div></div>
            <div class="card" style="cursor:default;margin-bottom:10px"><b>Μέγεθος γραμμάτων</b>
              <p class="mu">Για αυτή τη συσκευή. «Όπως το κινητό» ακολουθεί το μέγεθος κειμένου των ρυθμίσεων του κινητού.</p>
              <div class="chips wrap" id="fsz">${PL.fontSize.L.map(([v, l]) => `<button class="chip${PL.fontSize.get() === v ? ' on' : ''}" data-fs="${v}">${l}</button>`).join('')}</div></div>
@@ -16,6 +19,7 @@
              <button id="cnt">Μέτρηση</button><div id="res"></div></div>
          </div>`;
       const $ = (s) => el.querySelector(s);
+      $('#thm').onclick = (e) => { const b = e.target.closest('#thm [data-th]'); if (!b) return; PL.theme.set(b.dataset.th); el.querySelectorAll('#thm [data-th]').forEach((x) => x.classList.toggle('on', x === b)); };
       $('#fsz').onclick = (e) => { const b = e.target.closest('#fsz [data-fs]'); if (!b) return; PL.fontSize.set(b.dataset.fs); el.querySelectorAll('#fsz [data-fs]').forEach((x) => x.classList.toggle('on', x === b)); };
       $('#cnt').onclick = async () => {
         $('#res').textContent = 'Μετράω…';

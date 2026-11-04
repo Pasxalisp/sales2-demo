@@ -21,6 +21,23 @@
     mark() { document.documentElement.classList.toggle('big', PL.fontSize.unit() > 1.1); },
   };
   PL.fontSize.set(PL.fontSize.get());
+
+  /* ---- θέμα (base.css: data-theme) ----
+     '' = αυτόματο (όπως το κινητό), 'light' / 'dark' = επιλογή της συσκευής. Μέσα στο claude.ai η πλατφόρμα μπορεί να βάζει
+     δικό της data-theme: με «Αυτόματο» το αφήνουμε, με επιλογή του χρήστη κρατάμε τη δική του. */
+  const THK = 'pl.theme', root0 = document.documentElement;
+  let theme = '';
+  PL.theme = {
+    L: [['', 'Αυτόματο'], ['light', 'Ανοιχτό'], ['dark', 'Σκούρο']],
+    get() { try { return localStorage.getItem(THK) || ''; } catch (e) { return ''; } },
+    set(v) {
+      theme = v === 'light' || v === 'dark' ? v : '';
+      if (theme) root0.dataset.theme = theme; else delete root0.dataset.theme;
+      try { if (theme) localStorage.setItem(THK, theme); else localStorage.removeItem(THK); } catch (e) { /* μένει μόνο για αυτή τη φορά */ }
+    },
+  };
+  PL.theme.set(PL.theme.get());
+  new MutationObserver(() => { if (theme && root0.dataset.theme !== theme) root0.dataset.theme = theme; }).observe(root0, { attributes: true, attributeFilter: ['data-theme'] });
   addEventListener('resize', () => PL.fontSize.mark());
 
   /* ---- bus ---- */
