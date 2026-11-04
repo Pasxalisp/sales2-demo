@@ -64,7 +64,7 @@
       all();
       /* δοκιμαστικά (φάκελος lab/, μόνο στη δοκιμαστική έκδοση): PL.labActs με page 'home' και mount(#home) → καθάρισμα */
       const labs = (PL.labActs || []).filter((x) => x.page === 'home' && x.mount).map((x) => x.mount($('#home') || el));
-      const offs = ['clients', 'prospects', 'plans', 'tech', 'seminars', 'campaigns', 'balances', 'deals'].map((c) => S.on(c, all));
+      const offs = ['clients', 'prospects', 'plans', 'tech', 'seminars', 'campaigns', 'balances', 'deals', 'xout'].map((c) => S.on(c, all));
       offs.push(PL.bus.on('due', setDue));
       return () => { document.body.classList.remove('home'); offs.concat(labs).forEach((f) => f && f()); };
     },

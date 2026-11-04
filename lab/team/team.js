@@ -47,7 +47,7 @@
     const notes = []; cls.forEach((c) => M.entries(c.i).forEach((e) => { if (e && (e.text || e.todo || e.products)) notes.push({ name: c.name, city: c.city, d: e.d || '', text: e.text || '', products: e.products || '', todo: e.todo || '' }); }));
     const [itRows] = M.itemRows(), items = M.itemAgg(itRows);
     return {
-      n: cls.length, fl,
+      n: cls.filter((c) => !M.out(c.i)).length, fl,
       all: tot('ALL'), gold: tot('Goldwell'), hasBrands: M.hasBrands(),
       cats: M.CATN.map((k) => Object.assign({ k, label: M.turnLabel(k) }, tot(k))).filter((x) => x.a > 0 || x.b > 0).sort((x, y) => y.b - x.b),
       brands: M.brandKeys().filter((b) => b !== 'GOLDWELL').map((b) => Object.assign({ k: 'B:' + b, label: M.turnLabel('B:' + b) }, tot('B:' + b))).filter((x) => x.a > 0 || x.b > 0).sort((x, y) => y.b - x.b),

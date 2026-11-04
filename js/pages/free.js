@@ -79,7 +79,7 @@
 
       /* η βάση: ρωτάει μία φορά με παράθυρο επιλογής (οι 8 πιο γεμάτες πόλεις) */
       async function pickBase() {
-        const cc = {}; M.clients().forEach((c) => { cc[c.city] = (cc[c.city] || 0) + 1; });
+        const cc = {}; M.live().forEach((c) => { cc[c.city] = (cc[c.city] || 0) + 1; });
         const top = Object.entries(cc).sort((a, b) => b[1] - a[1]).slice(0, 8).map((x) => x[0]);
         const k = await D.choice('Ποια είναι η βάση σου; (η πόλη όπου βγαίνεις χωρίς πρόγραμμα)', top.concat(['Άκυρο']));
         if (k == null || k < 0 || k >= top.length) return false;

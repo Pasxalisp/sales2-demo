@@ -52,7 +52,7 @@
       ['items', 'clients', 'prospects'].forEach((c) => S.use(c));
       const $ = (s) => el.querySelector(s);
       $('#wbq').value = st.q; $('#wbs').value = st.sort;
-      const renderC = () => { const f = nn($('#wbcq').value), cm = {}; M.clients().forEach((c) => { if (!c.prospect) cm[c.city] = (cm[c.city] || 0) + 1; });
+      const renderC = () => { const f = nn($('#wbcq').value), cm = {}; M.live().forEach((c) => { if (!c.prospect) cm[c.city] = (cm[c.city] || 0) + 1; });
         $('#wbc').innerHTML = Object.keys(cm).sort((a, b) => (st.sel.has(b) - st.sel.has(a)) || a.localeCompare(b, 'el')).filter((k) => !f || nn(k).includes(f) || st.sel.has(k)).map((k) => `<button class="${st.sel.has(k) ? 'on' : ''}" data-c="${esc(k)}">${st.sel.has(k) ? '✓ ' : ''}${esc(k)} <span style="opacity:.6">${cm[k]}</span></button>`).join('');
         $('#wbcn').textContent = st.sel.size ? '· ' + st.sel.size + ' επιλεγμένες' : '· όλες'; };
       const render = () => {

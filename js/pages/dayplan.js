@@ -17,7 +17,7 @@
       const $ = (s) => el.querySelector(s);
       let alive = true;
       ['clients', 'prospects', 'plans'].forEach((c) => S.use(c));
-      const cities = () => { const m = {}; M.clients().forEach((c) => { if (c.city) m[c.city] = (m[c.city] || 0) + 1; }); return m; };
+      const cities = () => { const m = {}; M.live().forEach((c) => { if (c.city) m[c.city] = (m[c.city] || 0) + 1; }); return m; };
       const plist = () => {
         const f = u.nn($('#pq').value), m = cities();
         $('#pl').innerHTML = Object.keys(m).filter((x) => !f || u.nn(x).includes(f)).sort((a, b) => a.localeCompare(b, 'el')).map((x) =>

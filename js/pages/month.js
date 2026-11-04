@@ -5,7 +5,7 @@
   const MN = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
   const st = { y: new Date().getFullYear(), m: new Date().getMonth(), edit: '' };
   const mkey = () => st.y + '-' + String(st.m + 1).padStart(2, '0');
-  const cityMap = () => { const cm = {}; M.clients().forEach((c) => (cm[c.city] = 1)); return cm; };
+  const cityMap = () => { const cm = {}; M.live().forEach((c) => (cm[c.city] = 1)); return cm; };
   const FQ = [[1, 'κάθε εβδομάδα'], [2, 'κάθε 2 εβδομάδες'], [4, 'κάθε μήνα'], [6, 'κάθε 6 εβδομάδες'], [8, 'κάθε 2 μήνες'], [12, 'κάθε 3 μήνες']];
 
   PL.register('month', {

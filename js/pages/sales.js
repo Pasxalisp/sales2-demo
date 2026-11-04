@@ -84,7 +84,7 @@
         const [L] = M.itemRows(st.city), o = M.itemAgg(L.filter(([, x]) => x.n === n))[0];
         if (!o) { el.innerHTML = '<p class="mu">Δεν βρέθηκε το είδος' + (st.city ? ' στην περιοχή ' + esc(st.city) : '') + '.</p>' + H.nav(); return; }
         const W = o.who.filter(([id]) => M.byId(id)), row = ([id, x], cls) => ({ attr: `data-slb="${esc(id)}"`, name: esc(M.byId(id).name), sub: esc(M.byId(id).city), right: (+x.qp || 0) + ' → ' + (+x.qc || 0) + (+x.tc ? ' · ' + eur(+x.tc) : ''), cls });
-        const now = W.filter(([, x]) => +x.qc > 0).sort((a, b) => (+b[1].qc || 0) - (+a[1].qc || 0)), stop = W.filter(([, x]) => !(+x.qc) && +x.qp > 0).sort((a, b) => (+b[1].qp || 0) - (+a[1].qp || 0));
+        const now = W.filter(([, x]) => +x.qc > 0).sort((a, b) => (+b[1].qc || 0) - (+a[1].qc || 0)), stop = W.filter(([id, x]) => !(+x.qc) && +x.qp > 0 && !M.out(id)).sort((a, b) => (+b[1].qp || 0) - (+a[1].qp || 0));
         const k = (l, v, cls) => `<div><span>${l}</span><b class="${cls || ''}">${v}</b></div>`;
         el.innerHTML = `<div class="shh"><div><h2>${esc(n)}</h2><div class="mu">${esc(o.g)}${st.city ? ' · ' + esc(st.city) : ' · όλες οι περιοχές'}</div></div></div>` +
           `<div class="shk" style="margin-top:12px">${k('Φέτος', n0(o.qc) + ' τεμ. <small style="font-size:calc(14*var(--u))">' + pct(o.qp, o.qc) + '</small>')}${k('Πέρσι ίδια περ.', n0(o.qp) + ' τεμ.')}${k('Πέρσι όλο', n0(o.qf) + ' τεμ.')}${k('Αξία φέτος', eur(o.tc))}</div>` +

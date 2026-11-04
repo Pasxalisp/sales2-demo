@@ -37,7 +37,8 @@
   --u: clamp(.875px, calc(1rem / 16), 1.5px);
   --uc: min(var(--u), 1.15px);
 }
-@supports (font: -apple-system-body) {
+/* μόνο iPhone/iPad (οθόνη αφής): στο Mac το -apple-system-body είναι 13 στιγμές και θα μίκραινε όλα τα γράμματα */
+@supports (font: -apple-system-body) and (-webkit-touch-callout: none) {
   :root:not([data-fs]) {
     font: -apple-system-body;
     --u: clamp(.875px, calc(1rem / 17), 1.5px);
@@ -73,6 +74,8 @@ textarea,
 select {
   width: 100%;
   font: inherit;
+  /* ποτέ κάτω από 16: αλλιώς το iPhone μεγεθύνει τη σελίδα όταν πατάς στο πεδίο */
+  font-size: max(16px, calc(16 * var(--u)));
   color: var(--tx);
   background: var(--card);
   border: 1px solid var(--bd);
@@ -1028,9 +1031,14 @@ main {
 /* ---- Φύλλα δεξιά (τάμπλετ): sheet.js και τα φύλλα visit, task, debt, deal, techreq, buyer, salesitem ---- */
 .shh {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 10px;
+  gap: 0 10px;
+}
+.shh > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .shh h2 {
   margin: 0;
@@ -1068,6 +1076,14 @@ main {
 }
 .sha.n4 {
   grid-template-columns: 1fr 1fr 1fr 1.3fr;
+}
+/* μεγάλα γράμματα (html.big): δύο κουμπιά ανά σειρά· το μονό τελευταίο (π.χ. «✓ Έγινε») πιάνει όλη τη σειρά */
+html.big .sha,
+html.big .sha.n4 {
+  grid-template-columns: 1fr 1fr;
+}
+html.big .sha > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 .sha .shdone {
   background: #23875a;
@@ -1152,6 +1168,7 @@ main {
 }
 .shnav {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
@@ -1192,6 +1209,10 @@ main {
   justify-content: space-between;
   gap: 10px;
   padding: 4px 0;
+}
+.shr > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 /* λίστα που ανοίγει φύλλο (δεξί μέρος χωρίς επιλογή) */
 .shl>.shli {

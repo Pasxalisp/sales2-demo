@@ -71,7 +71,7 @@
   };
   /* Κάλυψη: πόσοι ενεργοί πελάτες (με τζίρο) τσεκαρίστηκαν μέσα στον μήνα — σημείωση ή τικ σε πρόγραμμα, όπως στην παλιά. */
   MP.coverage = (y, m) => {
-    const pre = y + '-' + String(m + 1).padStart(2, '0'), act = M.clients().filter((c) => M.tz(c) > 0);
+    const pre = y + '-' + String(m + 1).padStart(2, '0'), act = M.live().filter((c) => M.tz(c) > 0);
     const seen = act.filter((c) => M.entries(c.i).some((e) => String(e.d || '').startsWith(pre)) || Object.values(S.all('plans')).some((p) => (p.stops || []).some((s) => s.id === c.i && s.done && String(s.doneDate || p.created || '').startsWith(pre))));
     return [seen.length, act.length];
   };

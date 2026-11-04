@@ -16,7 +16,7 @@
              <button id="cnt">Μέτρηση</button><div id="res"></div></div>
          </div>`;
       const $ = (s) => el.querySelector(s);
-      $('#fsz').onclick = (e) => { const b = e.target.closest('[data-fs]'); if (!b) return; PL.fontSize.set(b.dataset.fs); el.querySelectorAll('#fsz [data-fs]').forEach((x) => x.classList.toggle('on', x === b)); };
+      $('#fsz').onclick = (e) => { const b = e.target.closest('#fsz [data-fs]'); if (!b) return; PL.fontSize.set(b.dataset.fs); el.querySelectorAll('#fsz [data-fs]').forEach((x) => x.classList.toggle('on', x === b)); };
       $('#cnt').onclick = async () => {
         $('#res').textContent = 'Μετράω…';
         try {
