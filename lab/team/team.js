@@ -21,6 +21,8 @@
   const MNG = ['Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μαΐου', 'Ιουνίου', 'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου', 'Δεκεμβρίου'];
   const initials = (n) => String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('');
   const RO = '<span class="tmro">🔒 Μόνο ανάγνωση</span>';
+  /* «υπεύθυνος + 3 πωλητές» / «3 υπεύθυνοι + 9 πωλητές» από μια λίστα χρηστών */
+  const ppl = (U) => { const l = U.filter((x) => x.role === 'lead').length, n = U.length - l; return (l ? (l === 1 ? 'υπεύθυνος' : l + ' υπεύθυνοι') + ' + ' : '') + n + (n === 1 ? ' πωλητής' : ' πωλητές'); };
   const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const ago = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return iso(d); };
   const deny = (el, t) => { el.innerHTML = '<h2>Χωρίς πρόσβαση</h2><p class="mu">' + (t || 'Αυτή η οθόνη είναι για τον υπεύθυνο της ομάδας και τον διευθυντή.') + '</p>'; };
@@ -126,7 +128,7 @@
       const tid = (params && params.team) || me.team, t = O.team(tid); if (!t || !canTeam(tid)) return deny(el);
       const list = O.sellers(tid).map((x) => ({ x, f: figOf(x.id) })), lead = list.filter(({ x }) => x.role === 'lead'), rest = list.filter(({ x }) => x.role !== 'lead');
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmhead"><h2>${ICON.team}${me.team === tid ? 'Η ομάδα μου' : esc(t.name)}</h2><p class="mu">${esc(t.name)} · ${list.length} πωλητές ${RO}</p></div>` +
+      el.innerHTML = `<div class="tmhead"><h2>${ICON.team}${me.team === tid ? 'Η ομάδα μου' : esc(t.name)}</h2><p class="mu">${esc(t.name)} · ${ppl(list.map(({ x }) => x))} ${RO}</p></div>` +
         `<div class="tmgrid">${teamSummary(list, 'Ομάδα')}` + ranking(list) + card('Κατηγορίες ανά πωλητή · φέτος σε σχέση με πέρσι', heat(list), 'tmwide2') + '</div>' +
         (lead.length ? '<h3 class="tmsec">Υπεύθυνος ομάδας</h3><div class="tmrows">' + lead.map(({ x, f }) => sellerRow(x, f, tid)).join('') + '</div>' : '') +
         '<h3 class="tmsec">Πωλητές</h3><div class="tmrows">' + rest.map(({ x, f }) => sellerRow(x, f, tid)).join('') + '</div>' +
@@ -203,11 +205,11 @@
       if (!me || me.role !== 'director') return deny(el, 'Αυτή η οθόνη είναι για τον διευθυντή.');
       const all = O.teams().map((t) => ({ t, list: O.sellers(t.id).map((x) => ({ x, f: figOf(x.id) })) })), every = [].concat(...all.map((a) => a.list));
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmhead"><h2>${ICON.org}Όλες οι ομάδες</h2><p class="mu">${all.length} ομάδες · ${every.length} πωλητές ${RO}</p></div>` +
+      el.innerHTML = `<div class="tmhead"><h2>${ICON.org}Όλες οι ομάδες</h2><p class="mu">${all.length} ομάδες · ${ppl(every.map(({ x }) => x))} ${RO}</p></div>` +
         `<div class="tmgrid">${teamSummary(every, 'Εταιρεία')}` +
         ranking(every, true, 'tmrow2') +
         all.map(({ t, list }) => { const p = pct(sum(list, ({ f }) => f.fl && f.fl.now.sales), sum(list, ({ f }) => f.fl && f.fl.now.target)), lead = list.find(({ x }) => x.role === 'lead');
-          return `<section class="tmcard tmteam" data-team="${esc(t.id)}"><h3>${esc(t.name)}</h3><div class="tmteamh">${donut(p, 84)}<div><div class="mu">${lead ? 'Υπεύθυνος: ' + esc(lead.x.name) : ''}</div><div class="tmmini"><span>${list.length} πωλητές</span><span>${sum(list, ({ f }) => f.n)} πελάτες</span><span>Goldwell <b class="${yoyCls(sum(list, ({ f }) => f.gold.a), sum(list, ({ f }) => f.gold.b))}">${yoyTxt(sum(list, ({ f }) => f.gold.a), sum(list, ({ f }) => f.gold.b))}</b></span></div></div></div>` +
+          return `<section class="tmcard tmteam" data-team="${esc(t.id)}"><h3>${esc(t.name)}</h3><div class="tmteamh">${donut(p, 84)}<div><div class="mu">${lead ? 'Υπεύθυνος: ' + esc(lead.x.name) : ''}</div><div class="tmmini"><span>${list.filter(({ x }) => x.role !== 'lead').length} πωλητές</span><span>${sum(list, ({ f }) => f.n)} πελάτες</span><span>Goldwell <b class="${yoyCls(sum(list, ({ f }) => f.gold.a), sum(list, ({ f }) => f.gold.b))}">${yoyTxt(sum(list, ({ f }) => f.gold.a), sum(list, ({ f }) => f.gold.b))}</b></span></div></div></div>` +
             `<div class="tmppl">${list.map(({ x, f }) => `<button data-mem="${esc(x.id)}"><span class="tmav s${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span>${esc(x.name.split(' ')[0])} <b class="${pc(fp(f))}">${fp(f)}%</b></button>`).join('')}</div><button class="shlink" data-team="${esc(t.id)}">Όλη η ομάδα ›</button></section>`; }).join('') +
         card('Κατηγορίες ανά πωλητή · φέτος σε σχέση με πέρσι', heat(every), 'tmwide2') + '</div>';
       el.addEventListener('click', (ev) => {
@@ -293,11 +295,11 @@
     if (!me) return null;
     const t = O.team(me.team), box = document.createElement('div'); box.id = 'tmhome';
     let tiles = '';
-    if (me.role === 'lead') { const L = O.sellers(me.team).map((x) => figOf(x.id)); tiles += tile('team', '', ICON.team, 'Η ομάδα μου', `${L.length} πωλητές · FLASH ${teamPct(L)}%`, 'lead'); }
+    if (me.role === 'lead') { const U = O.sellers(me.team), L = U.map((x) => figOf(x.id)); tiles += tile('team', '', ICON.team, 'Η ομάδα μου', `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }
     if (me.role === 'director') {
-      const S = O.sellers().map((x) => figOf(x.id));
-      tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${S.length} πωλητές · FLASH ${teamPct(S)}%`, 'dir');
-      tiles += O.teams().map((tt) => { const L = O.sellers(tt.id).map((x) => figOf(x.id)); return tile('team', tt.id, ICON.team, esc(tt.name), `${L.length} πωλητές · FLASH ${teamPct(L)}%`, 'lead'); }).join('');
+      const U = O.sellers(), S = U.map((x) => figOf(x.id));
+      tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${ppl(U)} · FLASH ${teamPct(S)}%`, 'dir');
+      tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = U.map((x) => figOf(x.id)); return tile('team', tt.id, ICON.team, esc(tt.name), `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }).join('');
     }
     if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm');
     box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;

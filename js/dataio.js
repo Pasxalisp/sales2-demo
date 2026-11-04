@@ -1,6 +1,6 @@
-/* ΜΕΤΡΗΣΗ / ΕΞΑΓΩΓΗ (λήψη αντιγράφου) / ΕΙΣΑΓΩΓΗ δεδομένων — ένα αρχείο JSON όπως το dedomena.json.
-   Η σελίδα «Ρυθμίσεις» χρησιμοποιεί μόνο τη μέτρηση και την εξαγωγή. Η εισαγωγή δεν έχει κουμπί: μένει για τα τεστ
-   και για επαναφορά από αντίγραφο σε ανάγκη (μόνο από το Claude). Τα δεδομένα του orders τα γράφει το Claude απευθείας.
+/* ΜΕΤΡΗΣΗ / ΕΞΑΓΩΓΗ / ΕΙΣΑΓΩΓΗ δεδομένων — ένα αρχείο JSON όπως το dedomena.json.
+   Η σελίδα «Ρυθμίσεις» χρησιμοποιεί μόνο τη μέτρηση. Εξαγωγή και εισαγωγή δεν έχουν κουμπί (τα αντίγραφα ασφαλείας
+   τα κρατά η βάση δεδομένων): μένουν για τα τεστ και για μεταφορά δεδομένων από το Claude. Τα δεδομένα του orders τα γράφει το Claude απευθείας.
    Μιλάει μόνο με PL.adapter (δεν ξέρει πού ζει η βάση). */
 (function () {
   const PL = window.PL;
@@ -76,23 +76,6 @@
         out._meta.counts[col] = rows.length;
       }
       return out;
-    },
-
-    /* Πλήρες αντίγραφο ασφαλείας σε αρχείο. Η ημερομηνία του φυλάγεται στη βάση (settings/backup) μόνο αν η λήψη έγινε,
-       ώστε η Αρχική να θυμίζει όταν περάσουν BACKUP_DAYS μέρες. */
-    BACKUP_DAYS: 7,
-    async backup() {
-      const all = await PL.dataio.exportAll();
-      await PL.adapter.files.save('pelatologio-' + all._meta.date + '.json', JSON.stringify(all));
-      const doc = { d: all._meta.date };
-      PL.store.put('settings', 'backup', doc);
-      try { await PL.adapter.db.set('settings/backup', doc); } catch (e) { /* το αρχείο κατέβηκε· η ημερομηνία ξαναγράφεται την επόμενη φορά */ }
-      return all._meta.date;
-    },
-    /* Μέρες από το τελευταίο αντίγραφο (null = ποτέ). */
-    backupAge() {
-      const b = PL.store.get('settings', 'backup'); if (!b || !b.d) return null;
-      return Math.max(0, Math.round((Date.parse(PL.u.today()) - Date.parse(b.d)) / 864e5));
     },
   };
 })();

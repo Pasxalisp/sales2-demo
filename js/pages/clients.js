@@ -22,8 +22,7 @@
 <div id="at" style="display:none;padding:6px 0 0;font-weight:600"></div></div></header>
 <div id="list"></div>
 <p class="mu" id="cnt"></p>
-<button id="exp">Λήψη σε αρχείο (CSV)</button>
-<button class="pri" id="bak">💾 Πλήρες αντίγραφο ασφαλείας</button>`;
+<button id="exp">Λήψη σε αρχείο (CSV)</button>`;
 
   PL.register('clients', {
     title: 'Πελατολόγιο',
@@ -112,9 +111,6 @@
             en.forEach((x) => rows.push([cd, c.name, c.addr, c.city, c.t1, c.t2, tz, w, gy[1], gy[0], gy[2] == null ? '' : gy[2], x.d, x.products, x.text, x.todo || '', x.next])); });
           const csv = '﻿' + rows.map((r) => r.map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(';')).join('\n');
           try { await PL.adapter.files.save('pelatologio.csv', csv); } catch (x) { D.toast('Η λήψη δουλεύει μόνο μέσα στο claude.ai'); }
-        }
-        else if (t.id === 'bak') {
-          try { await PL.dataio.backup(); D.toast('💾 Το αντίγραφο κατέβηκε'); } catch (x) { D.toast('Δεν έγινε η λήψη (' + ((x && x.code) || 'σφάλμα') + ')'); }
         }
       });
       return () => { offs.forEach((f) => f()); cancelAnimationFrame(raf); };

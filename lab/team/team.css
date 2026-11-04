@@ -43,7 +43,7 @@ body.tmlock { overflow: hidden; }
 #home button.duec.tmtile.adm .dc { background: var(--hch); color: var(--hic); }
 #home button.duec.tmtile.adm::after { background: var(--mu); }
 /* ο διευθυντής δεν έχει δικούς του πελάτες: στην αρχική μόνο οι ομάδες */
-body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hbak, body.tmdir #home #hmatch { display: none; }
+body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hmatch { display: none; }
 
 /* ---- κοινά ---- */
 .tmav { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #2f6f5e; color: #fff; font-weight: 700; font-size: 14px; flex: none; letter-spacing: .5px; }
