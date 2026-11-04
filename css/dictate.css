@@ -11,7 +11,7 @@
   margin-left: auto;
 }
 .mba {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   margin: 2px 0 2px 4px;
 }

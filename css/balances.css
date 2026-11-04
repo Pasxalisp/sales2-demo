@@ -3,7 +3,7 @@
 .bnb {
   margin: 8px 0 0;
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   border-color: var(--ac);
   color: var(--ac);
 }
@@ -12,12 +12,12 @@
   background: var(--ac2);
   border-radius: 10px;
   padding: 8px 10px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   line-height: 1.35;
   white-space: pre-wrap;
 }
 .bnn .bnm {
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   color: var(--mu);
   margin-top: 3px;
 }

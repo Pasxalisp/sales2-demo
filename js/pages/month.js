@@ -16,7 +16,7 @@
         <div class="mnav"><button id="moprev">‹</button><b id="motl"></b><button id="monext">›</button></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="pri" id="mogen" style="flex:1">✨ Πρότεινέ μου μήνα</button><button id="moset">⚙️ Ταξίδια &amp; ρυθμίσεις</button></div>
         <div id="mocov" class="warn" style="margin-top:10px"></div><div id="moset2" hidden></div><div id="mobody"></div>
-        <p class="mu" style="font-size:13px">Οι αποστάσεις είναι κατά προσέγγιση (ευθεία × 1,3). Πάτα «▶ Πρόγραμμα ημέρας» για να φτιαχτεί το γνωστό πρόγραμμα με πελάτες και σειρά δρόμου.</p>`;
+        <p class="mu" style="font-size:calc(13*var(--u))">Οι αποστάσεις είναι κατά προσέγγιση (ευθεία × 1,3). Πάτα «▶ Πρόγραμμα ημέρας» για να φτιαχτεί το γνωστό πρόγραμμα με πελάτες και σειρά δρόμου.</p>`;
       const $ = (s) => el.querySelector(s);
       ['clients', 'prospects', 'notes', 'plans', 'visits', 'sos', 'settings', 'month', 'brands'].forEach((c) => S.use(c));
       const MON = () => JSON.parse(JSON.stringify(S.get('month', mkey()) || { days: {} }));
@@ -35,7 +35,7 @@
           <label style="margin:0">Ξεκινάω από<select id="mobase" style="margin-top:4px">${Object.keys(MP.GEO).filter((c) => cm[c] || c === SET.base).sort((a, b) => a.localeCompare(b, 'el')).map((c) => `<option ${c === SET.base ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
           <label style="margin:0">Επισκέψεις τη μέρα<input id="movpd" type="number" min="3" max="20" value="${SET.vpd}" style="margin-top:4px;width:90px"></label></div>
           ${SET.trips.map((t) => `<div class="trc" style="border-left-color:${t.color}"><div class="row"><b>${esc(t.name)}</b><select data-mofq="${t.id}" style="width:auto;padding:4px 8px">${FQ.map(([v, l]) => `<option value="${v}" ${t.freq == v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-          <div class="mu" style="font-size:13px">${t.cities.filter((c) => cm[c]).map((c) => `${esc(c)} <select data-mocity="${esc(c)}" style="width:auto;padding:1px 4px;font-size:12px">${SET.trips.map((q) => `<option value="${q.id}" ${q.id === t.id ? 'selected' : ''}>${esc(q.name.split(' ')[0])}</option>`).join('')}</select>`).join(' · ')}</div></div>`).join('')}
+          <div class="mu" style="font-size:calc(13*var(--u))">${t.cities.filter((c) => cm[c]).map((c) => `${esc(c)} <select data-mocity="${esc(c)}" style="width:auto;padding:1px 4px;font-size:calc(12*var(--u))">${SET.trips.map((q) => `<option value="${q.id}" ${q.id === t.id ? 'selected' : ''}>${esc(q.name.split(' ')[0])}</option>`).join('')}</select>`).join(' · ')}</div></div>`).join('')}
           ${(() => { const miss = Object.keys(cm).filter((c) => !MP.tripOf(SET, c)); return miss.length ? `<p class="mu">Χωρίς ταξίδι: ${esc(miss.join(', '))}</p>` : ''; })()}
           <div class="dbt"><button class="pri" id="mosetsv">Αποθήκευση ρυθμίσεων</button><button id="mosetrs">Επαναφορά αρχικών</button></div></div>`;
       };

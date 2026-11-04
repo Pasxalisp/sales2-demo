@@ -12,7 +12,7 @@
   const HELLO = 'Πες μου ποιους πελάτες είδες ή με ποιους μίλησες, τι συζητήσατε και τι θες να πεις την επόμενη φορά. Τα γράφω στις καρτέλες, και αν δεν είμαι σίγουρος για κάτι, σε ρωτάω.';
 
   const bubbleHtml = (m, k) => {
-    if (m.kind === 'rem') return `<div class="mb mbc">📅 ${esc(m.title)}<br>${esc(m.date)}${m.time ? ' ' + esc(m.time) : ''}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button data-copy="${k}">Αντιγραφή για το chat</button></div><div class="mu" data-rmsg="${k}" style="margin-top:6px;font-size:13px">Η σελίδα δεν μπορεί να γράψει στο ημερολόγιο. Πάτα «Αντιγραφή για το chat» και επικόλλησέ το στη συνομιλία του project: εκεί μπαίνει κατευθείαν στο ημερολόγιο του iPhone.</div></div>`;
+    if (m.kind === 'rem') return `<div class="mb mbc">📅 ${esc(m.title)}<br>${esc(m.date)}${m.time ? ' ' + esc(m.time) : ''}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button data-copy="${k}">Αντιγραφή για το chat</button></div><div class="mu" data-rmsg="${k}" style="margin-top:6px;font-size:calc(13*var(--u))">Η σελίδα δεν μπορεί να γράψει στο ημερολόγιο. Πάτα «Αντιγραφή για το chat» και επικόλλησέ το στη συνομιλία του project: εκεί μπαίνει κατευθείαν στο ημερολόγιο του iPhone.</div></div>`;
     return `<div class="mb ${m.kind === 'user' ? 'mbu' : m.kind === 'act' ? 'mba' : 'mbc'}">${esc(m.text)}</div>`;
   };
   const dfinUI = () => { if (ui) ui.fin.hidden = !PL.plans.PLDONE; };
@@ -84,7 +84,7 @@
         <h2>Υπαγόρευση</h2>
         <div id="dchat" style="flex:1"></div>
         <div style="position:sticky;bottom:0;background:var(--bg);padding:8px 0 4px">
-        <div style="display:flex;gap:6px;margin-bottom:6px"><button id="dbk2">← Πίσω</button><button id="dnew2">Νέα συζήτηση</button><span id="dinfo" class="mu" style="margin-left:auto;align-self:center;font-size:12px"></span></div>
+        <div style="display:flex;gap:6px;margin-bottom:6px"><button id="dbk2">← Πίσω</button><button id="dnew2">Νέα συζήτηση</button><span id="dinfo" class="mu" style="margin-left:auto;align-self:center;font-size:calc(12*var(--u))"></span></div>
         <div class="dbar"><textarea id="dt" rows="2" placeholder="Γράψε ή πάτα το μικρόφωνο…"></textarea>
         <button id="dmic" class="rb" aria-label="Υπαγόρευση">${MIC}</button>
         <button class="rb pri" id="dgo" aria-label="Αποστολή"></button></div>

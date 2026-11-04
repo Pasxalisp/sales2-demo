@@ -23,7 +23,7 @@
         $('#tknb').hidden = !c;
         const when = (x.e.next === t ? 'Σήμερα' : (late ? 'Από ' : 'Στις ') + esc(u.fd(x.e.next))) + (x.e.nt ? ' ' + esc(x.e.nt) : '') + (late ? ' · <span class="dn">καθυστέρηση</span>' : '');
         $('#tktop').innerHTML = (c ? H.head(c, esc(c.city) + ' · ' + when) : `<div class="shh"><div><h2>📝 Εκκρεμότητα</h2><div class="mu">${when}</div></div></div>`) +
-          `<div class="shbox hi" style="margin-top:12px"><h3>Τι εκκρεμεί</h3><div style="font-size:18px">${esc(x.e.todo || '—')}</div></div>` +
+          `<div class="shbox hi" style="margin-top:12px"><h3>Τι εκκρεμεί</h3><div style="font-size:calc(18*var(--u))">${esc(x.e.todo || '—')}</div></div>` +
           H.acts(H.call(c), H.sms(c), '<button class="shdone" id="tkdone">✓ Έγινε</button>');
         $('#tkbot').innerHTML = (c ? H.facts(c) + H.last(c.i) : '') + H.nav(c && c.i, 'Ημερολόγιο');
       };

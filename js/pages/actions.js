@@ -76,7 +76,7 @@
       split: [K.page],
       render(el) {
         const p = K.p;
-        el.innerHTML = `<h2>${K.ic()} ${K.title}</h2><button class="pri" id="${p}open" style="width:100%;padding:14px;font-size:17px;margin-bottom:10px">+ ${K.newL}</button>
+        el.innerHTML = `<h2>${K.ic()} ${K.title}</h2><button class="pri" id="${p}open" style="width:100%;padding:14px;font-size:calc(17*var(--u));margin-bottom:10px">+ ${K.newL}</button>
 <div id="${p}form" class="card" style="cursor:default" hidden><label>Τίτλος</label><input id="${p}t" placeholder="${esc(K.ph)}">${fieldsHtml(p)}
 <label>Παρατηρήσεις</label><textarea id="${p}n" rows="2" placeholder="${esc(K.nph)}"></textarea>
 <p style="display:flex;gap:6px"><button class="pri" id="${p}new">Δημιουργία</button><button id="${p}cancel">Άκυρο</button></p><div id="${p}st" class="mu"></div></div><div id="${p}l"></div>`;
@@ -115,7 +115,7 @@
         el.innerHTML = `<h2 id="${p}h"></h2><div id="${p}i" class="warn"></div>
 <details id="${p}edit" style="margin-bottom:10px"><summary style="cursor:pointer;color:var(--ac);font-weight:600">✏️ Αλλαγή στοιχείων</summary><label>Τίτλος</label><input id="${pe}t">${fieldsHtml(pe)}
 <label>Παρατηρήσεις</label><textarea id="${pe}n" rows="2"></textarea><p><button class="pri" id="${p}esave">Αποθήκευση</button></p></details>
-<button class="pri" id="${p}pick" style="width:100%;padding:12px;font-size:16px">+ Πρόσθεσε πελάτες από το πελατολόγιο</button>
+<button class="pri" id="${p}pick" style="width:100%;padding:12px;font-size:calc(16*var(--u))">+ Πρόσθεσε πελάτες από το πελατολόγιο</button>
 <div style="display:flex;gap:6px;margin-top:8px"><input id="${p}add" list="dcl" placeholder="ή γράψε όνομα πελάτη…" style="flex:1;min-width:0"><button id="${p}addb">Προσθήκη</button></div>
 <div id="${p}dl" style="margin-top:8px"></div><p style="margin-top:18px"><button id="${p}del">🗑 ${K.delL}</button></p><span id="dclh"></span>`;
         const $ = (s) => el.querySelector(s);
@@ -204,9 +204,9 @@
     render(el, params) {
       el.innerHTML = `<h2>Επιλογή πελατών</h2><div class="mu" style="margin-bottom:8px">${esc(params.title || '')}</div>
 <div style="display:flex;gap:6px;flex-wrap:wrap"><select id="smpc" style="flex:1;min-width:150px"></select><select id="smpk" style="flex:1;min-width:150px"></select></div>
-<div style="display:flex;gap:6px;margin-top:6px;align-items:center"><input id="smpq" placeholder="Αναζήτηση ονόματος…" style="flex:1;min-width:0"><label style="margin:0;display:flex;align-items:center;gap:4px;white-space:nowrap;color:var(--tx);font-size:14px"><input type="checkbox" id="smpz" style="width:auto"> Με τζίρο</label></div>
+<div style="display:flex;gap:6px;margin-top:6px;align-items:center"><input id="smpq" placeholder="Αναζήτηση ονόματος…" style="flex:1;min-width:0"><label style="margin:0;display:flex;align-items:center;gap:4px;white-space:nowrap;color:var(--tx);font-size:calc(14*var(--u))"><input type="checkbox" id="smpz" style="width:auto"> Με τζίρο</label></div>
 <div style="display:flex;gap:6px;margin:8px 0"><button id="smpall">Επιλογή όλων</button><button id="smpnone">Καθαρισμός</button><span id="smpn" class="mu" style="align-self:center;margin-left:auto"></span></div>
-<div id="smpl"></div><div class="smbar"><button class="pri" id="smpok" style="width:100%;padding:14px;font-size:17px">Προσθήκη</button></div>`;
+<div id="smpl"></div><div class="smbar"><button class="pri" id="smpok" style="width:100%;padding:14px;font-size:calc(17*var(--u))">Προσθήκη</button></div>`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
       let sel = new Set();
@@ -224,7 +224,7 @@
       const paint = () => {
         const L = list(); let cc = '';
         $('#smpl').innerHTML = L.length ? L.map(({ c, in: i }) => { const hd = !$('#smpc').value && c.city !== cc ? (cc = c.city, `<h3>${esc(cc)}</h3>`) : '', e = M.entries(c.i)[0], tz = M.tz(c) || 0;
-          return hd + `<label class="card" style="display:flex;gap:10px;align-items:center;cursor:pointer;margin:6px 0;color:var(--tx);font-size:15px${i ? ';opacity:.55' : ''}"><input type="checkbox" data-smp="${esc(c.i)}" ${i || sel.has(c.i) ? 'checked' : ''} ${i ? 'disabled' : ''} style="width:22px;height:22px;flex:none"><span style="flex:1;min-width:0"><span class="nm">${PL.prospects.tag(c)}${esc(c.name)}</span><br><span class="mu">${esc(c.city)}${tz > 0 ? ' · ' + money(tz) : ' · χωρίς τζίρο'}${e && e.d ? ' · τελ. επαφή ' + esc(e.d) : ''}${i ? ' · ήδη μέσα' : ''}</span></span></label>`; }).join('')
+          return hd + `<label class="card" style="display:flex;gap:10px;align-items:center;cursor:pointer;margin:6px 0;color:var(--tx);font-size:calc(15*var(--u))${i ? ';opacity:.55' : ''}"><input type="checkbox" data-smp="${esc(c.i)}" ${i || sel.has(c.i) ? 'checked' : ''} ${i ? 'disabled' : ''} style="width:22px;height:22px;flex:none"><span style="flex:1;min-width:0"><span class="nm">${PL.prospects.tag(c)}${esc(c.name)}</span><br><span class="mu">${esc(c.city)}${tz > 0 ? ' · ' + money(tz) : ' · χωρίς τζίρο'}${e && e.d ? ' · τελ. επαφή ' + esc(e.d) : ''}${i ? ' · ήδη μέσα' : ''}</span></span></label>`; }).join('')
           : '<p class="mu">Κανένας πελάτης με αυτά τα φίλτρα.</p>';
         $('#smpn').textContent = L.length + ' πελάτες'; btn();
       };

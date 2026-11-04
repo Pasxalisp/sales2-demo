@@ -37,8 +37,8 @@
           `<div class="shk">${k('Υπόλοιπο', bv(id, 'amount'), bv(id, 'amount') >= 1 ? 'dn' : '')}${bv(id, 'over') ? k('Υπέρβαση', bv(id, 'over'), 'dn') : ''}${bv(id, 'bounced') ? k('Διαμαρτυρημένα', bv(id, 'bounced'), 'dn') : ''}${bv(id, 'warn') && bv(id, 'warn') !== bv(id, 'over') ? k('Προειδοποίηση', bv(id, 'warn')) : ''}</div>` +
           H.acts(H.call(c), H.sms(c, reminder(id), 'Υπενθύμιση'), open(n) ? '<button class="shdone" id="dbpaid">✓ Πλήρωσε</button>' : '') +
           H.facts(c, { debt: true }) +
-          (n && (n.pay || n.t) ? H.box('Υπόσχεση πληρωμής', `${n.pay ? `<div style="font-size:18px"><b class="${late && open(n) ? 'dn' : ''}">${esc(fdd(n.pay))}</b>${late && open(n) ? ' <span class="dn">· πέρασε η ημερομηνία</span>' : ''}${n.pdone === n.pay ? ' <span class="up">· ✓ πλήρωσε</span>' : ''}</div>` : ''}${n.t ? `<div>${esc(n.t)}</div>` : ''}` +
-            `<div class="mu" style="font-size:13px;margin-top:4px">Ενημέρωση ${esc(fdd(n.d))} · ${stt === 'err' ? '<span class="dn">⚠️ Δεν αποθηκεύτηκε ακόμα (σύνδεση). Ξαναδοκιμάζω μόνο μου.</span>' : stt ? '⏳ Αποθηκεύεται…' : '✓ Αποθηκεύτηκε'}</div>`, 'hi') : '');
+          (n && (n.pay || n.t) ? H.box('Υπόσχεση πληρωμής', `${n.pay ? `<div style="font-size:calc(18*var(--u))"><b class="${late && open(n) ? 'dn' : ''}">${esc(fdd(n.pay))}</b>${late && open(n) ? ' <span class="dn">· πέρασε η ημερομηνία</span>' : ''}${n.pdone === n.pay ? ' <span class="up">· ✓ πλήρωσε</span>' : ''}</div>` : ''}${n.t ? `<div>${esc(n.t)}</div>` : ''}` +
+            `<div class="mu" style="font-size:calc(13*var(--u));margin-top:4px">Ενημέρωση ${esc(fdd(n.d))} · ${stt === 'err' ? '<span class="dn">⚠️ Δεν αποθηκεύτηκε ακόμα (σύνδεση). Ξαναδοκιμάζω μόνο μου.</span>' : stt ? '⏳ Αποθηκεύεται…' : '✓ Αποθηκεύτηκε'}</div>`, 'hi') : '');
         $('#dbbot').innerHTML = H.last(id) + H.nav(id);
       };
       paint();

@@ -8,7 +8,7 @@
   function show(c, e) {
     try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (x) { /* τίποτα */ }
     const tel = PL.call.first(c), b = document.createElement('div'); b.className = 'alarm';
-    b.style.cssText = 'position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));z-index:80;background:#d9382f;color:#fff;border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:16px';
+    b.style.cssText = 'position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));z-index:80;background:#d9382f;color:#fff;border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:calc(16*var(--u))';
     b.innerHTML = '⏰ <b>' + esc(e.nt) + ' · ' + esc(c.name) + '</b><br>' + esc(e.todo || e.text || 'Εκκρεμότητα') + '<div style="display:flex;gap:8px;margin-top:10px">' +
       (tel ? '<a href="tel:' + esc(String(tel).replace(/[^\d+]/g, '')) + '" style="background:#fff;color:#d9382f;border-radius:10px;padding:8px 12px;font-weight:600;text-decoration:none">📞 Κλήση</a>' : '') +
       '<button style="background:transparent;color:#fff;border:1px solid #fff">ΟΚ</button></div>';

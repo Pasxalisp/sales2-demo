@@ -24,7 +24,7 @@
           H.acts(H.call(c), H.map(c), '<button id="byord">🛒 Παραγγελία</button>') +
           H.box(esc(n || '«' + (q || '') + '»') + ' <span style="text-transform:none;font-weight:400">· τεμ. πέρσι → φέτος</span>',
             hit.length === 1 ? row(hit[0]) + (stop.length ? '<div class="dn" style="margin-top:6px">⚠️ Πέρσι το έπαιρνε, φέτος όχι</div>' : '')
-            : hit.length ? `<div class="shr" style="font-size:17px;padding-bottom:6px"><b>${hit.length} είδη</b><span>${qp} → <b>${qc}</b>${tc ? ' · ' + u.money(tc) : ''}</span></div>` +
+            : hit.length ? `<div class="shr" style="font-size:calc(17*var(--u));padding-bottom:6px"><b>${hit.length} είδη</b><span>${qp} → <b>${qc}</b>${tc ? ' · ' + u.money(tc) : ''}</span></div>` +
               (stop.length ? `<div class="dn" style="margin:6px 0 2px">⚠️ Πέρσι ναι, φέτος όχι (${stop.length}):</div>` + stop.map(row).join('') : '') +
               (now.length ? (stop.length ? '<div class="mu" style="margin:8px 0 2px">Φέτος:</div>' : '') + now.slice(0, all ? 999 : 10).map(row).join('') +
                 (now.length > 10 && !all ? `<button class="shlink" id="byall">Δείξε όλα (${now.length}) ▾</button>` : '') : '')
@@ -32,7 +32,7 @@
           (other.length ? H.box('Τι άλλο παίρνει φέτος', other.map(row).join('')) : '') +
           H.facts(c) + H.last(id) +
           H.nav(id, 'Λίστα', n ? `<button class="shlink" data-byitem="${esc(n)}">‹ ${esc(n.length > 28 ? n.slice(0, 27) + '…' : n)}</button>` : '') +
-          `<p class="mu" style="font-size:12px">Περίοδος: 1/1 έως ${esc(u.fd((S.get('items', id) || {}).d || ''))}, φέτος και ίδια περίοδος πέρσι (orders).</p>`;
+          `<p class="mu" style="font-size:calc(12*var(--u))">Περίοδος: 1/1 έως ${esc(u.fd((S.get('items', id) || {}).d || ''))}, φέτος και ίδια περίοδος πέρσι (orders).</p>`;
       };
       paint();
       const offs = COLS.map((c) => S.on(c, paint));

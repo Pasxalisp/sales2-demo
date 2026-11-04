@@ -4,7 +4,7 @@
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
   const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'balances', 'seminars', 'campaigns', 'xout', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
-  const SM = 'font-weight:400;font-size:13px';
+  const SM = 'font-weight:400;font-size:calc(13*var(--u))';
 
   /* ---- τμήματα με νούμερα ---- */
   function goldDetail(c) {
@@ -22,7 +22,7 @@
     let A = 0, Bt = 0; r.forEach((k) => { if (!M.EXB.includes(k)) { A += +d[k][0] || 0; Bt += +d[k][1] || 0; } });
     return `<h3>Ανά μάρκα <span class="mu" style="${SM}">(${esc(B._d || '')})</span></h3><div style="overflow-x:auto"><table class="ctab"><tr><th></th><th>Πέρσι ίδια περ.</th><th>Φέτος</th></tr>` +
       r.map((k) => { const [a, b] = d[k].map((x) => +x || 0); return `<tr><td>${esc(M.BRL[k] || k)}${M.EXB.includes(k) ? ' <span class="mu">✕</span>' : ''}${a >= M.WORKED && b < 1 ? ' <span class="dn">σταμάτησε</span>' : a < 1 && b >= 1 ? ' <span class="up">νέο</span>' : ''}</td><td>${money(a)}</td><td class="${b >= a ? 'up' : 'dn'}">${money(b)}</td></tr>`; }).join('') +
-      `<tr><td><b>Γενικός τζίρος</b></td><td><b>${money(A)}</b></td><td class="${Bt >= A ? 'up' : 'dn'}"><b>${money(Bt)}</b></td></tr></table></div><div class="mu" style="font-size:12px">✕ = δεν μετράει στον γενικό τζίρο</div>`;
+      `<tr><td><b>Γενικός τζίρος</b></td><td><b>${money(A)}</b></td><td class="${Bt >= A ? 'up' : 'dn'}"><b>${money(Bt)}</b></td></tr></table></div><div class="mu" style="font-size:calc(12*var(--u))">✕ = δεν μετράει στον γενικό τζίρο</div>`;
   }
   function catDetail(id) {
     const all = S.get('cats', 'all') || {}, d = all[id]; if (!d) return '';
@@ -42,7 +42,7 @@
       g.it.sort((a, b) => ((+b.qc || 0) - (+a.qc || 0)) || ((+b.qp || 0) - (+a.qp || 0))).map((x) => `<tr><td style="white-space:normal;padding-left:14px">${esc(x.n)}</td>${cell(+x.qc || 0, +x.qp || 0, +x.qf || 0)}</tr>`).join('')).join('');
     return `<details style="margin:10px 0"><summary style="cursor:pointer;font-weight:600">🧴 Τι παίρνει: πέρσι / φέτος (${nNow} είδη φέτος σε ${G.filter((g) => g.qc > 0).length} κατηγορίες)<span class="mu" style="${SM}"> · σύστημα ${esc(d.d || '')}</span></summary>` +
       `<div style="overflow-x:auto"><table class="ctab"><thead><tr><th style="text-align:left">Κατηγορία / είδος</th><th style="text-align:right">Πέρσι<br><span style="font-weight:400">ίδια περίοδος</span></th>${hasF ? '<th style="text-align:right">Πέρσι<br><span style="font-weight:400">όλο το έτος</span></th>' : ''}<th style="text-align:right">Φέτος<br><span style="font-weight:400">τεμ.</span></th></tr></thead><tbody>${rows}</tbody></table></div>` +
-      `<p class="mu" style="font-size:12px;margin:6px 0 0"><span style="color:var(--rd);font-weight:600">Κόκκινο</span>: το έπαιρνε πέρσι, φέτος όχι · <span style="color:var(--ac);font-weight:600">Πράσινο</span>: νέο φέτος${hasF ? ' · Τεμάχια' : ''}</p></details>`;
+      `<p class="mu" style="font-size:calc(12*var(--u));margin:6px 0 0"><span style="color:var(--rd);font-weight:600">Κόκκινο</span>: το έπαιρνε πέρσι, φέτος όχι · <span style="color:var(--ac);font-weight:600">Πράσινο</span>: νέο φέτος${hasF ? ' · Τεμάχια' : ''}</p></details>`;
   }
 
   /* ---- μικρές γραμμές πληροφορίας ---- */
@@ -98,7 +98,7 @@
  <p><button class="pri" id="sv">Αποθήκευση</button> <span class="mu" id="svmsg"></span></p>`;
 
   const histHtml = (id) => { const e = M.entries(id);
-    return '<h3>Ιστορικό</h3>' + (e.length ? e.map((x, k) => `<div class="ent"><b>${esc(x.d)}</b> ${x.products ? `<span class="pr">${esc(x.products)}</span>` : ''}<div>${esc(x.text)}</div>${x.todo ? `<div><b>Να πω:</b> ${esc(x.todo)}</div>` : ''}${x.next ? `<div class="mu">Επόμενη: ${esc(x.next)}</div>` : ''}<button data-del="${k}" style="padding:2px 8px;font-size:12px">διαγραφή</button></div>`).join('') : '<p class="mu">Καμία καταγραφή ακόμα.</p>'); };
+    return '<h3>Ιστορικό</h3>' + (e.length ? e.map((x, k) => `<div class="ent"><b>${esc(x.d)}</b> ${x.products ? `<span class="pr">${esc(x.products)}</span>` : ''}<div>${esc(x.text)}</div>${x.todo ? `<div><b>Να πω:</b> ${esc(x.todo)}</div>` : ''}${x.next ? `<div class="mu">Επόμενη: ${esc(x.next)}</div>` : ''}<button data-del="${k}" style="padding:2px 8px;font-size:calc(12*var(--u))">διαγραφή</button></div>`).join('') : '<p class="mu">Καμία καταγραφή ακόμα.</p>'); };
 
   /* Βάζει τον πελάτη στο ανοιχτό πρόγραμμα της πόλης του, μετά την τελευταία στάση της ίδιας πόλης. */
   async function addToPlan(cid) {

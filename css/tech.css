@@ -48,10 +48,10 @@
   gap: 4px;
 }
 .hubx b {
-  font-size: 17px;
+  font-size: calc(17 * var(--u));
 }
 .hubx .mu {
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   line-height: 1.35;
 }
 .hubn {
@@ -102,12 +102,12 @@
   gap: 3px;
   padding: 4px 7px;
   border-radius: 99px;
-  font-size: 12.5px;
+  font-size: calc(12.5 * var(--u));
   line-height: 1.3;
   white-space: nowrap;
 }
 .acseg button span {
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
 }
 .acseg button.on {
   background: var(--akbg);
@@ -121,7 +121,7 @@
 /* υπενθύμιση καμπάνιας στο κουτί του προγράμματος */
 .camp {
   margin-top: 4px;
-  font-size: 13.5px;
+  font-size: calc(13.5 * var(--u));
   color: var(--camp);
   font-weight: 600;
 }

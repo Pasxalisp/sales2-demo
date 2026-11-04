@@ -12,7 +12,7 @@
 <input id="pq" placeholder="Αναζήτηση περιοχής…" value="${esc(st.q)}">
 <div id="pl" style="max-height:max(140px,calc(100dvh - 450px));overflow:auto;margin:8px 0;border:1px solid var(--bd);border-radius:10px"></div>
 <div style="display:flex;align-items:center;gap:10px;margin:4px 0 8px"><label for="pn" style="margin:0;flex:1">Πελάτες χωρίς τζίρο</label><input id="pn" type="number" value="${st.n}" min="0" max="10" style="width:72px;text-align:center"></div>
-<button class="pri" id="pgo" style="width:100%;min-height:50px;font-size:17px;font-weight:700;background:var(--pday);border-color:var(--pday)">Δημιουργία προγράμματος</button>
+<button class="pri" id="pgo" style="width:100%;min-height:50px;font-size:calc(17*var(--u));font-weight:700;background:var(--pday);border-color:var(--pday)">Δημιουργία προγράμματος</button>
 <div id="pst" class="mu"></div>`;
       const $ = (s) => el.querySelector(s);
       let alive = true;
@@ -21,7 +21,7 @@
       const plist = () => {
         const f = u.nn($('#pq').value), m = cities();
         $('#pl').innerHTML = Object.keys(m).filter((x) => !f || u.nn(x).includes(f)).sort((a, b) => a.localeCompare(b, 'el')).map((x) =>
-          `<label class="pk" style="margin:0;color:var(--tx);font-size:16px"><span><input type="checkbox" data-pc="${esc(x)}" ${st.sel.has(x) ? 'checked' : ''} style="width:auto;margin-right:8px">${esc(x)}</span><span class="mu">${m[x]}</span></label>`).join('');
+          `<label class="pk" style="margin:0;color:var(--tx);font-size:calc(16*var(--u))"><span><input type="checkbox" data-pc="${esc(x)}" ${st.sel.has(x) ? 'checked' : ''} style="width:auto;margin-right:8px">${esc(x)}</span><span class="mu">${m[x]}</span></label>`).join('');
       };
       plist();
       const offs = [S.on('clients', plist), S.on('prospects', plist)];

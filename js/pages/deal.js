@@ -13,8 +13,8 @@
     render(el, params) {
       const id = params.id;
       COLS.forEach((c) => S.use(c));
-      el.innerHTML = '<div id="dktop"></div><div class="shbox" id="dkmb"><h3>Μήνυμα στον πελάτη</h3><textarea id="dkmt" rows="8" style="min-height:170px;font-size:15px;line-height:1.4"></textarea>' +
-        '<div class="mu" id="dkmn" style="font-size:12.5px"></div><div class="shrow"><a class="btn" id="dksms" href="#" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#23875a;border-color:#23875a;color:#fff;font-weight:700">📱 Άνοιγμα SMS</a><button id="dkcp" style="flex:1">📋 Αντιγραφή</button><button id="dkre" title="Ξανά το αρχικό κείμενο">↺</button></div>' +
+      el.innerHTML = '<div id="dktop"></div><div class="shbox" id="dkmb"><h3>Μήνυμα στον πελάτη</h3><textarea id="dkmt" rows="8" style="min-height:170px;font-size:calc(15*var(--u));line-height:1.4"></textarea>' +
+        '<div class="mu" id="dkmn" style="font-size:calc(12.5*var(--u))"></div><div class="shrow"><a class="btn" id="dksms" href="#" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#23875a;border-color:#23875a;color:#fff;font-weight:700">📱 Άνοιγμα SMS</a><button id="dkcp" style="flex:1">📋 Αντιγραφή</button><button id="dkre" title="Ξανά το αρχικό κείμενο">↺</button></div>' +
         '<div class="shrow" id="dkst"></div></div><div id="dkbot"></div>';
       const $ = (s) => el.querySelector(s);
       let filled = false;
@@ -26,11 +26,11 @@
         if (!filled) { filled = true; $('#dkmt').value = PL.deals.text(id); link(); }
         const i = M.deal(x), P = i.done ? null : PL.deals.plan(id), ig = PL.deals.ignored(id), sd = PL.deals.sent(id);
         const k = (l, v, cls) => `<div><span>${l}</span><b class="${cls || ''}">${v}</b></div>`;
-        $('#dktop').innerHTML = H.head(c, esc(c.city) + ' · συμφωνία ' + eur(x.goal) + (ig ? ' · <span class="mu">σε αγνόηση</span>' : ''), `<b style="font-size:26px;color:var(--tx)">${Math.round(i.pct)}%</b>`) +
+        $('#dktop').innerHTML = H.head(c, esc(c.city) + ' · συμφωνία ' + eur(x.goal) + (ig ? ' · <span class="mu">σε αγνόηση</span>' : ''), `<b style="font-size:calc(26*var(--u));color:var(--tx)">${Math.round(i.pct)}%</b>`) +
           PL.deals.bar(x) +
           `<div class="shk">${k('Φέτος', eur(x.ty))}${k('Πέρσι', eur(x.ly))}${i.done ? k('Συμφωνία', '✓ Την έπιασε', 'up') : k('Μένουν', eur(i.left)) + k(i.ahead >= 0 ? 'Μπροστά από τον ρυθμό' : 'Πίσω από τον ρυθμό', (i.ahead >= 0 ? '▲ ' : '▼ ') + eur(Math.abs(i.ahead)), i.ahead >= 0 ? 'up' : 'dn')}</div>` +
           H.acts(H.call(c), H.map(c), '<button id="dkord">🛒 Παραγγελία</button>') +
-          (P ? H.box('💡 Πρόταση', `<div style="font-size:17px">${esc(P.when)}.</div><div class="mu" style="margin-top:4px">Χρειάζεται ~${eur(i.perM)}/μήνα · συνήθως παίρνει ~${eur(P.avg)}/μήνα</div>`, 'hi') : '');
+          (P ? H.box('💡 Πρόταση', `<div style="font-size:calc(17*var(--u))">${esc(P.when)}.</div><div class="mu" style="margin-top:4px">Χρειάζεται ~${eur(i.perM)}/μήνα · συνήθως παίρνει ~${eur(P.avg)}/μήνα</div>`, 'hi') : '');
         $('#dkst').innerHTML = `<button class="dlsb${sd ? ' on' : ''}" data-dlsent="${esc(id)}" style="flex:1">✓ Ενημερώθηκε · ${sd ? dmy(sd) : 'όχι ακόμα'}</button><button data-dlign="${esc(id)}">${ig ? '↩ Επαναφορά' : '🚫 Αγνόηση'}</button>`;
         /* τι παίρνει φέτος: τα είδη με τη μεγαλύτερη αξία, και όσα έπαιρνε πέρσι αλλά φέτος όχι */
         const it = ((S.get('items', id) || {}).it || []).filter((y) => (+y.qc || 0) || (+y.qp || 0));

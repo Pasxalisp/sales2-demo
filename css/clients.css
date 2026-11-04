@@ -19,12 +19,12 @@ main>.page>header:first-child {
 .say {
   color: var(--ac);
   font-weight: 600;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
 }
 .due {
   color: var(--rd);
   font-weight: 600;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
 }
 #cp {
   position: absolute;
@@ -42,11 +42,15 @@ main>.page>header:first-child {
 }
 #hm {
   white-space: nowrap;
-  font-size: 19px;
+  font-size: calc(19 * var(--u));
   margin: 0 0 8px;
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.hmr {
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 .hmb {
   margin-left: auto;

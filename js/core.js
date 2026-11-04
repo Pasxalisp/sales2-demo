@@ -4,6 +4,25 @@
   const $ = (s, r) => (r || document).querySelector(s);
   PL.$ = $;
 
+  /* ---- μέγεθος γραμμάτων (base.css: --u) ----
+     '' = όπως το κινητό· 1–4 = Κανονικά / Μεγάλα / Πολύ μεγάλα / Τεράστια. Ρύθμιση της συσκευής (localStorage), μπαίνει πριν ζωγραφιστεί τίποτα. */
+  const FSK = 'pl.fs';
+  PL.fontSize = {
+    L: [['', 'Όπως το κινητό'], ['1', 'Κανονικά'], ['2', 'Μεγάλα'], ['3', 'Πολύ μεγάλα'], ['4', 'Τεράστια']],
+    get() { try { return localStorage.getItem(FSK) || ''; } catch (e) { return ''; } },
+    set(v) {
+      const r = document.documentElement; if (v) r.dataset.fs = v; else delete r.dataset.fs;
+      try { if (v) localStorage.setItem(FSK, v); else localStorage.removeItem(FSK); } catch (e) { /* μένει μόνο για αυτή τη φορά */ }
+      PL.fontSize.mark();
+    },
+    /* html.big όταν τα γράμματα είναι πάνω από 10% μεγαλύτερα από το κανονικό (από το κινητό ή από την επιλογή):
+       οθόνες φτιαγμένες να χωράνε σε μία οθόνη (Αρχική) κυλάνε αντί να στριμώχνονται. */
+    unit() { const p = document.createElement('i'); p.style.cssText = 'position:absolute;visibility:hidden;width:calc(100 * var(--u))'; document.documentElement.appendChild(p); const w = p.getBoundingClientRect().width / 100; p.remove(); return w || 1; },
+    mark() { document.documentElement.classList.toggle('big', PL.fontSize.unit() > 1.1); },
+  };
+  PL.fontSize.set(PL.fontSize.get());
+  addEventListener('resize', () => PL.fontSize.mark());
+
   /* ---- bus ---- */
   const subs = {};
   PL.bus = {

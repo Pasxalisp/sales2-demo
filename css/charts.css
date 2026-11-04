@@ -25,17 +25,17 @@
 }
 .gv h3 {
   margin: 0 0 4px;
-  font-size: 17px;
+  font-size: calc(17 * var(--u));
 }
 .gv .gsub {
   color: var(--mu);
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   margin-bottom: 10px;
 }
 .gv .glg {
   display: flex;
   gap: 14px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   margin-bottom: 8px;
 }
@@ -60,7 +60,7 @@
 }
 .gv .gnm {
   min-width: 0;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -76,17 +76,18 @@
   min-width: 2px;
 }
 .gv .gval {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   margin-top: 3px;
-  white-space: nowrap;
+  /* κανονικά σε μία γραμμή· με μεγάλα γράμματα αναδιπλώνεται ανάμεσα στις λέξεις */
+  overflow-wrap: anywhere;
 }
 .gv .gval b {
   color: var(--tx);
   font-weight: 600;
 }
 .gv .hero {
-  font-size: 34px;
+  font-size: calc(34 * var(--u));
   font-weight: 700;
   line-height: 1.1;
 }
@@ -133,7 +134,7 @@
 }
 .gv .gbtn {
   white-space: nowrap;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   padding: 5px 10px;
   border-radius: 99px;
   border: 1px solid var(--bd);
@@ -172,7 +173,7 @@
   background: var(--tx);
 }
 .gv .gxl {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
 }
 .gv .gxl .row {
   padding: 6px 0;
@@ -183,7 +184,7 @@
   border: 0;
   background: none;
   color: var(--mu);
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
   padding: 2px 6px;
 }
 .gv .gxf {
@@ -211,7 +212,7 @@
   color: var(--bg);
   border-radius: 10px;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   line-height: 1.35;
   pointer-events: none;
   max-width: 260px;
@@ -220,12 +221,12 @@
 }
 /* FLASH πωλήσεων & εισπράξεων (σελίδα flash, κουμπί στο Πελατολόγιο) */
 .gv .flhero {
-  font-size: 26px;
+  font-size: calc(26 * var(--u));
   font-weight: 800;
   margin: 2px 0 8px;
 }
 .gv .flhero .mu {
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-weight: 500;
 }
 .gv .flbar {
@@ -255,7 +256,7 @@
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 8px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
 }
 .gv .flgrid {
   display: grid;
@@ -267,10 +268,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
 }
 .gv .flgrid b {
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
 }
 .gv .flmon {
   display: flex;
@@ -315,7 +316,7 @@
   background: var(--gd);
 }
 .gv .fll {
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   color: var(--mu);
 }
 .gv .flm.on .fll {
@@ -334,7 +335,7 @@
 .gv .fltab {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
 }
 .gv .fltab th,
 .gv .fltab td {

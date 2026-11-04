@@ -189,7 +189,7 @@
       const r = M.turnover(params.k), A = sum(r, (z) => z.a), B = sum(r, (z) => z.b), W = M.WORKED;
       const stop = r.filter((z) => z.a >= W && z.b <= 0).sort((a, b) => b.a - a.a), down = r.filter((z) => z.b > 0 && z.b < z.a).sort((a, b) => (a.b - a.a) - (b.b - b.a));
       const up = r.filter((z) => z.a > 0 && z.b >= z.a).sort((a, b) => (b.b - b.a) - (a.b - a.a)), nw = r.filter((z) => z.a <= 0 && z.b > 0).sort((a, b) => b.b - a.b);
-      const line = (z) => `<div class="shr"><span><b>${esc(z.name)}</b><div class="mu">${esc(z.city)}</div></span><span style="white-space:nowrap;text-align:right">${m0(z.a)} → <b>${m0(z.b)}</b><div class="${z.b >= z.a ? 'up' : 'dn'}" style="font-size:12.5px">${yoyTxt(z.a, z.b)}</div></span></div>`;
+      const line = (z) => `<div class="shr"><span><b>${esc(z.name)}</b><div class="mu">${esc(z.city)}</div></span><span style="white-space:nowrap;text-align:right">${m0(z.a)} → <b>${m0(z.b)}</b><div class="${z.b >= z.a ? 'up' : 'dn'}" style="font-size:calc(12.5*var(--u))">${yoyTxt(z.a, z.b)}</div></span></div>`;
       el.classList.add('tmpage');
       el.innerHTML = `<div class="tmtop"><button class="shlink" data-shback="1">‹ ${esc(x.name)}</button></div><div class="tmhead"><h2>${esc(M.turnLabel(params.k))}</h2><p class="mu">${esc(x.name)} · πέρσι ίδια περίοδο → φέτος ${RO}</p></div>` +
         `<div class="tmgrid"><section class="tmcard tmkp">${kp('Φέτος', m0(B), yoyCls(A, B), `<span class="${yoyCls(A, B)}">${yoyTxt(A, B)}</span> · πέρσι ${m0(A)}`)}${kp('Πελάτες φέτος', r.filter((z) => z.b > 0).length, '', 'πέρσι ' + r.filter((z) => z.a > 0).length)}${kp('Σταμάτησαν', stop.length, stop.length ? 'dn' : '', 'έπαιρναν ≥ ' + W + ' €')}${kp('Νέοι', nw.length, nw.length ? 'up' : '')}</section>` +

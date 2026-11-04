@@ -73,7 +73,7 @@
     if (md && document.body.contains(md)) return md;
     md = document.createElement('div'); md.id = 'dlm'; md.style.display = 'none';
     md.style.cssText = 'display:none;position:fixed;inset:0;z-index:55;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;padding:12px';
-    md.innerHTML = '<div style="background:var(--card,#fff);color:var(--tx);border-radius:20px;padding:16px;max-width:440px;width:100%;margin-bottom:env(safe-area-inset-bottom,0px)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b id="dlmt" style="color:#7a3fb8"></b><button id="dlmx" aria-label="Κλείσιμο" style="padding:4px 12px">✕</button></div><textarea id="dlmb" rows="9" style="width:100%;margin-top:8px;box-sizing:border-box;font-size:15px;line-height:1.4"></textarea><div class="mu" id="dlmn" style="font-size:12px;margin:4px 0 8px"></div><div style="display:flex;gap:8px"><a class="btn" id="dlms" href="#" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#23875a;border-color:#23875a;color:#fff;margin:0;font-weight:700">📱 Άνοιγμα SMS</a><button id="dlmc" style="flex:1;font-weight:700">📋 Αντιγραφή</button></div></div>';
+    md.innerHTML = '<div style="background:var(--card,#fff);color:var(--tx);border-radius:20px;padding:16px;max-width:440px;width:100%;margin-bottom:env(safe-area-inset-bottom,0px)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b id="dlmt" style="color:#7a3fb8"></b><button id="dlmx" aria-label="Κλείσιμο" style="padding:4px 12px">✕</button></div><textarea id="dlmb" rows="9" style="width:100%;margin-top:8px;box-sizing:border-box;font-size:calc(15*var(--u));line-height:1.4"></textarea><div class="mu" id="dlmn" style="font-size:calc(12*var(--u));margin:4px 0 8px"></div><div style="display:flex;gap:8px"><a class="btn" id="dlms" href="#" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#23875a;border-color:#23875a;color:#fff;margin:0;font-weight:700">📱 Άνοιγμα SMS</a><button id="dlmc" style="flex:1;font-weight:700">📋 Αντιγραφή</button></div></div>';
     document.body.appendChild(md);
     md.addEventListener('click', async (e) => {
       const t = e.target;
@@ -108,7 +108,7 @@
     split: ['client', 'deal'],
     aside: (el) => PL.dealSheet.aside(el),   /* deal.js: ποιους να ενημερώσεις */
     render(el) {
-      el.innerHTML = '<h2 style="color:#7a3fb8">🤝 Συμφωνίες Goldwell</h2><div id="dlsum"></div><div id="dlsort" class="chips" style="margin:6px 0"></div><div id="dll"></div><p class="mu" id="dlsrc" style="font-size:12px"></p>';
+      el.innerHTML = '<h2 style="color:#7a3fb8">🤝 Συμφωνίες Goldwell</h2><div id="dlsum"></div><div id="dlsort" class="chips" style="margin:6px 0"></div><div id="dll"></div><p class="mu" id="dlsrc" style="font-size:calc(12*var(--u))"></p>';
       ['deals', 'cats', 'clients', 'prospects', 'dealmsg'].forEach((c) => S.use(c));
       const paint = () => {
         if (!S.loaded('deals')) return;

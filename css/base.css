@@ -25,6 +25,29 @@
   --rd: #ef8a77;
 }
 
+/* ---- Μέγεθος γραμμάτων ----
+   Όλα τα γράμματα γράφονται ως «N × --u» (π.χ. calc(14 * var(--u)) = 14 στιγμές στο κανονικό μέγεθος) και μεγαλώνουν μαζί.
+   --u ακολουθεί το κινητό: στο iPhone/iPad το «Μέγεθος κειμένου» των Ρυθμίσεων (font: -apple-system-body, κανονικό = 17),
+   αλλού το μέγεθος γραμμάτων του browser (κανονικό = 16). Η επιλογή «Μέγεθος γραμμάτων» στις Ρυθμίσεις της εφαρμογής
+   (data-fs στο <html>, core.js) το αντικαθιστά. Όρια: από 0,875 έως 1,5 φορές, για να μη σπάει η εμφάνιση.
+   --uc: για τα στοιχεία που έχουν σταθερή θέση (κάτω μπάρα, σήματα με αριθμό) μεγαλώνει ως 1,15 φορές.
+   Κανόνες (ενότητα 17ζ προδιαγραφών): κουτιά χωρίς σταθερό ύψος όταν έχουν κείμενο (min-height), σειρές που κατεβαίνουν
+   όταν δεν χωράνε (flex-wrap), μεγάλα κείμενα που αναδιπλώνονται ή κόβονται με «…». */
+:root {
+  --u: clamp(.875px, calc(1rem / 16), 1.5px);
+  --uc: min(var(--u), 1.15px);
+}
+@supports (font: -apple-system-body) {
+  :root:not([data-fs]) {
+    font: -apple-system-body;
+    --u: clamp(.875px, calc(1rem / 17), 1.5px);
+  }
+}
+:root[data-fs="1"] { font-size: 16px; }
+:root[data-fs="2"] { font-size: 18px; }
+:root[data-fs="3"] { font-size: 20.5px; }
+:root[data-fs="4"] { font-size: 24px; }
+
 /* ---- Βασικά στοιχεία σελίδας ---- */
 * {
   box-sizing: border-box;
@@ -33,7 +56,7 @@
    Χωρίς αυτά ο browser δίνει 24px/19px και ο τίτλος με τον υπότιτλο πιάνουν μισή οθόνη στο κινητό. */
 h1,
 h2 {
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   line-height: 1.2;
   margin: 0 0 8px;
 }
@@ -41,7 +64,7 @@ h2 {
   margin-top: 4px;
 }
 h3 {
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
   line-height: 1.25;
   margin: 14px 0 6px;
 }
@@ -75,7 +98,7 @@ a.btn {
 }
 label {
   display: block;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   margin: 10px 0 4px;
 }
@@ -95,7 +118,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--tx);
-  font: 16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font: calc(16 * var(--u))/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   overflow-x: clip;
   max-width: 100%;
   overscroll-behavior-x: none;
@@ -120,6 +143,11 @@ body::-webkit-scrollbar {
   overflow-x: auto;
   padding: 8px 0 2px;
 }
+/* σειρά επιλογών που κατεβαίνει όταν δεν χωράει (αντί να κυλάει δεξιά) */
+.chips.wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
 .chip {
   flex: none;
   border: 1px solid var(--bd);
@@ -127,7 +155,7 @@ body::-webkit-scrollbar {
   color: var(--tx);
   border-radius: 99px;
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
 }
 .chip.on {
   background: var(--ac);
@@ -153,10 +181,13 @@ main>.page>h2:first-of-type {
 }
 .nm {
   font-weight: 600;
+  /* μεγάλο όνομα (ή μεγάλα γράμματα): σπάει μέσα στη λέξη αντί να σπρώξει έξω τα δεξιά (τζίρος, ☆) */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .mu {
   color: var(--mu);
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
 }
 .tz {
   color: var(--ac);
@@ -172,7 +203,7 @@ main>.page>h2:first-of-type {
   background: var(--ac2);
   border-radius: 6px;
   padding: 1px 6px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
 }
 .dbar {
   display: flex;
@@ -207,7 +238,7 @@ main>.page>h2:first-of-type {
 .ctab {
   border-collapse: collapse;
   width: 100%;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   margin-top: 4px;
 }
 .ctab th,
@@ -232,7 +263,7 @@ main>.page>h2:first-of-type {
   max-width: 88%;
   white-space: pre-wrap;
   line-height: 1.4;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
 }
 .mbc {
   background: var(--ac2);
@@ -242,7 +273,7 @@ main>.page>h2:first-of-type {
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 10px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
 }
 .up {
   color: var(--ac);
@@ -284,13 +315,13 @@ main>.page>h2:first-of-type {
   font-weight: 600;
 }
 .ol .oc .m {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   margin-top: 2px;
 }
 .ol h3 {
   margin: 16px 0 4px;
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
 }
 /* σειρά μικρών κουμπιών ενεργειών σε κάρτα (πρόγραμμα, εκτός προγράμματος): μία γραμμή, χωρίς σπάσιμο κειμένου */
 .acts {
@@ -301,7 +332,7 @@ main>.page>h2:first-of-type {
 }
 .acts button {
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   border-radius: 9px;
   white-space: nowrap;
 }
@@ -334,13 +365,13 @@ main>.page>h2:first-of-type {
 }
 .ndr .ndn .nm {
   cursor: pointer;
-  font-size: 14.5px;
+  font-size: calc(14.5 * var(--u));
 }
 .ndr button,
 .ndr a.btn {
   margin: 0;
   padding: 6px 10px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
 }
 .ndr a.ndw {
   border-color: #23875a;
@@ -349,7 +380,7 @@ main>.page>h2:first-of-type {
 }
 .ndt {
   margin-top: 6px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
 }
 /* σήμα προσωρινού πελάτη (δεν έχει περάσει στο orders), δίπλα στο όνομα σε κάθε σελίδα */
 .notord {
@@ -358,7 +389,7 @@ main>.page>h2:first-of-type {
   color: #b5651d;
   border-radius: 8px;
   padding: 1px 7px;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 700;
   white-space: nowrap;
   vertical-align: 1px;
@@ -379,7 +410,7 @@ main>.page>h2:first-of-type {
   color: #fff;
   border-radius: 8px;
   padding: 1px 8px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 700;
   white-space: nowrap;
   vertical-align: 1px;
@@ -513,7 +544,7 @@ main {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
 }
 .dlbox {
@@ -547,7 +578,7 @@ main {
   color: #23875a;
 }
 .dlbtns .dlsb span {
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 500;
   opacity: .85;
 }
@@ -559,7 +590,7 @@ main {
 .dlig button {
   margin: 0;
   padding: 4px 10px;
-  font-size: 12.5px;
+  font-size: calc(12.5 * var(--u));
   color: var(--mu);
   border-color: var(--bd);
   background: transparent;
@@ -605,7 +636,7 @@ main {
   align-items: center;
   gap: 2px;
   color: var(--glt);
-  font: 600 10.5px -apple-system,system-ui,sans-serif;
+  font: 600 calc(10.5 * var(--uc)) -apple-system,system-ui,sans-serif;
   position: relative;
   min-height: 44px;
   justify-content: center;
@@ -621,12 +652,12 @@ main {
   top: 0;
   left: 50%;
   margin-left: 6px;
-  min-width: 17px;
-  height: 17px;
+  min-width: calc(17 * var(--uc));
+  height: calc(17 * var(--uc));
   border-radius: 9px;
   background: #d9382f;
   color: #fff;
-  font: 700 10.5px/17px -apple-system,system-ui,sans-serif;
+  font: 700 calc(10.5 * var(--uc))/calc(17 * var(--uc)) -apple-system,system-ui,sans-serif;
   padding: 0 4px;
   box-sizing: border-box;
 }
@@ -667,7 +698,7 @@ main {
   transform: translate(-50%,0) scale(1);
 }
 #pmb .pt {
-  font: 600 12px -apple-system,system-ui,sans-serif;
+  font: 600 calc(12 * var(--u)) -apple-system,system-ui,sans-serif;
   color: var(--mu);
   letter-spacing: .05em;
   text-transform: uppercase;
@@ -684,7 +715,7 @@ main {
   border-radius: 14px;
   text-align: left;
   color: var(--tx);
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
   font-weight: 600;
 }
 #pmb button:active {
@@ -698,7 +729,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 19px;
+  font-size: calc(19 * var(--u));
   flex: none;
 }
 #nvo {
@@ -730,7 +761,7 @@ main {
   color: #1f6b45;
   border: 1.5px solid #23875a;
   border-radius: 10px;
-  font: 700 11px/16px -apple-system,system-ui,sans-serif;
+  font: 700 calc(11 * var(--uc))/calc(16 * var(--uc)) -apple-system,system-ui,sans-serif;
   padding: 0 5px;
   white-space: nowrap;
 }
@@ -744,7 +775,7 @@ main {
   backdrop-filter: blur(14px);
   border: 1px solid var(--glb);
   color: var(--tx);
-  font: 600 12px -apple-system,system-ui,sans-serif;
+  font: 600 calc(12 * var(--u)) -apple-system,system-ui,sans-serif;
   padding: 5px 10px;
   border-radius: 12px;
   white-space: nowrap;
@@ -831,7 +862,7 @@ main {
 }
 #pmb .pd {
   display: block;
-  font-size: 12.5px;
+  font-size: calc(12.5 * var(--u));
   font-weight: 400;
   color: var(--mu);
   margin-top: 1px;
@@ -897,7 +928,7 @@ main {
   justify-content: center;
   background: var(--mu);
   color: var(--card);
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   line-height: 1;
   opacity: .85;
 }
@@ -955,11 +986,11 @@ main {
 }
 #cel h3 {
   margin: 0 0 6px;
-  font-size: 24px;
+  font-size: calc(24 * var(--u));
   color: #2f8a5c;
 }
 #cel p {
-  font-size: 17px;
+  font-size: calc(17 * var(--u));
   margin: 0;
   color: var(--mu,#5f6661);
   line-height: 1.4;
@@ -967,7 +998,7 @@ main {
 #cel small {
   display: block;
   margin-top: 14px;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   color: var(--mu,#8a8f8b);
 }
 @media (prefers-reduced-motion:reduce) {
@@ -988,7 +1019,7 @@ main {
   color: var(--bg);
   padding: 10px 16px;
   border-radius: 14px;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   max-width: 86vw;
   box-shadow: 0 6px 18px rgba(0,0,0,.25);
   display: none;
@@ -1003,10 +1034,10 @@ main {
 }
 .shh h2 {
   margin: 0;
-  font-size: 19px;
+  font-size: calc(19 * var(--u));
 }
 .shstep {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   white-space: nowrap;
   margin-top: 6px;
@@ -1024,7 +1055,7 @@ main {
   justify-content: center;
   gap: 8px;
   min-height: 52px;
-  font-size: 16px;
+  font-size: calc(16 * var(--u));
   border-radius: 14px;
   margin: 0;
 }
@@ -1059,7 +1090,7 @@ main {
   border: 1px solid var(--bd);
   border-radius: 999px;
   padding: 5px 11px;
-  font-size: 13.5px;
+  font-size: calc(13.5 * var(--u));
   background: var(--card);
 }
 .shchip.dn {
@@ -1098,7 +1129,7 @@ main {
 }
 .shbox>h3 {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   color: var(--mu);
   font-weight: 600;
   letter-spacing: .3px;
@@ -1149,11 +1180,11 @@ main {
 }
 .shk span {
   display: block;
-  font-size: 12.5px;
+  font-size: calc(12.5 * var(--u));
   color: var(--mu);
 }
 .shk b {
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
 }
 /* γραμμές μέσα σε κουτί: είδος αριστερά, νούμερα δεξιά */
 .shr {
@@ -1179,7 +1210,7 @@ main {
   min-width: 0;
 }
 .shli .mu {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

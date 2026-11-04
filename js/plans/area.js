@@ -38,7 +38,7 @@
   }
   function box(cities, k, label) {
     const a = stats(cities), op = open.has(k);
-    return `<div class="warn" style="margin:6px 0;padding:0"><div data-atog="${esc(k)}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><span style="font-size:14px;width:14px">${op ? '▾' : '▸'}</span><span style="flex:1">${label}</span><b>${money(a.tz)}</b> ${pctTxt(a.pct)}</div>${op ? `<div style="padding:0 10px 10px">${body(cities)}</div>` : ''}</div>`;
+    return `<div class="warn" style="margin:6px 0;padding:0"><div data-atog="${esc(k)}" style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer"><span style="font-size:calc(14*var(--u));width:14px">${op ? '▾' : '▸'}</span><span style="flex:1">${label}</span><b>${money(a.tz)}</b> ${pctTxt(a.pct)}</div>${op ? `<div style="padding:0 10px 10px">${body(cities)}</div>` : ''}</div>`;
   }
 
   E.area = {

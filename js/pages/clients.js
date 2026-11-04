@@ -6,7 +6,7 @@
   const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'brands', 'cats', 'xout'];
 
   const HEAD = `<header>
-<div class="row"><h1 id="hm">Πελατολόγιο</h1>
+<div class="row hmr"><h1 id="hm">Πελατολόγιο</h1>
 <span class="hmb"><button id="tzb" class="chip">📊 Τζίρος</button><button id="fsb" class="chip">📈 FLASH</button></span></div>
 <div style="display:flex;gap:6px;align-items:stretch">
 <button id="fb" class="chip" style="flex:none;padding:6px 10px;border-radius:10px">Φίλτρα ▾</button>
@@ -54,8 +54,8 @@
         $('#list').innerHTML = L.map((c) => {
           const e = M.entries(c.i), nx = M.nextOf(c.i), due = nx && nx <= today, y = M.yoy(c), w = M.works(c.i), td = e.find((z) => z.todo), z = tz.get(c.i);
           return `<div class="card" data-id="${esc(c.i)}"><div class="row"><span class="nm">${TECH[c.i] ? `<span class="ti">${PL.icon.tech16}</span> ` : ''}${PL.prospects.tag(c)}${esc(c.name)}</span>` +
-            `<span style="display:flex;align-items:center;gap:4px"><span class="tz">${z > 0 ? money(z) : ''}</span><button data-star="${esc(c.i)}" aria-label="SOS" style="padding:0 4px;border:none;background:none;font-size:22px;line-height:1">${SOS[c.i] ? '⭐' : '☆'}</button></span></div>` +
-            `<div class="mu">${esc(c.city)}</div>` + (M.out(c.i) ? `<div class="dn">🚫 ${esc(M.OUTL[M.out(c.i)])}</div>` : '') + (y ? `<div class="${y.cls}" style="font-size:14px">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
+            `<span style="display:flex;align-items:center;gap:4px"><span class="tz">${z > 0 ? money(z) : ''}</span><button data-star="${esc(c.i)}" aria-label="SOS" style="padding:0 4px;border:none;background:none;font-size:calc(22*var(--u));line-height:1">${SOS[c.i] ? '⭐' : '☆'}</button></span></div>` +
+            `<div class="mu">${esc(c.city)}</div>` + (M.out(c.i) ? `<div class="dn">🚫 ${esc(M.OUTL[M.out(c.i)])}</div>` : '') + (y ? `<div class="${y.cls}" style="font-size:calc(14*var(--u))">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
             (w.length ? `<div class="mu">Δουλεύει: ${esc(w.join(', '))}</div>` : '') +
             (e.length ? `<div class="mu">Τελευταία: ${esc(e[0].d)}${e[0].products ? ' · ' + esc(e[0].products) : ''}</div>` : '') +
             (td ? `<div class="say">Να πω: ${esc(td.todo)}</div>` : '') + (due ? `<div class="due">Επικοινωνία: ${esc(nx)}</div>` : '') + '</div>';

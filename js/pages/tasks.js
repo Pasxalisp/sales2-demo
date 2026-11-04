@@ -58,11 +58,11 @@
     let g = ''; for (let i = 0; i < first; i++) g += '<div></div>';
     for (let d = 1; d <= days; d++) {
       const k = ymd(new Date(y, m, d)), n = cnt[k] || 0, sm = semOn(k).length, isT = k === t, sel = k === st.calSel, late = k < t && n;
-      g += `<button data-cday="${k}" style="padding:6px 0;min-height:48px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:2px;${sel ? 'background:var(--ac);color:#fff;border-color:var(--ac)' : isT ? 'border:2px solid var(--ac)' : ''}"><span style="font-weight:${isT ? 700 : 500}">${d}</span><span style="font-size:11px;line-height:1;${sel ? '' : late ? 'color:var(--rd)' : 'color:var(--ac)'}">${n ? '●'.repeat(Math.min(n, 3)) : ''}${sm ? '🎓' : ''}</span></button>`;
+      g += `<button data-cday="${k}" style="padding:6px 0;min-height:48px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:2px;${sel ? 'background:var(--ac);color:#fff;border-color:var(--ac)' : isT ? 'border:2px solid var(--ac)' : ''}"><span style="font-weight:${isT ? 700 : 500}">${d}</span><span style="font-size:calc(11*var(--u));line-height:1;${sel ? '' : late ? 'color:var(--rd)' : 'color:var(--ac)'}">${n ? '●'.repeat(Math.min(n, 3)) : ''}${sm ? '🎓' : ''}</span></button>`;
     }
     const overdue = all.filter((x) => x.e.next < t).length, upc = all.filter((x) => x.e.next > t).length;
-    return `<div class="row" style="margin-bottom:8px"><button data-cnav="-1" style="padding:6px 14px">‹</button><b style="font-size:17px">${MN[m]} ${y}</b><button data-cnav="1" style="padding:6px 14px">›</button></div>
- <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12px;color:var(--mu);margin-bottom:4px">${['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((x) => `<div>${x}</div>`).join('')}</div>
+    return `<div class="row" style="margin-bottom:8px"><button data-cnav="-1" style="padding:6px 14px">‹</button><b style="font-size:calc(17*var(--u))">${MN[m]} ${y}</b><button data-cnav="1" style="padding:6px 14px">›</button></div>
+ <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:calc(12*var(--u));color:var(--mu);margin-bottom:4px">${['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((x) => `<div>${x}</div>`).join('')}</div>
  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${g}</div>
  <div class="mu" style="margin-top:8px">${upc} επερχόμενες${overdue ? ` · <span class="dn">${overdue} καθυστερημένες</span>` : ''} · ● εκκρεμότητα · 🎓 σεμινάριο</div><h3>${u.fd(st.calSel)}</h3>`;
   }
@@ -110,7 +110,7 @@
       /* Στο τάμπλετ το ημερολόγιο είναι πάντα δεξιά (aside): εδώ μόνο η λίστα. */
       const wide = PL.WIDE.matches; if (wide) st.tab = 't';
       el.innerHTML = `<h2>Εκκρεμότητες</h2>
-${wide ? '' : '<div style="display:flex;gap:6px;margin-bottom:10px"><button class="chip on" data-dtab="t">Σήμερα & καθυστερημένες</button><button class="chip" data-dtab="c">📅 Ημερολόγιο</button></div>'}
+${wide ? '' : '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px"><button class="chip on" data-dtab="t">Σήμερα & καθυστερημένες</button><button class="chip" data-dtab="c">📅 Ημερολόγιο</button></div>'}
 <div id="dut"><p class="mu">Μένουν εδώ μέχρι να πατήσεις «✓ Έγινε».</p><div id="dug"></div></div><div id="ducal" hidden></div><div id="dul"></div>`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));

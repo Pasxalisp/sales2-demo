@@ -48,7 +48,7 @@
         <label>Προϊόν</label><input id="wbq" placeholder="π.χ. ρεφλέ 5na, βαφή 7n, silklift strong, lagoom" autocomplete="off">
         <label>Περιοχές <span id="wbcn" class="mu"></span></label><input id="wbcq" placeholder="Αναζήτηση περιοχής…" autocomplete="off" style="margin-bottom:6px"><div class="cts" id="wbc"></div>
         <div style="display:flex;gap:6px;margin-top:8px"><button id="wbclr" style="flex:none">Όλες οι περιοχές</button><select id="wbs" style="flex:1;min-width:0"><option value="c">Ταξινόμηση: φέτος</option><option value="p">Ταξινόμηση: πέρσι</option><option value="v">Ταξινόμηση: αξία φέτος</option></select></div>
-        <div id="wbr"></div><p class="mu" style="font-size:12px;margin-top:14px" id="wbn"></p>`;
+        <div id="wbr"></div><p class="mu" style="font-size:calc(12*var(--u));margin-top:14px" id="wbn"></p>`;
       ['items', 'clients', 'prospects'].forEach((c) => S.use(c));
       const $ = (s) => el.querySelector(s);
       $('#wbq').value = st.q; $('#wbs').value = st.sort;

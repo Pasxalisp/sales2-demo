@@ -130,7 +130,7 @@
           pts = L2.map((x) => [x.p[0], x.p[1]]);
           const by = {}; L2.forEach((x) => { const k = kindOf(x.c)[1]; by[k] = (by[k] || 0) + 1; });
           side = `<h3>${L2.length} πελάτες</h3>` + KINDS.filter((k) => by[k[1]]).map((k) => `<div class="shr"><span><i class="lmdot" style="background:${k[2]}"></i>${k[1]}</span><b>${by[k[1]]}</b></div>`).join('') +
-            `<p class="mu" style="font-size:12.5px">${all.filter((x) => x.p[2]).length} με ακριβή θέση · οι υπόλοιποι κατά προσέγγιση από την περιοχή τους. Με τις πινέζες σου από το Google γίνονται όλοι ακριβείς.</p>`;
+            `<p class="mu" style="font-size:calc(12.5*var(--u))">${all.filter((x) => x.p[2]).length} με ακριβή θέση · οι υπόλοιποι κατά προσέγγιση από την περιοχή τους. Με τις πινέζες σου από το Google γίνονται όλοι ακριβείς.</p>`;
         }
         $('#lmside').innerHTML = side;
         if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 15 });
