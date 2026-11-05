@@ -5,12 +5,15 @@
   PL.$ = $;
 
   /* ---- μέγεθος γραμμάτων (base.css: --u) ----
-     '' = όπως το κινητό· 1–4 = Κανονικά / Μεγάλα / Πολύ μεγάλα / Τεράστια. Ρύθμιση της συσκευής (localStorage), μπαίνει πριν ζωγραφιστεί τίποτα. */
+     '' = όπως το κινητό· '1'–'7' = τα 7 σκαλιά του iPhone (4 = κανονικό). Ρύθμιση της συσκευής (localStorage), μπαίνει πριν ζωγραφιστεί τίποτα. */
   const FSK = 'pl.fs';
   PL.fontSize = {
-    L: [['', 'Όπως το κινητό'], ['1', 'Κανονικά'], ['2', 'Μεγάλα'], ['3', 'Πολύ μεγάλα'], ['4', 'Τεράστια']],
-    get() { try { return localStorage.getItem(FSK) || ''; } catch (e) { return ''; } },
+    R: [14, 15, 16, 17, 19, 21, 23].map((x) => x / 17),   // σκαλί 1–7 → πόσες φορές το κανονικό
+    get() { let v = ''; try { v = localStorage.getItem(FSK) || ''; } catch (e) { /* τίποτα */ } return /^[1-7]$/.test(v) ? v : ''; },
+    /* το σκαλί που αντιστοιχεί στο τωρινό μέγεθος (και όταν ακολουθεί το κινητό) */
+    step() { const w = PL.fontSize.unit(), R = PL.fontSize.R; return R.reduce((b, x, k) => (Math.abs(x - w) < Math.abs(R[b] - w) ? k : b), 0) + 1; },
     set(v) {
+      v = /^[1-7]$/.test(String(v)) ? String(v) : '';
       const r = document.documentElement; if (v) r.dataset.fs = v; else delete r.dataset.fs;
       try { if (v) localStorage.setItem(FSK, v); else localStorage.removeItem(FSK); } catch (e) { /* μένει μόνο για αυτή τη φορά */ }
       PL.fontSize.mark();

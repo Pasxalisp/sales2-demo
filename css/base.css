@@ -37,25 +37,30 @@
    Όλα τα γράμματα γράφονται ως «N × --u» (π.χ. calc(14 * var(--u)) = 14 στιγμές στο κανονικό μέγεθος) και μεγαλώνουν μαζί.
    --u ακολουθεί το κινητό: στο iPhone/iPad το «Μέγεθος κειμένου» των Ρυθμίσεων (font: -apple-system-body, κανονικό = 17),
    αλλού το μέγεθος γραμμάτων του browser (κανονικό = 16). Η επιλογή «Μέγεθος γραμμάτων» στις Ρυθμίσεις της εφαρμογής
-   (data-fs στο <html>, core.js) το αντικαθιστά. Όρια: από 0,875 έως 1,5 φορές, για να μη σπάει η εμφάνιση.
+   (data-fs 1–7 στο <html>, core.js) το αντικαθιστά: τα ίδια 7 σκαλιά με το iPhone (14, 15, 16, 17 = κανονικό, 19, 21, 23).
+   Όρια: από 0,82 έως 1,5 φορές (το 1,5 φτάνει μόνο με τα μεγάλα μεγέθη Προσβασιμότητας του κινητού).
    --uc: για τα στοιχεία που έχουν σταθερή θέση (κάτω μπάρα, σήματα με αριθμό) μεγαλώνει ως 1,15 φορές.
    Κανόνες (ενότητα 17ζ προδιαγραφών): κουτιά χωρίς σταθερό ύψος όταν έχουν κείμενο (min-height), σειρές που κατεβαίνουν
    όταν δεν χωράνε (flex-wrap), μεγάλα κείμενα που αναδιπλώνονται ή κόβονται με «…». */
 :root {
-  --u: clamp(.875px, calc(1rem / 16), 1.5px);
+  --u: clamp(.82px, calc(1rem / 16), 1.5px);
   --uc: min(var(--u), 1.15px);
 }
 /* μόνο iPhone/iPad (οθόνη αφής): στο Mac το -apple-system-body είναι 13 στιγμές και θα μίκραινε όλα τα γράμματα */
 @supports (font: -apple-system-body) and (-webkit-touch-callout: none) {
   :root:not([data-fs]) {
     font: -apple-system-body;
-    --u: clamp(.875px, calc(1rem / 17), 1.5px);
+    --u: clamp(.82px, calc(1rem / 17), 1.5px);
   }
 }
-:root[data-fs="1"] { font-size: 16px; }
-:root[data-fs="2"] { font-size: 18px; }
-:root[data-fs="3"] { font-size: 20.5px; }
-:root[data-fs="4"] { font-size: 24px; }
+/* σκαλί N του iPhone (στιγμές X) → X/17 του κανονικού, σε μονάδες των 16 */
+:root[data-fs="1"] { font-size: 13.18px; }
+:root[data-fs="2"] { font-size: 14.12px; }
+:root[data-fs="3"] { font-size: 15.06px; }
+:root[data-fs="4"] { font-size: 16px; }
+:root[data-fs="5"] { font-size: 17.88px; }
+:root[data-fs="6"] { font-size: 19.76px; }
+:root[data-fs="7"] { font-size: 21.65px; }
 
 /* ---- Βασικά στοιχεία σελίδας ---- */
 * {
@@ -154,6 +159,63 @@ body::-webkit-scrollbar {
   overflow-x: auto;
   padding: 8px 0 2px;
 }
+/* Ρυθμίσεις → μέγεθος γραμμάτων: ρυθμιστικό με 7 σκαλιά όπως στο iPhone (μικρό Α … μεγάλο Α) */
+.fsbox {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 14px 16px 8px;
+  border-radius: 18px;
+  background: var(--ac2);
+}
+.fsbox .fsa {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mu);
+}
+.fsbox .fsa.big {
+  font-size: 26px;
+}
+.fsbox input[type="range"] {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--ac);
+}
+.fsbox .fsdots {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+.fsbox .fsdots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--mu);
+  opacity: .5;
+}
+.fsbox.auto {
+  opacity: .55;
+}
+.fsauto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--tx);
+}
+.fsauto input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--ac);
+}
+
 /* σειρά επιλογών που κατεβαίνει όταν δεν χωράει (αντί να κυλάει δεξιά) */
 .chips.wrap {
   flex-wrap: wrap;
