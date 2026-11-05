@@ -409,16 +409,42 @@ main>.page>h2:first-of-type {
   border-radius: 9px;
   white-space: nowrap;
 }
-/* εορτολόγιο στις Εκκρεμότητες: «🎉 Γιορτάζουν σήμερα» (ανοίγει με πάτημα) */
-.ndg {
-  margin: 0 0 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
+/* εορτολόγιο: μπάρα μίας γραμμής κάτω από το ημερολόγιο (Εκκρεμότητες · Ημερολόγιο)· πάτημα → η λίστα από κάτω */
+.ndbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  border-radius: 10px;
   background: rgba(217,169,31,.1);
   border: 1px solid rgba(217,169,31,.45);
+  font-size: calc(14 * var(--u));
 }
-.ndg summary {
+.ndbar[data-ndbar] {
   cursor: pointer;
+}
+.ndbar.on {
+  border-radius: 10px 10px 0 0;
+}
+.ndbar .tx {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ndbar .ndc {
+  color: var(--mu);
+}
+.ndlist {
+  padding: 4px 10px 8px;
+  border: 1px solid rgba(217,169,31,.45);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+}
+.ndlist .ndr:first-of-type {
+  border-top: 0;
 }
 .ndr {
   display: flex;
@@ -450,19 +476,6 @@ main>.page>h2:first-of-type {
   border-color: #23875a;
   color: #23875a;
   font-weight: 600;
-}
-/* εορτολόγιο: οι πελάτες μιας γιορτής (σελίδα Εκκρεμότητες · Ημερολόγιο) */
-.ndd {
-  padding: 7px 0;
-  border-top: 1px solid rgba(217,169,31,.3);
-  font-size: calc(14 * var(--u));
-  line-height: 1.45;
-}
-.ndd .nm {
-  display: block;
-  cursor: pointer;
-  font-size: inherit;
-  font-weight: 500;
 }
 .ndfx {
   margin-top: 8px;

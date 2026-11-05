@@ -6,25 +6,29 @@
   const MN = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
   const nowHM = () => { const d = new Date(); return u.pad(d.getHours()) + ':' + u.pad(d.getMinutes()); };
   const ymd = (d) => d.getFullYear() + '-' + u.pad(d.getMonth() + 1) + '-' + u.pad(d.getDate());
-  const st = { calM: null, calSel: null };   // μένει όταν γυρνάς πίσω (π.χ. από την καρτέλα)· ξαναπάει στο σήμερα όταν βγεις από τη σελίδα
-  PL.bus.on('page', () => { if (!PL.nav.trail().includes('tasks')) { st.calM = null; st.calSel = null; } });
+  const st = { calM: null, calSel: null, ndOpen: false };   // μένει όταν γυρνάς πίσω (π.χ. από την καρτέλα)· ξαναπάει στο σήμερα όταν βγεις από τη σελίδα
+  PL.bus.on('page', () => { if (!PL.nav.trail().includes('tasks')) { st.calM = null; st.calSel = null; st.ndOpen = false; } });
   const ensure = () => { const t = u.today(); if (!st.calSel) st.calSel = t; if (!st.calM) st.calM = new Date(+st.calSel.slice(0, 4), +st.calSel.slice(5, 7) - 1, 1); };
   const WDL = ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο'];
   const dayTitle = (k) => { const x = new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)); return (k === u.today() ? 'Σήμερα, ' : '') + WDL[x.getDay()] + ' ' + x.getDate() + '/' + (x.getMonth() + 1); };
-  const noClients = () => ({ feasts: [], list: [] });
-  /* γιορτές της μέρας k: ποιοι πελάτες γιορτάζουν (σήμερα με WhatsApp / αντιγραφή ευχής / κλήση) ή «κανένας πελάτης».
-     Όποιος λείπει ή μπήκε λάθος διορθώνεται από την καρτέλα του («✎ Αλλαγή γιορτής»). */
-  function feastBox(k, G) {
-    if (!G.feasts.length) return '';
-    const N = PL.names, today = k === N.today();
-    const row = (c) => { const w = N.wished(k, c.i), wa = N.wa(c);
+  /* μπάρα γιορτών (μία γραμμή, κάτω από το ημερολόγιο) για τη μέρα k: «🎉 Ταξιαρχών · Αγγελική, Μιχάλης +2», ή «… · κανένας
+     πελάτης», ή χωρίς γιορτή «Επόμενη: Κυρ 8/11 · Ταξιαρχών · 4 πελάτες». Πάτημα → όλοι με πόλη (σήμερα και WhatsApp /
+     αντιγραφή ευχής / κλήση). Όποιος λείπει ή μπήκε λάθος διορθώνεται από την καρτέλα του («✎ Αλλαγή γιορτής»). */
+  const shortDay = (k) => { const x = new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)); return WDL[x.getDay()].slice(0, 3) + ' ' + x.getDate() + '/' + (x.getMonth() + 1); };
+  function feastBar(k) {
+    if (!S.loaded('clients')) return '';
+    const N = PL.names, G = N.celebrants(k), fts = (g) => esc(g.feasts.map((f) => f.t).join(', '));
+    let txt, g = null;
+    if (G.list.length) { const nm = G.list.map((c) => N.given(c)); txt = `<b>${fts(G)}</b> · ${esc(nm.slice(0, 2).join(', '))}${nm.length > 2 ? ' +' + (nm.length - 2) : ''}`; g = G; }
+    else if (G.feasts.length) txt = `<b>${fts(G)}</b> · κανένας πελάτης`;
+    else { const nx = N.next(k); if (nx) { txt = `Επόμενη: <b>${esc(shortDay(nx.day))} · ${fts(nx)}</b> · ${nx.list.length} ${nx.list.length === 1 ? 'πελάτης' : 'πελάτες'}`; g = nx; } else txt = 'Καμία γιορτή πελάτη τον επόμενο χρόνο'; }
+    const open = !!g && st.ndOpen, wish = g === G && k === N.today();
+    const row = (c) => { if (!wish) return `<div class="ndr"><div class="ndn"><span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu">${esc(c.city)}</span></div></div>`;
+      const w = N.wished(k, c.i), wa = N.wa(c);
       return `<div class="ndr${w ? ' done' : ''}"><div class="ndn"><span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu">${esc(c.city)}${w ? ' · ✓ ευχήθηκες' : ''}</span></div>` +
         `${wa ? `<a class="btn ndw" href="${esc(wa)}" target="_blank" rel="noopener" data-wish="${esc(c.i)}">WhatsApp</a>` : ''}<button data-wcopy="${esc(c.i)}" aria-label="Αντιγραφή ευχής">📋</button>${PL.call.tels(c).length ? `<button data-callc="${esc(c.i)}" aria-label="Κλήση">📞</button>` : ''}</div>`; };
-    const head = `🎉 <b>${esc(G.feasts.map((f) => f.t).join(', '))}</b> <span class="mu">(${esc(G.feasts.map((f) => f.s).join(', '))})</span>`;
-    const body = !G.list.length ? '<div class="mu ndd">κανένας πελάτης</div>'
-      : today ? `<div class="mu" style="margin:6px 0">Γιορτάζουν ${G.list.length} · Ευχή: «${esc(N.TEXT)}» · WhatsApp με έτοιμο κείμενο, 📋 αντιγραφή για Viber / SMS</div>${G.list.map(row).join('')}`
-      : `<div class="ndd">${G.list.map((c) => `<span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)} <span class="mu">· ${esc(c.city)}</span></span>`).join('')}</div>`;
-    return `<div class="ndg">${head}${body}<div class="mu ndfx">Λείπει κάποιος ή μπήκε λάθος; Άνοιξε την καρτέλα του και πάτα «✎ Αλλαγή γιορτής».</div></div>`;
+    return `<div class="ndbar${open ? ' on' : ''}"${g ? ` data-ndbar="1" role="button" aria-expanded="${open}"` : ''}><span aria-hidden="true">🎉</span><span class="tx">${txt}</span>${g ? `<span class="ndc" aria-hidden="true">${open ? '▴' : '▾'}</span>` : ''}</div>` +
+      (open ? `<div class="ndlist">${wish ? `<div class="mu" style="margin:2px 0 4px">Ευχή: «${esc(N.TEXT)}» · WhatsApp με έτοιμο κείμενο, 📋 αντιγραφή για Viber / SMS</div>` : ''}${g.list.map(row).join('')}<div class="mu ndfx">Λείπει κάποιος ή μπήκε λάθος; Άνοιξε την καρτέλα του και πάτα «✎ Αλλαγή γιορτής».</div></div>` : '');
   }
 
   /* κλειδί μιας εκκρεμότητας (ίδιο με το «✓ Έγινε»): ραντεβού A|πρόγραμμα|πελάτης, πληρωμή P|πελάτης, εκκρεμότητα T|id, επόμενη επαφή πελάτης|θέση */
@@ -81,14 +85,13 @@
  <div class="call"><span><i class="r"></i>καθυστέρηση</span><span><i class="b"></i>εκκρεμότητα</span><span><i class="g"></i>ραντεβού</span><span><i class="y"></i>γιορτή</span><span><i class="p"></i>σεμινάριο</span></div>`;
   }
   const semCard = ([id, x]) => `<div class="card" data-semopen="${esc(id)}"><div class="row"><span class="nm">🎓 ${esc(x.title)}</span><span class="up">${esc(x.time || '')}</span></div><div class="mu">${(x.cust || []).length} πελάτες${x.notes ? ' · ' + esc(x.notes) : ''}</div></div>`;
-  /* ό,τι έχει η μέρα k: (σήμερα: καθυστερημένες) → ραντεβού, εκκρεμότητες, «να πω», πληρωμές (με τη σειρά της ώρας) → σεμινάρια → γιορτές */
+  /* ό,τι έχει η μέρα k: (σήμερα: καθυστερημένες) → ραντεβού, εκκρεμότητες, «να πω», πληρωμές (με τη σειρά της ώρας) → σεμινάρια */
   function dayView(k) {
     const t = u.today(), all = M.openTasks(t), late = k === t ? all.filter((x) => x.e.next < t) : [], dl = all.filter((x) => x.e.next === k), sms = semOn(k);
-    const G = S.loaded('clients') ? PL.names.celebrants(k) : noClients();
     let h = `<h3 class="cdh">${esc(dayTitle(k))}</h3>`;
-    if (late.length) h += `<div class="cdsub dn">Καθυστερημένες (${late.length})</div>${late.map((x) => dueCard(x, true)).join('')}` + (dl.length || sms.length || G.feasts.length ? '<div class="cdsub">Σήμερα</div>' : '');
-    h += dl.map((x) => dueCard(x, false)).join('') + sms.map(semCard).join('') + feastBox(k, G);
-    if (!late.length && !dl.length && !sms.length && !G.feasts.length) h += `<p class="mu">${k === t ? 'Δεν υπάρχουν εκκρεμότητες για σήμερα. 👌' : 'Τίποτα αυτή τη μέρα.'}</p>`;
+    if (late.length) h += `<div class="cdsub dn">Καθυστερημένες (${late.length})</div>${late.map((x) => dueCard(x, true)).join('')}` + (dl.length || sms.length ? '<div class="cdsub">Σήμερα</div>' : '');
+    h += dl.map((x) => dueCard(x, false)).join('') + sms.map(semCard).join('');
+    if (!late.length && !dl.length && !sms.length) h += `<p class="mu">${k === t ? 'Δεν υπάρχουν εκκρεμότητες για σήμερα. 👌' : 'Τίποτα αυτή τη μέρα.'}</p>`;
     return h;
   }
   /* τάμπλετ, δεξιά όταν δεν έχεις πατήσει κάτι: οι επόμενες n μέρες */
@@ -102,10 +105,11 @@
     if (g && g.dataset.wish) { PL.names.markWished(PL.names.today(), g.dataset.wish); return; }   /* ο σύνδεσμος ανοίγει το WhatsApp */
     if (g) { let ok = false; try { await navigator.clipboard.writeText(PL.names.TEXT); ok = true; } catch (x) { /* τίποτα */ }
       D.toast(ok ? '📋 Αντιγράφηκε η ευχή: άνοιξε Viber ή Μηνύματα και κάνε Επικόλληση' : 'Δεν αντιγράφηκε. Γράψε την ευχή με το χέρι.'); if (ok) PL.names.markWished(PL.names.today(), g.dataset.wcopy); return; }
-    const t = ev.target.closest('[data-cnav],[data-ctoday],[data-cday],[data-semopen],[data-ddone],[data-open],[data-callc],a,button,[data-tk]'); if (!t) return;
-    if (t.dataset.ctoday) { st.calSel = null; st.calM = null; repaint(); }
+    const t = ev.target.closest('[data-ndbar],[data-cnav],[data-ctoday],[data-cday],[data-semopen],[data-ddone],[data-open],[data-callc],a,button,[data-tk]'); if (!t) return;
+    if (t.dataset.ndbar) { st.ndOpen = !st.ndOpen; repaint(); }
+    else if (t.dataset.ctoday) { st.calSel = null; st.calM = null; st.ndOpen = false; repaint(); }
     else if (t.dataset.cnav) { st.calM = new Date(st.calM.getFullYear(), st.calM.getMonth() + (+t.dataset.cnav), 1); repaint(); }
-    else if (t.dataset.cday) { st.calSel = t.dataset.cday; repaint(); }
+    else if (t.dataset.cday) { st.calSel = t.dataset.cday; st.ndOpen = false; repaint(); }
     else if (t.dataset.semopen) PL.nav.push('seminar', { id: t.dataset.semopen });
     else if (t.dataset.open) PL.nav.push('client', { id: t.dataset.open });
     else if (t.dataset.ddone) { t.disabled = true; try { await done(t.dataset.ddone); } catch (e) { D.toast('Δεν αποθηκεύτηκε'); t.disabled = false; } }
@@ -129,10 +133,10 @@
       { e: '⏰', label: 'Υπενθύμιση', d: 'στο ημερολόγιο του iPhone', fn: () => PL.dictation.open('Θύμισέ μου ') },
     ]),
     render(el) {
-      el.innerHTML = `<h2>Εκκρεμότητες · Ημερολόγιο</h2><div id="ducal" class="cal"></div><div id="dul"></div>`;
+      el.innerHTML = `<h2>Εκκρεμότητες · Ημερολόγιο</h2><div id="ducal" class="cal"></div><div id="dund"></div><div id="dul"></div>`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
-      const paint = () => { $('#ducal').innerHTML = calendar(); $('#dul').innerHTML = dayView(st.calSel); };
+      const paint = () => { $('#ducal').innerHTML = calendar(); $('#dund').innerHTML = feastBar(st.calSel); $('#dul').innerHTML = dayView(st.calSel); };
       paint();
       const offs = COLS.map((c) => S.on(c, paint));
       el.addEventListener('click', (ev) => act(ev, paint));

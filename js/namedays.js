@@ -147,6 +147,21 @@
     return { feasts: [...fs], list: M.live().filter((c) => fs.has(feastOf(c))) };
   }
   const tomorrow = (day) => ymd(addDays(new Date(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10)), 1));
+  /* η επόμενη μέρα μετά τη day όπου γιορτάζει κάποιος πελάτης (έως έναν χρόνο μπροστά): {day, feasts, list} ή null */
+  function next(day) {
+    let d = day;
+    for (let k = 0; k < 366; k++) { d = tomorrow(d); const g = celebrants(d); if (g.list.length) return Object.assign({ day: d }, g); }
+    return null;
+  }
+  /* σύντομο όνομα για τη μπάρα γιορτών: το μικρό όνομα που αναγνωρίστηκε, με τόνο από τη λίστα της γιορτής
+     («ΦΩΤΙΑΔΟΥ ΜΙΧΑΛΗΣ» → Μιχάλης)· με διόρθωση από το χέρι ή χωρίς γνωστό όνομα, ολόκληρο το όνομα */
+  function given(c) {
+    const f = feastOf(c); if (!f || fixOf(c.i)) return c.name;
+    const w = norm(c.name).split(/[^A-ZΑ-Ω]+/).filter(Boolean).slice(1).find((x) => IDX[x] != null && F[IDX[x]] === f);
+    if (!w) return c.name;
+    const s = f.s.split(', ').find((x) => norm(x) === w);
+    return s || w.charAt(0) + w.slice(1).toLowerCase().replace(/σ$/, 'ς');
+  }
   const mobile = (c) => [c.t2, c.t1].concat(c.more || []).map((x) => String(x || '').replace(/[^\d+]/g, '').replace(/^(\+|00)?30(?=69\d{8}$)/, '')).find((x) => /^69\d{8}$/.test(x)) || '';
   const wished = (day, id) => ((S.get('wish', day) || {}).ids || []).includes(id);
   async function markWished(day, id) {
@@ -155,7 +170,7 @@
     try { await PL.adapter.db.set('wish/' + day, doc); } catch (e) { /* μένει τοπικά */ }
   }
   PL.names = {
-    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, mobile, wished, markWished,
+    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, next, given, mobile, wished, markWished,
     today: () => u.today(),
     /* 🎉 δίπλα στο όνομα όποιου γιορτάζει σήμερα */
     badge: (c) => { const f = feastOf(c); return f && dateOf(f, +PL.names.today().slice(0, 4)) === PL.names.today() ? '🎉 ' : ''; },
