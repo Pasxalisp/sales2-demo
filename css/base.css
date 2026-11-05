@@ -451,12 +451,7 @@ main>.page>h2:first-of-type {
   color: #23875a;
   font-weight: 600;
 }
-/* εορτολόγιο: οι επόμενες μέρες */
-.ndh {
-  margin: 10px 0 2px;
-  font-weight: 600;
-  font-size: calc(13.5 * var(--u));
-}
+/* εορτολόγιο: οι πελάτες μιας γιορτής (σελίδα Εκκρεμότητες · Ημερολόγιο) */
 .ndd {
   padding: 7px 0;
   border-top: 1px solid rgba(217,169,31,.3);
@@ -472,6 +467,108 @@ main>.page>h2:first-of-type {
 .ndfx {
   margin-top: 8px;
   font-size: calc(13 * var(--u));
+}
+/* Εκκρεμότητες · Ημερολόγιο: ο μήνας μένει σταθερός πάνω, κυλάει μόνο η λίστα της μέρας (όχι με πολύ μεγάλα γράμματα) */
+.cal {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--bd);
+}
+html.big .cal {
+  position: static;
+}
+.calh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.calh b {
+  flex: 1;
+  text-align: center;
+  font-size: calc(17 * var(--u));
+}
+.calh button {
+  margin: 0;
+  padding: 4px 14px;
+}
+.calh .chip {
+  padding: 4px 10px;
+}
+.calg {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  text-align: center;
+}
+.calw {
+  font-size: calc(12 * var(--u));
+  color: var(--mu);
+  margin-bottom: 3px;
+}
+.cday {
+  margin: 0;
+  padding: 4px 0 3px;
+  min-height: calc(42 * var(--u));
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: calc(15 * var(--u));
+}
+.cday.t {
+  border: 2px solid var(--ac);
+  font-weight: 700;
+}
+.cday.s {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: var(--bg);   /* ανοιχτό πάνω στο σκούρο πράσινο, σκούρο πάνω στο ανοιχτό πράσινο του σκούρου θέματος */
+}
+.cmk {
+  display: flex;
+  gap: 2px;
+  min-height: 6px;
+}
+.cmk i,
+.call i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.cday.s .cmk i {
+  background: var(--bg) !important;
+}
+.call {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 6px;
+  font-size: calc(12 * var(--u));
+  color: var(--mu);
+}
+.call i {
+  margin-right: 4px;
+  vertical-align: 1px;
+}
+.cmk .r, .call .r { background: #e0584a; }
+.cmk .b, .call .b { background: #3b82d6; }
+.cmk .g, .call .g { background: #2e9a68; }
+.cmk .y, .call .y { background: #dca321; }
+.cmk .p, .call .p { background: #8a5cc8; }
+.cdh {
+  margin: 12px 0 6px;
+}
+.cdsub {
+  margin: 8px 0 4px;
+  font-weight: 600;
+  font-size: calc(13.5 * var(--u));
 }
 /* καρτέλα: αλλαγή γιορτής· μικρό κουμπί με αόρατο select από πάνω (ανοίγει τη λίστα του κινητού) */
 .ndbtn {

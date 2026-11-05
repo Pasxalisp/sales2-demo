@@ -31,8 +31,8 @@
       const setCnt = () => { const n = S.loaded('clients') ? M.live().length : 0; if (n) $('#hcnt').textContent = n + ' πελάτες'; };
       const setDue = () => {
         const n = S.loaded('notes') ? M.dueList().length : 0, G = S.loaded('clients') ? PL.names.celebrants(PL.names.today()) : { list: [] };
-        $('#hdue').innerHTML = '<span class="dc">' + (n ? n : '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>') + '</span><span class="dt"><span class="dl">Εκκρεμότητες</span><span class="dm">' + (n ? n + (n === 1 ? ' πελάτης περιμένει' : ' πελάτες περιμένουν') : 'Καμία σήμερα') + '</span>' +
-          /* εορτολόγιο: μία διακριτική γραμμή· η λίστα είναι στις Εκκρεμότητες */
+        $('#hdue').innerHTML = '<span class="dc">' + (n ? n : '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>') + '</span><span class="dt"><span class="dl">Εκκρεμότητες · Ημερολόγιο</span><span class="dm">' + (n ? n + (n === 1 ? ' πελάτης περιμένει' : ' πελάτες περιμένουν') : 'Καμία σήμερα') + '</span>' +
+          /* εορτολόγιο: μία διακριτική γραμμή· η λίστα είναι στις Εκκρεμότητες · Ημερολόγιο */
           (G.list.length ? '<span class="dnd">🎉 Γιορτάζουν ' + G.list.length + ' · ' + G.feasts.map((f) => f.s).join(', ') + '</span>' : '') + '</span>';
       };
       const setPlans = () => {

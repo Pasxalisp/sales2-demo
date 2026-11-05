@@ -147,18 +147,6 @@
     return { feasts: [...fs], list: M.live().filter((c) => fs.has(feastOf(c))) };
   }
   const tomorrow = (day) => ymd(addDays(new Date(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10)), 1));
-  /* οι επόμενες n μέρες μετά τη day που έχουν γιορτή (με ή χωρίς πελάτες): [{day, feasts, list}] */
-  function ahead(day, n) {
-    const out = []; let d = day;
-    for (let k = 0; k < n; k++) { d = tomorrow(d); const g = celebrants(d); if (g.feasts.length) out.push(Object.assign({ day: d }, g)); }
-    return out;
-  }
-  /* η επόμενη μέρα μετά τη day όπου γιορτάζει κάποιος πελάτης (έως έναν χρόνο μπροστά) */
-  function next(day) {
-    let d = day;
-    for (let k = 0; k < 366; k++) { d = tomorrow(d); const g = celebrants(d); if (g.list.length) return Object.assign({ day: d }, g); }
-    return null;
-  }
   const mobile = (c) => [c.t2, c.t1].concat(c.more || []).map((x) => String(x || '').replace(/[^\d+]/g, '').replace(/^(\+|00)?30(?=69\d{8}$)/, '')).find((x) => /^69\d{8}$/.test(x)) || '';
   const wished = (day, id) => ((S.get('wish', day) || {}).ids || []).includes(id);
   async function markWished(day, id) {
@@ -167,7 +155,7 @@
     try { await PL.adapter.db.set('wish/' + day, doc); } catch (e) { /* μένει τοπικά */ }
   }
   PL.names = {
-    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, ahead, next, mobile, wished, markWished,
+    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, mobile, wished, markWished,
     today: () => u.today(),
     /* 🎉 δίπλα στο όνομα όποιου γιορτάζει σήμερα */
     badge: (c) => { const f = feastOf(c); return f && dateOf(f, +PL.names.today().slice(0, 4)) === PL.names.today() ? '🎉 ' : ''; },

@@ -250,7 +250,7 @@
         `<button class="nb" data-a="back" aria-label="Πίσω">${SV('<path d="M15 5l-7 7 7 7"/>')}<span>Πίσω</span></button>` +
         `<button class="nb" id="nvh" data-a="home" aria-label="Αρχική">${SV('<path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>')}<span>Αρχική</span></button>` +
         `<button class="nb nplus" data-a="nova" aria-label="Νέο"><span class="pc">${SV('<path d="M12 5v14M5 12h14"/>', 20, 2.4)}</span><span>Νέο</span></button>` +
-        `<button class="nb" data-a="tasks" aria-label="Εκκρεμότητες">${SV('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>')}<span>Εκκρεμότ.</span><i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i></button>` +
+        `<button class="nb" data-a="tasks" aria-label="Εκκρεμότητες · Ημερολόγιο">${SV('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>')}<span>Ημερολόγιο</span><i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i></button>` +
         `<button class="nb nmic" data-a="dictate" aria-label="Υπαγόρευση"><span class="mc">${SV('<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>', 18)}</span><span>Υπαγόρ.</span></button>`;
       $('[data-a=back]', bar).disabled = stack.length < 2;
       bar.classList.toggle('noplus', !has);
