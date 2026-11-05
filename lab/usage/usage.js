@@ -12,7 +12,7 @@
   /* ---------- μέτρηση ---------- */
   const IDLE = 120e3;
   const ACT = { notes: 'Σημειώσεις', visits: 'Επισκέψεις', plans: 'Προγράμματα', tasks: 'Εκκρεμότητες', campaigns: 'Καμπάνιες', seminars: 'Σεμινάρια',
-    tech: 'Τεχνικός', sos: 'SOS', orders: 'Παραγγελίες', balnotes: 'Υπόλοιπα', prospects: 'Νέοι πελάτες', xout: 'Εκτός πελατολογίου' };
+    tech: 'Τεχνικός', sos: 'SOS', orders: 'Παραγγελίες', balnotes: 'Υπόλοιπα', prospects: 'Νέοι πελάτες', xout: 'Εκτός πελατολογίου', ndfix: 'Γιορτές' };
   let page = null, t = Date.now(), act = Date.now(), d = { p: {}, a: {} }, dirty = false;
   /* χρόνος από το προηγούμενο μέτρημα ως τώρα, όσο η σελίδα φαίνεται και ως IDLE μετά το τελευταίο άγγιγμα */
   const tick = () => {

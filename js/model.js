@@ -187,7 +187,7 @@
 
   /* Εκκίνηση: φορτώνει ό,τι χρειάζεται η αρχική και η μπάρα (λίστα πελατών και εκκρεμότητες). */
   M.boot = async function () {
-    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout'];
+    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout', 'ndfix'];
     /* ο γενικός τζίρος (M.tz) και το Goldwell (M.gold) χρειάζονται brands/cats σε ΚΑΘΕ σελίδα, όπως στην παλιά */
     ['brands', 'cats'].forEach((c) => PL.store.use(c));
     const upd = () => { const n = M.dueList().length; PL.bar.setBadge(n); PL.bus.emit('due', n); };

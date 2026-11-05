@@ -4,7 +4,9 @@
    Δεν μπαίνουν: αμφίσημα χαϊδευτικά (Τάκης, Σάκης, Λάκης, Μάκης, Κική, Τούλα…) και ονόματα με πολλές
    διαδεδομένες ημερομηνίες (π.χ. Σταματία, Διονύσης, Ευστράτιος) — καλύτερα καμία ευχή παρά σε λάθος μέρα.
    Ευχή: WhatsApp με έτοιμο κείμενο (μέσα στην εφαρμογή Claude ανοίγει μόνο αυτό), ή αντιγραφή για Viber/SMS.
-   «✓ ευχήθηκες» φυλάγεται στο wish/{ημερομηνία} = {ids: [...]}. */
+   «✓ ευχήθηκες» φυλάγεται στο wish/{ημερομηνία} = {ids: [...]}.
+   Διόρθωση με το χέρι (από την καρτέλα, «🎉 Γιορτή»): ndfix/{id πελάτη} = {f: τίτλος γιορτής ή '-' (δεν γιορτάζει), name}.
+   Η διόρθωση μετράει πριν από το όνομα· χωρίς αυτήν ισχύει η αναγνώριση από το όνομα. */
 (function () {
   const PL = window.PL, u = PL.u, S = PL.store, M = PL.model;
   const TEXT = 'Χρόνια πολλά!! Εύχομαι ό,τι επιθυμείς με υγεία!';
@@ -99,7 +101,7 @@
     { g: 'mark', t: 'Αγίου Μάρκου', s: 'Μάρκος', n: 'ΜΑΡΚΟΣ' },
   ];
   const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/ς/g, 'Σ');
-  const IDX = {}; F.forEach((f, i) => f.n.split(' ').forEach((w) => { IDX[w] = i; }));
+  const IDX = {}, BYT = {}; F.forEach((f, i) => { BYT[f.t] = f; f.n.split(' ').forEach((w) => { IDX[w] = i; }); });
   const pad = (n) => String(n).padStart(2, '0');
   const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   /* ορθόδοξο Πάσχα (Meeus, ιουλιανό + 13 μέρες· ισχύει 1900–2099) */
@@ -116,13 +118,28 @@
     if (f.g === 'mark') { const k = new Date(y, 3, 25); return ymd(k <= E ? addDays(E, 2) : k); }
     return y + '-' + f.d;
   }
-  /* η γιορτή του πελάτη: το πρώτο γνωστό μικρό όνομα (χωρίς το επώνυμο = πρώτη λέξη) */
-  function feastOf(c) {
+  /* η γιορτή από το όνομα: το πρώτο γνωστό μικρό όνομα (χωρίς το επώνυμο = πρώτη λέξη) */
+  function autoOf(c) {
     if (!c || !c.name) return null;
     const w = norm(c.name).split(/[^A-ZΑ-Ω]+/).filter(Boolean).slice(1);
     for (const x of w) if (IDX[x] != null) return F[IDX[x]];
     return null;
   }
+  /* η διόρθωση με το χέρι: τίτλος γιορτής, '-' (δεν γιορτάζει) ή '' (καμία διόρθωση) */
+  const fixOf = (id) => { const x = S.get('ndfix', id), f = x && x.f; return f === '-' || BYT[f] ? f : ''; };
+  /* η γιορτή του πελάτη: πρώτα η διόρθωση, αλλιώς από το όνομα */
+  function feastOf(c) {
+    if (!c) return null;
+    const f = fixOf(c.i);
+    return f === '-' ? null : f ? BYT[f] : autoOf(c);
+  }
+  /* f: τίτλος γιορτής, '-' ή '' (επιστροφή στην αναγνώριση από το όνομα) */
+  async function setFix(c, f) {
+    if (!f) { await PL.adapter.db.remove('ndfix/' + c.i); S.drop('ndfix', c.i); return; }
+    const doc = { f, name: c.name }; await PL.adapter.db.set('ndfix/' + c.i, doc); S.put('ndfix', c.i, doc);
+  }
+  /* όλες οι γιορτές με την ημερομηνία τους φέτος, κατά σειρά ημερομηνίας (για τη διόρθωση) */
+  const year = (y) => F.map((f) => ({ f, day: dateOf(f, y) })).sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
   /* γιορτές μιας μέρας και πελάτες που γιορτάζουν */
   const feastsOn = (day) => { const y = +day.slice(0, 4); return F.filter((f) => dateOf(f, y) === day); };
   function celebrants(day) {
@@ -130,6 +147,18 @@
     return { feasts: [...fs], list: M.live().filter((c) => fs.has(feastOf(c))) };
   }
   const tomorrow = (day) => ymd(addDays(new Date(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10)), 1));
+  /* οι επόμενες n μέρες μετά τη day που έχουν γιορτή (με ή χωρίς πελάτες): [{day, feasts, list}] */
+  function ahead(day, n) {
+    const out = []; let d = day;
+    for (let k = 0; k < n; k++) { d = tomorrow(d); const g = celebrants(d); if (g.feasts.length) out.push(Object.assign({ day: d }, g)); }
+    return out;
+  }
+  /* η επόμενη μέρα μετά τη day όπου γιορτάζει κάποιος πελάτης (έως έναν χρόνο μπροστά) */
+  function next(day) {
+    let d = day;
+    for (let k = 0; k < 366; k++) { d = tomorrow(d); const g = celebrants(d); if (g.list.length) return Object.assign({ day: d }, g); }
+    return null;
+  }
   const mobile = (c) => [c.t2, c.t1].concat(c.more || []).map((x) => String(x || '').replace(/[^\d+]/g, '').replace(/^(\+|00)?30(?=69\d{8}$)/, '')).find((x) => /^69\d{8}$/.test(x)) || '';
   const wished = (day, id) => ((S.get('wish', day) || {}).ids || []).includes(id);
   async function markWished(day, id) {
@@ -138,7 +167,7 @@
     try { await PL.adapter.db.set('wish/' + day, doc); } catch (e) { /* μένει τοπικά */ }
   }
   PL.names = {
-    TEXT, F, norm, easter, dateOf, feastOf, feastsOn, celebrants, tomorrow, mobile, wished, markWished,
+    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, ahead, next, mobile, wished, markWished,
     today: () => u.today(),
     /* 🎉 δίπλα στο όνομα όποιου γιορτάζει σήμερα */
     badge: (c) => { const f = feastOf(c); return f && dateOf(f, +PL.names.today().slice(0, 4)) === PL.names.today() ? '🎉 ' : ''; },

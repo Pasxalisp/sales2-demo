@@ -30,7 +30,7 @@
   const user = (id) => users().find((x) => x.id === id) || null;
 
   /* ---- τι δικαιούται κάθε χρήστης ---- */
-  const KEYED = new Set(['clients', 'prospects', 'notes', 'balances', 'balnotes', 'items', 'manual', 'visits', 'xout', 'zskip', 'tech', 'sos', 'dealmsg', 'geo']);
+  const KEYED = new Set(['clients', 'prospects', 'notes', 'balances', 'balnotes', 'items', 'manual', 'visits', 'xout', 'ndfix', 'zskip', 'tech', 'sos', 'dealmsg', 'geo']);
   const MAPS = new Set(['deals/all', 'cats/all', 'brands/all']);
   const PERSONAL = new Set(['month', 'extra', 'route', 'wish', 'pdrafts']);   // του αρχικού χρήστη των ψεύτικων δεδομένων
   const SERVER = new Set(['users', 'teams', 'usage']);                          // μόνο μέσω της «org» παρακάτω

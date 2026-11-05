@@ -7,7 +7,7 @@
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, db = () => PL.adapter.db;
   const P = (PL.prospects = {});
   /* συλλογές με εγγραφές ανά πελάτη (κλειδί = id πελάτη) και συλλογές που αναφέρουν πελάτη μέσα τους */
-  const BYID = ['manual', 'xout', 'zskip', 'sos', 'tech', 'balnotes'];
+  const BYID = ['manual', 'xout', 'ndfix', 'zskip', 'sos', 'tech', 'balnotes'];
   P.COLS = ['clients', 'prospects', 'notes', 'visits', 'plans', 'pdrafts', 'route', 'tasks', 'seminars', 'campaigns', 'orders', 'extra'].concat(BYID);
   P.use = () => Promise.all(P.COLS.map((c) => S.use(c)));
 

@@ -1,21 +1,33 @@
 /* Σελίδα «Εκκρεμότητες»: σήμερα & καθυστερημένες, ημερολόγιο. Μεταφορά από την παλιά σελίδα (renderDue, dueCard, ddone). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, db = () => PL.adapter.db;
-  const COLS = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'sos', 'seminars', 'visits', 'wish'];
+  const COLS = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'sos', 'seminars', 'visits', 'wish', 'ndfix'];
   const MN = ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος', 'Μάιος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος', 'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
   const nowHM = () => { const d = new Date(); return u.pad(d.getHours()) + ':' + u.pad(d.getMinutes()); };
   const ymd = (d) => d.getFullYear() + '-' + u.pad(d.getMonth() + 1) + '-' + u.pad(d.getDate());
   const st = { tab: 't', calM: null, calSel: null, gOpen: false };   // μένει όταν γυρνάς πίσω
-  /* εορτολόγιο: «🎉 Γιορτάζουν σήμερα» (κλειστό, ανοίγει με πάτημα) με WhatsApp / αντιγραφή ευχής / κλήση, και το αύριο */
+  /* εορτολόγιο: κουτί «🎉» πάντα στη θέση του (κλειστό, ανοίγει με πάτημα). Σήμερα: όσοι γιορτάζουν, με WhatsApp /
+     αντιγραφή ευχής / κλήση. Μέρες χωρίς γιορτή: «Επόμενη γιορτή». Μέσα: οι επόμενες 7 μέρες με τις γιορτές και ποιοι
+     γιορτάζουν, για να φαίνεται από πριν και να διορθώνεται από την καρτέλα όποιος λείπει ή μπήκε λάθος. */
+  const WD = ['Κυρ', 'Δευ', 'Τρί', 'Τετ', 'Πέμ', 'Παρ', 'Σάβ'];
+  const dayLbl = (d, today) => { const x = new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10));
+    return (PL.names.tomorrow(today) === d ? 'Αύριο, ' : '') + WD[x.getDay()] + ' ' + x.getDate() + '/' + (x.getMonth() + 1); };
+  const nOf = (n) => n + ' ' + (n === 1 ? 'πελάτης' : 'πελάτες');
   function namedays() {
-    const N = PL.names, day = N.today(), G = N.celebrants(day), T = N.celebrants(N.tomorrow(day));
-    const tom = T.list.length ? `<div class="mu ndt">Αύριο: ${esc(T.feasts.map((f) => f.t).join(', '))} · ${T.list.length} ${T.list.length === 1 ? 'πελάτης' : 'πελάτες'}</div>` : '';
-    if (!G.list.length) return tom ? `<div class="ndg">🎉 ${tom}</div>` : '';
+    const N = PL.names, day = N.today(), G = N.celebrants(day), A = N.ahead(day, 7), nx = G.list.length ? null : N.next(day);
+    const fts = (g) => esc(g.feasts.map((f) => f.t).join(', '));
     const row = (c) => { const w = N.wished(day, c.i), wa = N.wa(c);
       return `<div class="ndr${w ? ' done' : ''}"><div class="ndn"><span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu">${esc(c.city)}${w ? ' · ✓ ευχήθηκες' : ''}</span></div>` +
         `${wa ? `<a class="btn ndw" href="${esc(wa)}" target="_blank" rel="noopener" data-wish="${esc(c.i)}">WhatsApp</a>` : ''}<button data-wcopy="${esc(c.i)}" aria-label="Αντιγραφή ευχής">📋</button>${PL.call.tels(c).length ? `<button data-callc="${esc(c.i)}" aria-label="Κλήση">📞</button>` : ''}</div>`; };
-    return `<details class="ndg"${st.gOpen ? ' open' : ''}><summary>🎉 <b>Γιορτάζουν σήμερα: ${G.list.length}</b> <span class="mu">· ${esc(G.feasts.map((f) => f.t).join(', '))}</span></summary>` +
-      `<div class="mu" style="margin:6px 0">Ευχή: «${esc(N.TEXT)}» · WhatsApp με έτοιμο κείμενο, 📋 αντιγραφή για Viber / SMS</div>${G.list.map(row).join('')}${tom}</details>`;
+    const who = (L) => (L.length ? L.map((c) => `<span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span>`).join('') : '<span class="mu">κανένας πελάτης</span>');
+    const sum = G.list.length ? `🎉 <b>Γιορτάζουν σήμερα: ${G.list.length}</b> <span class="mu">· ${fts(G)}</span>`
+      : nx ? `🎉 <b>Επόμενη γιορτή: ${esc(dayLbl(nx.day, day))}</b> <span class="mu">· ${fts(nx)} · ${nOf(nx.list.length)}</span>` : '🎉 <b>Εορτολόγιο</b>';
+    const now = G.list.length ? `<div class="mu" style="margin:6px 0">Ευχή: «${esc(N.TEXT)}» · WhatsApp με έτοιμο κείμενο, 📋 αντιγραφή για Viber / SMS</div>${G.list.map(row).join('')}`
+      : G.feasts.length ? `<div class="ndd"><b>Σήμερα</b> · ${fts(G)} <span class="mu">(${esc(G.feasts.map((f) => f.s).join(', '))})</span><div>${who([])}</div></div>` : '';
+    const week = `<div class="ndh">Επόμενες 7 μέρες</div>` + (A.length ? A.map((g) => `<div class="ndd"><b>${esc(dayLbl(g.day, day))}</b> · ${fts(g)} <span class="mu">(${esc(g.feasts.map((f) => f.s).join(', '))})</span><div>${who(g.list)}</div></div>`).join('')
+      : '<div class="mu ndd">Καμία γιορτή τις επόμενες 7 μέρες.</div>');
+    return `<details class="ndg"${st.gOpen ? ' open' : ''}><summary>${sum}</summary>${now}${week}` +
+      `<div class="mu ndfx">Λείπει κάποιος ή μπήκε λάθος; Άνοιξε την καρτέλα του και πάτα «✎ Αλλαγή γιορτής».</div></details>`;
   }
 
   /* κλειδί μιας εκκρεμότητας (ίδιο με το «✓ Έγινε»): ραντεβού A|πρόγραμμα|πελάτης, πληρωμή P|πελάτης, εκκρεμότητα T|id, επόμενη επαφή πελάτης|θέση */

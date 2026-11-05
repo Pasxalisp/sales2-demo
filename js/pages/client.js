@@ -3,7 +3,7 @@
    ό,τι γράφεις όταν ανανεώνονται τα δεδομένα) και ιστορικό. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
-  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'balances', 'seminars', 'campaigns', 'xout', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
+  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'balances', 'seminars', 'campaigns', 'xout', 'ndfix', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
   const SM = 'font-weight:400;font-size:calc(13*var(--u))';
 
   /* ---- τμήματα με νούμερα ---- */
@@ -71,7 +71,7 @@
   function topHtml(id, c) {
     const SOS = !!S.get('sos', id), T = S.get('tech', id), A = PL.actions, sem = A.seminar.state(id), cmp = A.campaign.state(id), I = PL.icon, map = PL.call.mapUrl(c);
     const tz = M.tz(c);
-    const nd = PL.names.feastOf(c), ndD = nd ? PL.names.dateOf(nd, +PL.names.today().slice(0, 4)) : '';
+    const N = PL.names, nd = N.feastOf(c), fx = N.fixOf(id), Y = +N.today().slice(0, 4), ndD = nd ? N.dateOf(nd, Y) : '';
     return `<h2 style="margin:4px 0 2px">${SOS ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}</h2>` +
       `<div class="mu">${esc(c.addr)}${c.addr && c.city ? ', ' : ''}${esc(c.city)} ${esc(c.zip)}${' · κωδ. ' + esc(c.prospect ? 'ΝΕΟΣ' : (c.codes || [c.code]).join(', '))}</div>` +
       `<div class="cact"><button class="cat" data-callc="${esc(id)}"${PL.call.tels(c).length ? '' : ' disabled'}>${I.phone}<span>Κλήση</span></button>` +
@@ -82,7 +82,10 @@
       `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${MARK[sem]}</button>` +
       `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${MARK[cmp]}</button></div>` +
       `${T && T.note ? `<div class="mu">Τεχνικός: ${esc(T.note)}</div>` : ''}` +
-      `${nd ? `<div class="mu">🎉 Γιορτάζει: ${esc(nd.t)} (${esc(u.fd(ndD))})${ndD === PL.names.today() ? ' · <b class="up">σήμερα!</b>' : ''}</div>` : ''}` +
+      `<div class="mu">🎉 ${nd ? `Γιορτάζει: ${esc(nd.t)} (${esc(u.fd(ndD))})${ndD === N.today() ? ' · <b class="up">σήμερα!</b>' : ''}` : fx ? 'Δεν γιορτάζει' : 'Γιορτή: δεν βρέθηκε από το όνομα'}${fx ? ' · ορίστηκε με το χέρι' : ''}` +
+      `<br><label class="ndbtn">✎ ${nd || fx ? 'Αλλαγή γιορτής' : 'Ορισμός γιορτής'}<select id="ndsel" aria-label="Αλλαγή γιορτής"><option value="" selected disabled>Διάλεξε γιορτή</option>` +
+      `${fx ? '<option value="*">↺ Αυτόματα, από το όνομα</option>' : ''}${fx !== '-' ? '<option value="-">🚫 Δεν γιορτάζει</option>' : ''}` +
+      `${N.year(Y).map((x) => `<option value="${esc(x.f.t)}">${esc(u.fd(x.day).slice(0, 5))} · ${esc(x.f.t)} (${esc(x.f.s)})</option>`).join('')}</select></label></div>` +
       `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${tz !== 0 ? `<p class="tz">Τζίρος: ${money(tz)}</p>` : ''}` +
       `${c.ex ? `<div class="mu">Έχουν αφαιρεθεί: ${esc(c.exn)} (αρχικός τζίρος ${money(c.tz0)})</div>` : ''}` +
       `${c.tzold != null ? `<div class="mu">Ο τζίρος ενημερώθηκε στο μεγαλύτερο ποσό (Goldwell φέτος· πριν ${money(c.tzold)})</div>` : ''}` +
@@ -135,6 +138,13 @@
       const offs = COLS.map((c) => S.on(c, () => { if (c === 'notes') paintHist(); paintTop(); }));
       const closeAfter = () => { PL.nav.back(); };
 
+      /* 🎉 αλλαγή γιορτής: '*' = πίσω στο όνομα, '-' = δεν γιορτάζει, αλλιώς ο τίτλος της γιορτής */
+      el.addEventListener('change', async (ev) => {
+        if (ev.target.id !== 'ndsel') return;
+        const v = ev.target.value, c = M.byId(id); if (!c) return;
+        try { await PL.names.setFix(c, v === '*' ? '' : v); D.toast(v === '*' ? '🎉 Η γιορτή βγαίνει πάλι από το όνομα' : v === '-' ? '🎉 Δεν θα εμφανίζεται στις γιορτές' : '🎉 Γιορτάζει: ' + v); }
+        catch (e) { D.toast('Δεν αποθηκεύτηκε: ' + (e && e.message || e)); paintTop(); }
+      });
       el.addEventListener('click', async (ev) => {
         const t = ev.target, c = M.byId(id);
         try {

@@ -451,9 +451,49 @@ main>.page>h2:first-of-type {
   color: #23875a;
   font-weight: 600;
 }
-.ndt {
-  margin-top: 6px;
+/* εορτολόγιο: οι επόμενες μέρες */
+.ndh {
+  margin: 10px 0 2px;
+  font-weight: 600;
+  font-size: calc(13.5 * var(--u));
+}
+.ndd {
+  padding: 7px 0;
+  border-top: 1px solid rgba(217,169,31,.3);
+  font-size: calc(14 * var(--u));
+  line-height: 1.45;
+}
+.ndd .nm {
+  display: block;
+  cursor: pointer;
+  font-size: inherit;
+  font-weight: 500;
+}
+.ndfx {
+  margin-top: 8px;
   font-size: calc(13 * var(--u));
+}
+/* καρτέλα: αλλαγή γιορτής· μικρό κουμπί με αόρατο select από πάνω (ανοίγει τη λίστα του κινητού) */
+.ndbtn {
+  position: relative;
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--tx);
+  font-size: calc(13.5 * var(--u));
+}
+.ndbtn select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 /* σήμα προσωρινού πελάτη (δεν έχει περάσει στο orders), δίπλα στο όνομα σε κάθε σελίδα */
 .notord {
