@@ -97,26 +97,56 @@ body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hmatch { display
 
 /* ---- λίστα πωλητών ---- */
 .tmrows { display: grid; grid-template-columns: 1fr; gap: 8px; }
-button.tmrow, button.tmrk { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: var(--tx); background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 12px 12px 12px 14px; margin: 0; }
+button.tmrow { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: var(--tx); background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 12px 12px 12px 14px; margin: 0; }
 button.tmrow.me { border-left: 4px solid #2563c9; }
 button.tmrow.off { opacity: .55; }
 .tmrb { flex: 1; min-width: 0; display: block; }
 .tmrb > b { display: block; font-size: calc(16 * var(--u)); }
 .tmchev { color: var(--mu); font-size: calc(24 * var(--u)); line-height: 1; flex: none; }
-.tmspk { flex: none; }
-.tmspk rect { fill: color-mix(in srgb, var(--ac) 40%, transparent); }
-.tmspk rect.on { fill: var(--ac); }
-button.tmrk { border: 0; border-bottom: 1px solid var(--bd); border-radius: 0; padding: 9px 0; background: none; }
-button.tmrk:last-child { border-bottom: 0; }
-.tmrk small { display: block; }
-.tmn1 { width: 24px; height: 24px; border-radius: 50%; background: var(--ac2); color: var(--ac); font-weight: 700; font-size: calc(13 * var(--u)); display: inline-flex; align-items: center; justify-content: center; flex: none; }
-.tmteam { cursor: pointer; }
 .tmteamh { display: flex; align-items: center; gap: 12px; }
-.tmppl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.tmppl button { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; font-size: calc(13.5 * var(--u)); margin: 0; }
 .tmrl { padding: 7px 0; border-bottom: 1px solid var(--bd); display: flex; flex-direction: column; gap: 2px; }
 .tmrl:last-child { border-bottom: 0; }
 .tmrl span { color: var(--mu); font-size: calc(14 * var(--u)); }
+
+/* ---- κατάσταση: «Χρειάζεται προσοχή», πωλητές με χρώμα (πράσινο / κίτρινο / κόκκινο) ---- */
+.tmalert { background: color-mix(in srgb, var(--rd) 9%, var(--card)); border-color: color-mix(in srgb, var(--rd) 35%, var(--bd)); }
+.tmalert > h3 { color: var(--rd); }
+.tmalert.y { background: color-mix(in srgb, #e0a11b 10%, var(--card)); border-color: color-mix(in srgb, #e0a11b 40%, var(--bd)); }
+.tmalert.y > h3 { color: #b07a10; }
+.tmok { background: color-mix(in srgb, var(--ac) 8%, var(--card)); }
+.tmok > h3 { color: var(--ac); }
+.tmatt { margin: 0 0 4px; font-size: calc(16 * var(--u)); line-height: 1.45; }
+.tmatt + .shlink { margin-bottom: 10px; }
+.tmwhyl { margin: 6px 0 0; padding-left: 20px; font-size: calc(15.5 * var(--u)); line-height: 1.6; }
+.tmwhyl.r li::marker { color: var(--rd); }
+.tmwhyl.y li::marker { color: #e0a11b; }
+.tmwhyl.g li::marker { color: var(--ac); }
+.tmhero { font-size: calc(30 * var(--u)); font-weight: 800; line-height: 1.1; }
+.tmsl { display: flex; flex-direction: column; }
+button.tmsr { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0; padding: 11px 0; text-align: left; font: inherit; color: var(--tx); background: none; border: 0; border-bottom: 1px solid var(--bd); border-radius: 0; }
+button.tmsr:last-child { border-bottom: 0; }
+.tmdot { width: 13px; height: 13px; border-radius: 50%; flex: none; background: var(--ac); }
+.tmdot.y { background: #e0a11b; }
+.tmdot.r { background: var(--rd); }
+.tmsrb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tmsrb > b { font-size: calc(16.5 * var(--u)); overflow-wrap: anywhere; }
+.tmwhy { font-size: calc(14 * var(--u)); color: var(--mu); }
+.tmwhy.r { color: var(--rd); }
+.tmpct { flex: none; font-size: calc(20 * var(--u)); font-weight: 800; color: var(--ac); }
+.tmpct.y { color: #b07a10; }
+.tmpct.r { color: var(--rd); }
+.tmtag { font-size: calc(11.5 * var(--u)); font-weight: 700; color: #2563c9; background: rgba(37, 99, 201, .12); border-radius: 99px; padding: 1px 7px; vertical-align: 2px; }
+.tmbar.mk { position: relative; overflow: visible; height: 8px; margin-top: 6px; }
+.tmbar.mk i.g { background: var(--ac); }
+.tmbar.mk i.y { background: #e0a11b; }
+.tmbar.mk i.r { background: var(--rd); }
+.tmbar.mk u { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--tx); border-radius: 1px; }
+button.tmmore { display: block; width: 100%; margin: 12px 0 0; padding: 11px; border-radius: 14px; font-weight: 600; color: var(--ac); background: var(--card); border: 1px solid var(--bd); }
+.tmdet { margin-top: 10px; }
+.tmnums td.up { color: var(--ac); }
+.tmnums td.mid { color: #c78a00; }
+.tmnums td.dn { color: var(--rd); }
+.tmteamh h3 { margin: 0; font-size: calc(17 * var(--u)); }
 
 /* ---- γραφήματα (χρώματα από τις μεταβλητές: ανοιχτό και σκούρο) ---- */
 .tmdon { flex: none; }
@@ -170,7 +200,6 @@ button.tmrk:last-child { border-bottom: 0; }
 @media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
   .tmgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; grid-auto-flow: dense; }
   .tmgrid > .tmwide2 { grid-column: 1 / -1; }
-  .tmgrid > .tmrow2 { grid-row: span 2; }
   .tmrows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tmkp { grid-template-columns: repeat(4, 1fr); }
   .tmkp > div:nth-child(odd) { border-right: 0; }

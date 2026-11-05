@@ -14,3 +14,26 @@ button.usu:last-child { border-bottom: 0; }
 .usdays { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
 .usdays span { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; background: var(--ac2); border-radius: 3px; }
 .usdays i { display: block; width: 100%; background: var(--ac); border-radius: 3px; }
+/* ομάδες οθονών */
+.usg { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+.usgi { width: 34px; height: 34px; border-radius: 10px; background: var(--ac2); display: flex; align-items: center; justify-content: center; font-size: 17px; flex: none; }
+.usgn { font-weight: 700; flex: 0 1 calc(118 * var(--u)); min-width: 0; overflow-wrap: anywhere; }
+.usgb { flex: 1; height: 11px; border-radius: 6px; background: var(--bd); overflow: hidden; min-width: 40px; }
+.usgb i { display: block; height: 100%; border-radius: 6px; background: var(--ac); }
+.usg > b { flex: none; min-width: 3ch; text-align: right; }
+/* πολύ / λίγο / κανείς: η μία κάτω από την άλλη */
+.uscols { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.usc { border-radius: 14px; padding: 10px 12px; font-size: calc(15 * var(--u)); line-height: 1.5; }
+.usc > b { display: block; margin-bottom: 4px; }
+.usc.c1 { background: color-mix(in srgb, var(--ac) 14%, var(--card)); }
+.usc.c2 { background: color-mix(in srgb, #e0a11b 16%, var(--card)); }
+.usc.c3 { background: color-mix(in srgb, var(--rd) 13%, var(--card)); }
+/* ημερολόγιο χρηστών × μέρες */
+.ushm { display: grid; grid-template-columns: minmax(64px, auto) repeat(var(--n), minmax(0, 24px)); gap: 3px; align-items: center; }
+.ushn { font-size: calc(13 * var(--u)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
+.ushm i, .ushl i { display: block; aspect-ratio: 1; border-radius: 3px; background: var(--bd); }
+.ushm i.l1, .ushl i.l1 { background: color-mix(in srgb, var(--ac) 30%, var(--card)); }
+.ushm i.l2, .ushl i.l2 { background: color-mix(in srgb, var(--ac) 62%, var(--card)); }
+.ushm i.l3, .ushl i.l3 { background: var(--ac); }
+.ushl { display: flex; align-items: center; gap: 5px; margin-top: 10px; font-size: calc(12.5 * var(--u)); color: var(--mu); }
+.ushl i { width: 12px; }

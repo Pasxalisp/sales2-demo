@@ -40,7 +40,9 @@
     if (F && F.m && F.me) {
       const cur = FL.curM(F), rowsOf = (m) => (F.m[m] || []).map(FL.row), mine = (m) => rowsOf(m).find((x) => x.code === F.me) || null;
       const now = mine(cur), ranked = rowsOf(cur).filter((x) => x.target > 0).sort((a, b) => FL.ach(b) - FL.ach(a)), yr = FL.yearRows(F).find((x) => x.code === F.me);
-      if (now) fl = { month: MNG[cur - 1], cur, now, rank: ranked.indexOf(now) + 1, of: ranked.length, months: Array.from({ length: cur }, (_, i) => mine(i + 1) || { target: 0, sales: 0, coll: 0 }), year: yr, d: F.d };
+      /* πού «έπρεπε» να είναι σήμερα: ποσοστό του μήνα που πέρασε (με την ημερομηνία των στοιχείων FLASH) */
+      const dd = new Date(F.d + 'T12:00:00'), exp = dd.getMonth() + 1 === cur ? Math.round(dd.getDate() / new Date(dd.getFullYear(), cur, 0).getDate() * 100) : 100;
+      if (now) fl = { month: MNG[cur - 1], cur, now, exp, rank: ranked.indexOf(now) + 1, of: ranked.length, months: Array.from({ length: cur }, (_, i) => mine(i + 1) || { target: 0, sales: 0, coll: 0 }), year: yr, d: F.d };
     }
     const deals = Object.entries(M.dealsAll()).filter(([k]) => k[0] !== '_' && M.byId(k)).map(([k, x]) => Object.assign({ id: k, name: M.byId(k).name }, x, M.deal(x)));
     const balIds = M.bal.ids();
@@ -75,7 +77,6 @@
   const donut = (p, size, sub) => { const r = size / 2 - 8, c = 2 * Math.PI * r, f = Math.max(0, Math.min(p, 100)) / 100 * c;
     return `<svg class="tmdon" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${p}% ${sub || ''}"><circle class="tk" cx="${size / 2}" cy="${size / 2}" r="${r}"/><circle class="v ${pc(p)}" cx="${size / 2}" cy="${size / 2}" r="${r}" stroke-dasharray="${f} ${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="50%" y="${sub ? '47%' : '55%'}" class="big" style="font-size:${Math.round(size / 4.3)}px">${p}%</text>${sub ? `<text x="50%" y="66%" class="sm">${sub}</text>` : ''}</svg>`; };
   const bar = (p) => `<div class="tmbar"><i style="width:${Math.max(0, Math.min(100, p))}%" class="${pc(p)}"></i></div>`;
-  const spark = (L) => { const mx = Math.max(1, ...L), w = 7; return `<svg class="tmspk" width="${L.length * w}" height="26" aria-hidden="true">${L.map((x, i) => `<rect x="${i * w}" y="${26 - x / mx * 24}" width="5" height="${Math.max(1, x / mx * 24)}" rx="1" class="${i === L.length - 1 ? 'on' : ''}"/>`).join('')}</svg>`; };
   function monthly(months) {
     const W = 340, Hh = 150, n = months.length, bw = W / Math.max(n, 6), mx = Math.max(1, ...months.map((x) => Math.max(x.target, x.sales))), y = (v) => Hh - 18 - v / mx * (Hh - 30);
     return `<svg class="tmch" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Πωλήσεις και στόχος ανά μήνα">` + months.map((x, i) => { const p = x.target ? x.sales / x.target * 100 : 0;
@@ -95,13 +96,61 @@
   const card = (title, body, cls) => `<section class="tmcard${cls ? ' ' + cls : ''}"><h3>${title}</h3>${body}</section>`;
   const more = (L, n, f, empty, key) => rows(L.slice(0, n), f, empty) + (L.length > n ? `<button class="shlink" data-more="${key}">+ ${L.length - n} ακόμα ▾</button>` : '');
 
-  /* ---------- λίστα πωλητών (ομάδα) ---------- */
+  /* ---------- κατάσταση πωλητή: πρώτα το συμπέρασμα, μετά τα νούμερα ----------
+     status(f, ctx) → { lvl: 'g'|'y'|'r', pace, why: [{ t, k? }] }. ctx = διάμεσοι της ομάδας { v: επισκέψεις 30 ημ., d: εκκρεμότητες }.
+     Το χρώμα το ορίζει ο ρυθμός FLASH σε σχέση με το πόσο μήνας πέρασε (κάτω από 75% του αναμενόμενου κόκκινο, κάτω από
+     92% κίτρινο). Τα υπόλοιπα σημάδια (Goldwell −20%, επισκέψεις κάτω από τις μισές της ομάδας, διπλάσιες εκκρεμότητες
+     από την ομάδα, ληξιπρόθεσμα 3.000 €+, κατηγορία −50%) γράφονται ως λόγοι· ανεβάζουν το πράσινο σε κίτρινο μόνο αν
+     είναι δύο ή περισσότερα, και το κίτρινο σε κόκκινο μόνο αν είναι τρία ή περισσότερα. Έτσι το κόκκινο σημαίνει πραγματικά βοήθεια. */
   const fp = (f) => (f.fl ? pct(f.fl.now.sales, f.fl.now.target) : 0);
-  const sellerRow = (x, f, scope) => { const p = fp(f);
-    return `<button class="tmrow${x.id === me.id ? ' me' : ''}" data-mem="${esc(x.id)}" data-scope="${esc(scope)}"><span class="tmav${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span><span class="tmrb"><b>${esc(x.name)}${x.id === me.id ? ' <small class="mu">(εσύ)</small>' : ''}</b>` +
-      (f.fl ? `${bar(p)}<span class="tmmini"><span>FLASH <b class="${pc(p)}">${p}%</b></span>` : '<span class="tmmini">') +
-      `<span>Goldwell <b class="${yoyCls(f.gold.a, f.gold.b)}">${yoyTxt(f.gold.a, f.gold.b)}</b></span><span>${f.v30} επισκ.</span>${f.due.length ? `<span class="dn">${f.due.length} εκκρ.</span>` : ''}</span></span>` +
-      (f.fl ? spark(f.fl.months.map((m) => m.sales)) : '') + '<span class="tmchev">›</span></button>'; };
+  const LV = { r: 2, y: 1, g: 0 };
+  const median = (L) => { const a = L.filter((x) => x != null).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : 0; };
+  const ctxOf = (list) => ({ v: median(list.map(({ f }) => f.v30)), d: median(list.map(({ f }) => f.due.length)) });
+  function status(f, ctx) {
+    const why = [];
+    let pace = 'Χωρίς FLASH', lvl = 'g';
+    if (f.fl) { const r = f.fl.exp ? fp(f) / f.fl.exp : 1; [pace, lvl] = r < 0.75 ? ['Πολύ πίσω', 'r'] : r < 0.92 ? ['Λίγο πίσω', 'y'] : r >= 1.05 ? ['Πάνω από τον ρυθμό', 'g'] : ['Στον ρυθμό', 'g']; }
+    const g = yo(f.gold.a, f.gold.b);
+    if (g != null && g <= -20) why.push({ t: `Goldwell −${Math.abs(g)}%` });
+    if (ctx.v > 0 && f.v30 < ctx.v * 0.5) why.push({ t: `λίγες επισκέψεις (${f.v30} σε 30 μέρες, η ομάδα ~${ctx.v})` });
+    if (f.due.length >= 8 && f.due.length >= ctx.d * 2) why.push({ t: `${f.due.length} εκκρεμότητες (η ομάδα ~${ctx.d})` });
+    if (f.over >= 3000) why.push({ t: `ληξιπρόθεσμα ${m0(f.over)}` });
+    const worst = f.cats.filter((c) => c.a >= 500).map((c) => Object.assign({ p: yo(c.a, c.b) }, c)).sort((a, b) => a.p - b.p)[0];
+    if (worst && worst.p <= -50) why.push({ t: `${worst.label} −${Math.abs(worst.p)}%`, k: worst.k });
+    if (lvl === 'g' && why.length >= 2) lvl = 'y'; else if (lvl === 'y' && why.length >= 3) lvl = 'r';
+    return { lvl, pace, why };
+  }
+  const first = (n) => esc(String(n || '').split(' ')[0]);
+  /* «Χρειάζεται προσοχή»: όσοι είναι στο κόκκινο (αλλιώς στο κίτρινο), με λόγια */
+  function attention(list, med, scope) {
+    const S = list.map(({ x, f }) => ({ x, f, st: status(f, med) })), red = S.filter((z) => z.st.lvl === 'r'), L = (red.length ? red : S.filter((z) => z.st.lvl === 'y')).slice(0, 3);
+    if (!L.length) return `<section class="tmcard tmok"><h3>👍 Όλοι στον ρυθμό</h3><p class="tmatt">Κανείς δεν χρειάζεται βοήθεια αυτή τη στιγμή.</p></section>`;
+    return `<section class="tmcard tmalert${red.length ? '' : ' y'}"><h3>⚠️ Χρειάζεται προσοχή</h3>` + L.map(({ x, f, st }) =>
+      `<p class="tmatt"><b>${esc(x.name)}</b> — ${f.fl ? fp(f) + '% του στόχου (έπρεπε ~' + f.fl.exp + '%)' : esc(st.pace)}${st.why.length ? ', ' + st.why.map((w) => esc(w.t)).join(', ') : ''}.</p>` +
+      `<button class="shlink" data-mem="${esc(x.id)}" data-scope="${esc(scope)}">Δες τι να ${x.role === 'lead' ? 'συζητήσετε' : 'του πεις'} ›</button>`).join('') + '</section>';
+  }
+  /* μπάρα στόχου με γραμμή «πού έπρεπε να είναι σήμερα» */
+  const pbar = (p, exp, lvl) => `<div class="tmbar mk"><i class="${lvl}" style="width:${Math.max(0, Math.min(100, p))}%"></i>${exp != null ? `<u style="left:${exp}%"></u>` : ''}</div>`;
+  /* πωλητές με χρώμα, μία φράση, μπάρα στόχου και ποσοστό */
+  const sellers = (list, med, scope, withTeam) => list.map(({ x, f }) => { const st = status(f, med), p = fp(f);
+    return `<button class="tmsr" data-mem="${esc(x.id)}" data-scope="${esc(scope)}"><span class="tmdot ${st.lvl}" aria-label="${st.lvl === 'r' ? 'χρειάζεται βοήθεια' : st.lvl === 'y' ? 'θέλει ματιά' : 'πάει καλά'}"></span>` +
+      `<span class="tmsrb"><b>${esc(x.name)}${x.role === 'lead' ? ' <span class="tmtag">υπεύθυν.</span>' : ''}${x.id === me.id ? ' <small class="mu">(εσύ)</small>' : ''}</b>` +
+      `<span class="tmwhy ${st.lvl}">${esc([st.pace].concat(st.lvl === 'g' ? [] : st.why.slice(0, 1).map((w) => w.t)).join(' · '))}${withTeam ? ' · ' + esc((O.team(x.team) || {}).name || '') : ''}</span>` +
+      `${f.fl ? pbar(p, f.fl.exp, st.lvl) : ''}</span><span class="tmpct ${st.lvl}">${f.fl ? p + '%' : '—'}</span></button>`; }).join('');
+  /* σύνοψη ομάδας / εταιρείας: ένα μεγάλο νούμερο */
+  function teamSummary(list) {
+    const t = { target: sum(list, ({ f }) => f.fl && f.fl.now.target), sales: sum(list, ({ f }) => f.fl && f.fl.now.sales), ga: sum(list, ({ f }) => f.gold.a), gb: sum(list, ({ f }) => f.gold.b),
+      v30: sum(list, ({ f }) => f.v30), due: sum(list, ({ f }) => f.due.length) };
+    const fl = (list.find(({ f }) => f.fl) || { f: {} }).f.fl, p = pct(t.sales, t.target), left = t.target - t.sales;
+    return `<section class="tmcard tmsum">${donut(p, 96)}<div class="tmsumb"><div class="tmhero">${m0(t.sales)}</div>` +
+      `<div class="mu">από ${m0(t.target)} στόχο${fl ? ' ' + esc(fl.month) : ''} · ${left > 0 ? 'λείπουν ' + m0(left) : 'πάνω από τον στόχο'}</div>` +
+      `<div class="tmmini"><span>Goldwell <b class="${yoyCls(t.ga, t.gb)}">${yoyTxt(t.ga, t.gb)}</b></span><span>${t.v30} επισκ. / 30 ημ.</span><span class="${t.due ? 'dn' : ''}">${t.due} εκκρεμότητες</span></div></div></section>`;
+  }
+  /* «Όλα τα νούμερα ανά πωλητή»: πίνακας με ένα νούμερο ανά στήλη */
+  const nums = (list) => `<div class="tmheat tmnums"><table><thead><tr><th></th><th>FLASH</th><th>Goldwell</th><th>Επισκ. 30ημ.</th><th>Εκκρ.</th><th>Υπόλοιπα</th></tr></thead><tbody>` +
+    list.map(({ x, f }) => `<tr data-mem="${esc(x.id)}"><th>${first(x.name)}</th><td class="${pc(fp(f))}">${f.fl ? fp(f) + '%' : '—'}</td><td class="${yoyCls(f.gold.a, f.gold.b)}">${yoyTxt(f.gold.a, f.gold.b)}</td><td>${f.v30}</td><td class="${f.due.length >= 4 ? 'dn' : ''}">${f.due.length}</td><td>${m0(f.debt)}</td></tr>`).join('') + '</tbody></table></div>';
+  const details = (list, open) => `<button class="tmmore" data-det="1">${open ? 'Λιγότερα ▴' : 'Όλα τα νούμερα ανά πωλητή ▾'}</button>` +
+    (open ? `<div class="tmgrid tmdet">${card('Νούμερα ανά πωλητή', nums(list), 'tmwide2')}${card('Κατηγορίες ανά πωλητή · φέτος σε σχέση με πέρσι', heat(list), 'tmwide2')}</div>` : '');
   /* σύγκριση πωλητών ανά κατηγορία: % αλλαγής φέτος/πέρσι (πίνακας-θερμότητα). Κάτω από M.WORKED πέρσι δεν βγαίνει
      ποσοστό (π.χ. 20 € → 2.000 € δεν είναι «+9.900%»): «νέο» αν φέτος πέρασε το όριο, αλλιώς «—». */
   function heat(list) {
@@ -111,33 +160,34 @@
       list.map(({ x, f }) => `<tr data-mem="${esc(x.id)}"><th>${esc(x.name.split(' ')[0])}</th>${[{ a: f.gold.a, b: f.gold.b }].concat(ks.map((k) => f.cats.find((c) => c.k === k) || { a: 0, b: 0 })).map((c) => { const p = c.a >= W ? yo(c.a, c.b) : null, nw = c.a < W && c.b >= W;
         return `<td class="${p == null ? (nw ? 'hu' : '') : p >= 5 ? 'hu' : p <= -5 ? 'hd' : 'hm'}">${p == null ? (nw ? 'νέο' : '—') : (p > 0 ? '+' : '') + p + '%'}</td>`; }).join('')}</tr>`).join('') + '</tbody></table></div>';
   }
-  function teamSummary(list, title) {
-    const t = { target: sum(list, ({ f }) => f.fl && f.fl.now.target), sales: sum(list, ({ f }) => f.fl && f.fl.now.sales), ga: sum(list, ({ f }) => f.gold.a), gb: sum(list, ({ f }) => f.gold.b),
-      v30: sum(list, ({ f }) => f.v30), due: sum(list, ({ f }) => f.due.length), n: sum(list, ({ f }) => f.n), debt: sum(list, ({ f }) => f.debt) };
-    const mo = (list.find(({ f }) => f.fl) || { f: { fl: { month: '' } } }).f.fl.month, p = pct(t.sales, t.target);
-    return `<section class="tmcard tmsum">${donut(p, 112, 'του στόχου')}<div class="tmsumb"><h3>${title} · FLASH ${esc(mo)}</h3><div class="tmbig"><b>${m0(t.sales)}</b> <span class="mu">από ${m0(t.target)}</span></div>` +
-      `<div class="tmmini"><span>Goldwell <b class="${yoyCls(t.ga, t.gb)}">${yoyTxt(t.ga, t.gb)}</b></span><span>${t.v30} επισκ. / 30 ημ.</span><span>${t.n} πελάτες</span><span class="${t.due ? 'dn' : ''}">${t.due} εκκρεμότητες</span><span>Υπόλοιπα ${m0(t.debt)}</span></div></div></section>`;
-  }
-  /* κατάταξη πωλητών στο FLASH του μήνα */
-  const ranking = (list, withTeam, cls) => card('FLASH μήνα ανά πωλητή', list.slice().sort((a, b) => fp(b.f) - fp(a.f)).map(({ x, f }, k) => `<button class="tmrk" data-mem="${esc(x.id)}"><span class="tmn1">${k + 1}</span><span class="tmrb"><b>${esc(x.name)}</b>${withTeam ? `<small class="mu">${esc((O.team(x.team) || {}).name || '')}</small>` : ''}${bar(fp(f))}</span><b class="${pc(fp(f))}">${fp(f)}%</b></button>`).join(''), cls);
   const canTeam = (tid) => me && (me.role === 'director' || (me.role === 'lead' && me.team === tid));
 
   PL.register('team', {
     title: 'Η ομάδα μου',
     render(el, params) {
       const tid = (params && params.team) || me.team, t = O.team(tid); if (!t || !canTeam(tid)) return deny(el);
-      const list = O.sellers(tid).map((x) => ({ x, f: figOf(x.id) })), lead = list.filter(({ x }) => x.role === 'lead'), rest = list.filter(({ x }) => x.role !== 'lead');
+      const list = O.sellers(tid).map((x) => ({ x, f: figOf(x.id) })), med = ctxOf(list);
+      const sorted = list.slice().sort((a, b) => LV[status(b.f, med).lvl] - LV[status(a.f, med).lvl] || fp(b.f) - fp(a.f));
+      let open = false;
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmhead"><h2>${ICON.team}${me.team === tid ? 'Η ομάδα μου' : esc(t.name)}</h2><p class="mu">${esc(t.name)} · ${ppl(list.map(({ x }) => x))} ${RO}</p></div>` +
-        `<div class="tmgrid">${teamSummary(list, 'Ομάδα')}` + ranking(list) + card('Κατηγορίες ανά πωλητή · φέτος σε σχέση με πέρσι', heat(list), 'tmwide2') + '</div>' +
-        (lead.length ? '<h3 class="tmsec">Υπεύθυνος ομάδας</h3><div class="tmrows">' + lead.map(({ x, f }) => sellerRow(x, f, tid)).join('') + '</div>' : '') +
-        '<h3 class="tmsec">Πωλητές</h3><div class="tmrows">' + rest.map(({ x, f }) => sellerRow(x, f, tid)).join('') + '</div>' +
-        '<p class="mu tmfoot">Πάτα σε έναν πωλητή για όλα του τα στοιχεία. Τα νούμερα βγαίνουν από τα δεδομένα του κάθε πωλητή, με τους ίδιους υπολογισμούς που βλέπει κι εκείνος.</p>';
-      el.addEventListener('click', (ev) => { const b = ev.target.closest('[data-mem]'); if (b) PL.nav.push('member', { id: b.dataset.mem, scope: tid }); });
+      const paint = () => {
+        el.innerHTML = `<div class="tmhead"><h2>${ICON.team}${me.team === tid ? 'Η ομάδα μου' : esc(t.name)}</h2><p class="mu">${esc(t.name)} · ${ppl(list.map(({ x }) => x))} ${RO}</p></div>` +
+          `<div class="tmgrid">${attention(list, med, tid)}${teamSummary(list)}${card('Πωλητές', `<div class="tmsl">${sellers(sorted, med, tid)}</div>`, 'tmwide2')}</div>` + details(sorted, open) +
+          '<p class="mu tmfoot">Χρώμα: πράσινο πάει καλά, κίτρινο θέλει ματιά, κόκκινο χρειάζεται βοήθεια. Η μαύρη γραμμή στη μπάρα δείχνει πού έπρεπε να είναι σήμερα.</p>';
+      };
+      paint();
+      el.addEventListener('click', (ev) => {
+        if (ev.target.closest('[data-det]')) { open = !open; paint(); return; }
+        const b = ev.target.closest('[data-mem]'); if (b) PL.nav.push('member', { id: b.dataset.mem, scope: tid });
+      });
     },
   });
 
   /* ---------- ένας πωλητής, σε όλη την οθόνη ---------- */
+  /* «Τι να συζητήσετε»: οι λόγοι της κατάστασης με λόγια· η κατηγορία που έπεσε ανοίγει τους πελάτες της */
+  const talk = (f, st, x) => `<section class="tmcard tmwide2 ${st.lvl === 'r' ? 'tmalert' : st.lvl === 'y' ? 'tmalert y' : 'tmok'}"><h3>${st.lvl === 'g' ? '👍 Πάει καλά' : '💬 Τι να συζητήσετε'}</h3>` +
+    `<p class="tmatt"><b>${esc(st.pace)}</b>${f.fl ? ` — ${fp(f)}% του στόχου, έπρεπε ~${f.fl.exp}% σήμερα` : ''}.</p>` +
+    (st.why.length ? '<ul class="tmwhyl ' + st.lvl + '">' + st.why.map((w) => `<li>${esc(w.t)}${w.k ? ` <button class="shlink" data-cat="${esc(w.k)}" data-who="${esc(x.id)}">πελάτες ›</button>` : ''}</li>`).join('') + '</ul>' : '') + '</section>';
   const scopeIds = (scope) => O.sellers(scope && scope !== '*' ? scope : '').map((x) => x.id);
   PL.register('member', {
     title: 'Πωλητής',
@@ -145,12 +195,12 @@
       const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id);
       if (!x || !M || (me.role === 'sales')) return deny(el);
       const f = figures(M), t = O.team(x.team), ids = scopeIds(params.scope), k = ids.indexOf(x.id), prev = O.sellers().find((z) => z.id === ids[k - 1]), next = O.sellers().find((z) => z.id === ids[k + 1]);
-      const p = fp(f), open = new Set();
+      const p = fp(f), open = new Set(), st = status(f, ctxOf(O.sellers(x.team).map((z) => ({ f: z.id === x.id ? f : figOf(z.id) })).filter((z) => z.f)));
       el.classList.add('tmpage');
       const paint = () => {
         el.innerHTML = `<div class="tmtop"><button class="shlink" data-shback="1">‹ ${params.scope === '*' ? 'Όλες οι ομάδες' : 'Ομάδα'}</button><span class="tmpn">${prev ? `<button data-go="${esc(prev.id)}">‹ ${esc(prev.name.split(' ')[0])}</button>` : ''}${next ? `<button data-go="${esc(next.id)}">${esc(next.name.split(' ')[0])} ›</button>` : ''}</span></div>` +
           `<div class="tmwho"><span class="tmav big${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span><div><h2>${esc(x.name)}</h2><div class="mu">${esc(O.ROLES[x.role])}${t ? ' · ' + esc(t.name) : ''} · ${f.n} πελάτες</div><div style="margin-top:4px">${RO}</div></div></div>` +
-          '<div class="tmgrid">' +
+          '<div class="tmgrid">' + talk(f, st, x) +
           (f.fl ? `<section class="tmcard tmsum">${donut(p, 120, 'του στόχου')}<div class="tmsumb"><h3>FLASH ${esc(f.fl.month)}</h3><div class="tmbig"><b>${m0(f.fl.now.sales)}</b> <span class="mu">από ${m0(f.fl.now.target)}</span></div>` +
             `<div class="tmmini"><span>${f.fl.now.target > f.fl.now.sales ? 'Λείπουν <b class="dn">' + m0(f.fl.now.target - f.fl.now.sales) + '</b>' : '<b class="up">Πάνω από τον στόχο</b>'}</span><span>Προς εκτέλεση ${m0(f.fl.now.pend)}</span><span>Εισπράξεις ${m0(f.fl.now.coll)}</span>${f.fl.rank ? `<span>${f.fl.rank}ος από ${f.fl.of} στην εταιρεία</span>` : ''}</div></div></section>` : '') +
           `<section class="tmcard tmkp tmwide2">${kp('Γενικός τζίρος φέτος', m0(f.all.b), '', `<span class="${yoyCls(f.all.a, f.all.b)}">${yoyTxt(f.all.a, f.all.b)}</span> · πέρσι ${m0(f.all.a)}`)}` +
@@ -203,16 +253,21 @@
     title: 'Όλες οι ομάδες',
     render(el) {
       if (!me || me.role !== 'director') return deny(el, 'Αυτή η οθόνη είναι για τον διευθυντή.');
-      const all = O.teams().map((t) => ({ t, list: O.sellers(t.id).map((x) => ({ x, f: figOf(x.id) })) })), every = [].concat(...all.map((a) => a.list));
+      const all = O.teams().map((t) => { const list = O.sellers(t.id).map((x) => ({ x, f: figOf(x.id) })); return { t, list, med: ctxOf(list) }; });
+      const every = [].concat(...all.map((a) => a.list)), med = ctxOf(every);
+      let open = false;
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmhead"><h2>${ICON.org}Όλες οι ομάδες</h2><p class="mu">${all.length} ομάδες · ${ppl(every.map(({ x }) => x))} ${RO}</p></div>` +
-        `<div class="tmgrid">${teamSummary(every, 'Εταιρεία')}` +
-        ranking(every, true, 'tmrow2') +
-        all.map(({ t, list }) => { const p = pct(sum(list, ({ f }) => f.fl && f.fl.now.sales), sum(list, ({ f }) => f.fl && f.fl.now.target)), lead = list.find(({ x }) => x.role === 'lead');
-          return `<section class="tmcard tmteam" data-team="${esc(t.id)}"><h3>${esc(t.name)}</h3><div class="tmteamh">${donut(p, 84)}<div><div class="mu">${lead ? 'Υπεύθυνος: ' + esc(lead.x.name) : ''}</div><div class="tmmini"><span>${list.filter(({ x }) => x.role !== 'lead').length} πωλητές</span><span>${sum(list, ({ f }) => f.n)} πελάτες</span><span>Goldwell <b class="${yoyCls(sum(list, ({ f }) => f.gold.a), sum(list, ({ f }) => f.gold.b))}">${yoyTxt(sum(list, ({ f }) => f.gold.a), sum(list, ({ f }) => f.gold.b))}</b></span></div></div></div>` +
-            `<div class="tmppl">${list.map(({ x, f }) => `<button data-mem="${esc(x.id)}"><span class="tmav s${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span>${esc(x.name.split(' ')[0])} <b class="${pc(fp(f))}">${fp(f)}%</b></button>`).join('')}</div><button class="shlink" data-team="${esc(t.id)}">Όλη η ομάδα ›</button></section>`; }).join('') +
-        card('Κατηγορίες ανά πωλητή · φέτος σε σχέση με πέρσι', heat(every), 'tmwide2') + '</div>';
+      const paint = () => {
+        el.innerHTML = `<div class="tmhead"><h2>${ICON.org}Όλες οι ομάδες</h2><p class="mu">${all.length} ομάδες · ${ppl(every.map(({ x }) => x))} ${RO}</p></div>` +
+          `<div class="tmgrid">${attention(every, med, '*')}${teamSummary(every)}` +
+          all.map(({ t, list, med: m }) => { const p = pct(sum(list, ({ f }) => f.fl && f.fl.now.sales), sum(list, ({ f }) => f.fl && f.fl.now.target)), lead = list.find(({ x }) => x.role === 'lead');
+            const sorted = list.slice().sort((a, b) => LV[status(b.f, m).lvl] - LV[status(a.f, m).lvl] || fp(b.f) - fp(a.f));
+            return `<section class="tmcard tmteam"><div class="tmteamh">${donut(p, 64)}<div><h3>${esc(t.name)}</h3><div class="mu">${lead ? 'Υπεύθυνος: ' + esc(lead.x.name) : ''}</div></div></div>` +
+              `<div class="tmsl">${sellers(sorted, m, '*')}</div><button class="shlink" data-team="${esc(t.id)}">Όλη η ομάδα ›</button></section>`; }).join('') + '</div>' + details(every, open);
+      };
+      paint();
       el.addEventListener('click', (ev) => {
+        if (ev.target.closest('[data-det]')) { open = !open; paint(); return; }
         const m = ev.target.closest('[data-mem]'); if (m) { PL.nav.push('member', { id: m.dataset.mem, scope: '*' }); return; }
         const t = ev.target.closest('[data-team]'); if (t) PL.nav.push('team', { team: t.dataset.team });
       });
