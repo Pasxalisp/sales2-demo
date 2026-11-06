@@ -269,6 +269,23 @@ main>.page>h2:first-of-type {
 .pnav .pbk svg {
   flex: none;
 }
+.pnav.ptt {
+  position: relative;
+}
+.pnav .pti {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: calc(17 * var(--u));
+  white-space: nowrap;
+  pointer-events: none;
+}
+.pnav.ptt .pbk {
+  max-width: 34%;
+}
+.pnav.ptt+h2 {
+  display: none;
+}
 .pnav .pmo {
   flex: none;
   width: 38px;
@@ -1077,40 +1094,22 @@ main {
 #nvo.hint .ol {
   opacity: 1;
 }
-#nav .nplus {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: transform .2s,background .2s;
-  justify-self: stretch;
-  width: auto;
-  height: auto;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  color: #2f6f5e;
-  transform: none !important;
+/* η ενότητα όπου βρίσκεσαι: πράσινο κείμενο, απαλό πράσινο φόντο πίσω από το εικονίδιο (όπως στο iPhone) */
+#nav .nb.on {
+  color: var(--ac);
 }
-#nav .nplus .pc {
-  width: 36px;
-  height: 26px;
-  border-radius: 13px;
-  background: rgba(47,111,94,.14);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background .2s,color .2s;
+#nav .nb.on>svg {
+  box-sizing: content-box;
+  padding: 2px 11px;
+  border-radius: 12px;
+  background: color-mix(in srgb,var(--ac) 17%,transparent);
+  stroke-width: 2.3;
 }
-#nav .nplus .pc svg {
-  transition: transform .2s;
+#nav .nmic.on .mc {
+  background: rgba(217,56,47,.24);
 }
-#nav .nplus.on {
-  transform: rotate(45deg);
-  background: none;
-  color: #2f6f5e;
+#nav .nhome>svg {
+  margin-top: -2px;
 }
 #nav .nmic {
   color: #b8463e;
@@ -1145,39 +1144,12 @@ main {
   background: rgba(240,138,130,.16);
   color: #f08a82;
 }
-#nav .nplus.on .pc {
-  background: #2f6f5e;
-  color: #fff;
-}
-#nav .nplus.on .pc svg {
-  transform: rotate(45deg);
-}
-#nav.noplus {
-  grid-template-columns: repeat(4,1fr);
-}
-#nav.noplus .nplus {
-  display: none;
-}
 #pmb .pd {
   display: block;
   font-size: calc(12.5 * var(--u));
   font-weight: 400;
   color: var(--mu);
   margin-top: 1px;
-}
-@media (prefers-color-scheme:dark) {
-  :root:not([data-theme="light"]) #nav .nplus {
-    color: #6fc4a2;
-  }
-  :root:not([data-theme="light"]) #nav .nplus .pc {
-    background: rgba(111,196,162,.16);
-  }
-}
-:root[data-theme="dark"] #nav .nplus {
-  color: #6fc4a2;
-}
-:root[data-theme="dark"] #nav .nplus .pc {
-  background: rgba(111,196,162,.16);
 }
 #fs {
   position: fixed;
@@ -1560,8 +1532,7 @@ html.big .sha > :last-child:nth-child(odd) {
   :root {
     --rail: calc(96px + env(safe-area-inset-left,0px));
   }
-  #nav,
-  #nav.noplus {
+  #nav {
     left: calc(12px + env(safe-area-inset-left,0px));
     right: auto;
     top: 50%;

@@ -460,12 +460,6 @@ body.home #nav {
   border-radius: 28px;
   padding: 8px 6px;
 }
-body.home #nav #nvh {
-  color: #1f8f6e;
-  background: rgba(31,143,110,.13);
-  border-radius: 18px;
-  margin: 0 4px;
-}
 body.home #nvo {
   background: #e9faf4;
   color: #1f8f6e;
@@ -492,9 +486,8 @@ body.home #nvo .oc {
   :root:not([data-theme="light"]) body.home #nav .nb {
     color: #aab6bf;
   }
-  :root:not([data-theme="light"]) body.home #nav #nvh {
+  :root:not([data-theme="light"]) body.home #nav .nb.on {
     color: #4fdcb4;
-    background: rgba(79,220,180,.14);
   }
   :root:not([data-theme="light"]) body.home #nav .nmic {
     color: #f0857c;
@@ -514,9 +507,8 @@ body.home #nvo .oc {
 :root[data-theme="dark"] body.home #nav .nb {
   color: #aab6bf;
 }
-:root[data-theme="dark"] body.home #nav #nvh {
+:root[data-theme="dark"] body.home #nav .nb.on {
   color: #4fdcb4;
-  background: rgba(79,220,180,.14);
 }
 :root[data-theme="dark"] body.home #nav .nmic {
   color: #f0857c;

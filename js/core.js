@@ -95,7 +95,7 @@
   /* ---- σελίδες & στοίβα πλοήγησης ---- */
   /* σήμα των καμπανιών (προσφορές): «%» σε πορτοκαλί κυκλάκι, μέσα σε κείμενο (.pct, base.css) */
   PL.pct = '<span class="pct">%</span>';
-  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:['ids σελίδων λεπτομέρειας'], aside?(el)->cleanup?, noTop? }
+  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}] (ενέργειες του «•••»), hideBar?, split?:['ids σελίδων λεπτομέρειας'], aside?(el)->cleanup?, noTop?, topTitle? }
   const stack = [];           // [{id, params}]
   PL.pages = pages;
   PL.register = (id, def) => { pages[id] = def; };
@@ -154,6 +154,8 @@
     /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο): ρωτάει πρώτα τον φύλακα της σελίδας, μετά γυρνά */
     up() { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(); },
     home() { stack.length = 0; stack.push({ id: 'home', params: {} }); show(); },
+    /* ενότητα της κάτω μπάρας: Αρχική → ενότητα */
+    tab(id) { stack.length = 0; stack.push({ id: 'home', params: {} }, { id, params: {} }); show(); },
     current: () => stack[stack.length - 1],
     depth: () => stack.length,
     trail: () => stack.map((s) => s.id),
@@ -174,14 +176,16 @@
   /* Πάνω μέρος σελίδας, όπως στο iPhone (απόφαση 06/11): αριστερά «‹ Πίσω» με το όνομα της σελίδας όπου γυρνάς,
      δεξιά «•••» με τις ενέργειες της σελίδας (ό,τι έχει και το «Νέο» της κάτω μπάρας· ανοίγουν από κάτω).
      Μπαίνει πρώτο μέσα στη σελίδα και ξαναμπαίνει όταν η σελίδα ξαναγράψει όλο το περιεχόμενό της.
-     Δεν μπαίνει στην Αρχική ή όταν δεν έχει τίποτα από τα δύο· noTop: η σελίδα έχει δικό της «Πίσω» (Υπαγόρευση). */
+     Δεν μπαίνει στην Αρχική ή όταν δεν έχει τίποτα από τα δύο· noTop: η σελίδα έχει δικό της «Πίσω» (Υπαγόρευση).
+     topTitle: ο τίτλος μικρός στη μέση της ίδιας γραμμής και κρύβεται το h2 (σελίδες χωρίς κύλιση, π.χ. «Η κάρτα μου»). */
   const backName = (b) => (b.id === 'client' && PL.model && PL.model.byId(b.params.id) ? PL.model.byId(b.params.id).name : PL.pageTitle(b.id));
   function topNav(el, e) {
     const def = pages[e.id], i = stack.indexOf(e), prev = i > 0 ? stack[i - 1] : null, nova = def.nova ? def.nova(e.params) : null;
     if (def.noTop || (!prev && !(nova && nova.length))) return null;
     const nav = document.createElement('div');
-    nav.className = 'pnav';
+    nav.className = 'pnav' + (def.topTitle ? ' ptt' : '');
     nav.innerHTML = (prev ? `<button class="pbk" data-a="pback">${SV('<path d="M15 5l-7 7 7 7"/>', 20, 2.2)}<span></span></button>` : '<span></span>') +
+      (def.topTitle ? `<b class="pti">${def.title}</b>` : '') +
       (nova && nova.length ? `<button class="pmo" data-a="pmore" aria-label="Περισσότερα">${SV('<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>', 20, 2.4)}</button>` : '');
     if (prev) { const t = backName(prev); nav.querySelector('.pbk span').textContent = t; nav.querySelector('.pbk').setAttribute('aria-label', 'Πίσω: ' + t); }
     nav.addEventListener('click', (ev) => {
@@ -265,29 +269,32 @@
   /* ---- κάτω μπάρα: ίδια με της παλιάς σελίδας (nav, pm, pmb) ---- */
   let badge = 0;
   const hideReasons = new Set();
+  /* κουμπιά της κάτω μπάρας: [σελίδα, κείμενο, aria-label, εικονίδιο] */
+  const TABS = [
+    ['clients', 'Πελάτες', 'Πελατολόγιο', '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>'],
+    ['balances', 'Υπόλοιπα', 'Υπόλοιπα', '<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9a2 2 0 0 0-1.8-1h-.5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h.5a2 2 0 0 0 1.8-1"/><path d="M7.5 10.5h4M7.5 13.5h4"/>'],
+    ['home', 'Αρχική', 'Αρχική', '<path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>'],
+    ['tasks', 'Ημερολόγιο', 'Εκκρεμότητες · Ημερολόγιο', '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>'],
+    ['dictate', 'Υπαγόρ.', 'Υπαγόρευση', '<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>'],
+  ];
   const SV = (p, sz, sw) => `<svg viewBox="0 0 24 24" width="${sz || 22}" height="${sz || 22}" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-  /* Μενού του «Νέο»: τίτλος της οθόνης + επιλογές, όπως στην παλιά σελίδα. */
+  /* Μενού του «•••» (πάνω δεξιά): τίτλος της οθόνης + επιλογές, ανοίγει από κάτω όπως στην παλιά σελίδα το «Νέο». */
   PL.menu = (title, items) => { items.title = title; return items; };
   PL.bar = {
     setBadge(v) { badge = v; const b = $('#nav .bdg'); if (b) { b.textContent = v > 99 ? '99+' : v; b.style.display = v ? 'block' : 'none'; } },
     hide(reason) { hideReasons.add(reason); apply(); },
     unhide(reason) { hideReasons.delete(reason); apply(); },
+    /* Κάτω μπάρα (απόφαση 06/11): οι 5 ενότητες που ανοίγεις συνέχεια, η Αρχική στη μέση, όπως στο iPhone.
+       «Πίσω» και ενέργειες είναι πάνω στη σελίδα («‹ …» και «•••»). Πατημένη φαίνεται η ενότητα όπου βρίσκεσαι:
+       η πιο πρόσφατη σελίδα της στοίβας που είναι στην μπάρα (π.χ. καρτέλα από το Πελατολόγιο → «Πελάτες»). */
     update() {
-      const cur = stack[stack.length - 1];
-      const def = pages[cur.id];
-      const nova = def.nova ? def.nova(cur.params) : null;
-      const has = nova && nova.length;
-      const bar = $('#nav');
-      bar.innerHTML =
-        `<button class="nb" data-a="back" aria-label="Πίσω">${SV('<path d="M15 5l-7 7 7 7"/>')}<span>Πίσω</span></button>` +
-        `<button class="nb" id="nvh" data-a="home" aria-label="Αρχική">${SV('<path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>')}<span>Αρχική</span></button>` +
-        `<button class="nb nplus" data-a="nova" aria-label="Νέο"><span class="pc">${SV('<path d="M12 5v14M5 12h14"/>', 20, 2.4)}</span><span>Νέο</span></button>` +
-        `<button class="nb" data-a="tasks" aria-label="Εκκρεμότητες · Ημερολόγιο">${SV('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>')}<span>Ημερολόγιο</span><i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i></button>` +
-        `<button class="nb nmic" data-a="dictate" aria-label="Υπαγόρευση"><span class="mc">${SV('<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>', 18)}</span><span>Υπαγόρ.</span></button>`;
-      $('[data-a=back]', bar).disabled = stack.length < 2;
-      bar.classList.toggle('noplus', !has);
+      const sec = [...stack].reverse().map((e) => e.id).find((id) => TABS.some((t) => t[0] === id)) || 'home';
+      $('#nav').innerHTML = TABS.map(([id, label, aria, icon]) => {
+        const ic = id === 'dictate' ? `<span class="mc">${SV(icon, 18)}</span>` : SV(icon, id === 'home' ? 25 : 22);
+        return `<button class="nb${id === 'home' ? ' nhome' : ''}${id === 'dictate' ? ' nmic' : ''}${id === sec ? ' on' : ''}" data-a="${id}" aria-label="${aria}"${id === sec ? ' aria-current="page"' : ''}>${ic}<span>${label}</span>` +
+          (id === 'tasks' ? `<i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i>` : '') + '</button>';
+      }).join('');
       closeMenu();
-      PL.bar._nova = nova;
       apply();
     },
   };
@@ -301,7 +308,6 @@
 
   function closeMenu() {
     $('#pm').classList.remove('on'); $('#pmb').classList.remove('on'); $('#pmb').innerHTML = '';
-    const p = $('#nav .nplus'); if (p) { p.classList.remove('on'); p.setAttribute('aria-label', 'Νέο'); }
   }
   const EMO = { 'Νέα εκκρεμότητα': '📝', 'Υπενθύμιση': '⏰', 'Νέο σεμινάριο': '🎓', 'Πρόσθεσε πελάτη': '➕', 'Νέο κομμωτήριο': '💈' };
   function openMenu(items) {
@@ -310,22 +316,17 @@
       `<button data-pmi="${k}" role="menuitem"><span class="pe">${it.e || EMO[it.label] || '＋'}</span><span><span style="display:block">${it.label}</span>${it.d ? `<span class="pd">${it.d}</span>` : ''}</span></button>`).join('');
     m._items = items;
     $('#pm').classList.add('on'); m.classList.add('on');
-    const p = $('#nav .nplus'); if (p) { p.classList.add('on'); p.setAttribute('aria-label', 'Κλείσιμο'); }
   }
 
   function wire() {
     $('#nav').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       const a = b.dataset.a;
-      if (a === 'back') PL.nav.up();
-      else if (a === 'home') { if (!(PL.nav.guard && PL.nav.guard(a))) PL.nav.home(); }
-      else if (a === 'tasks') { if (PL.nav.current().id !== 'tasks') PL.nav.push('tasks'); }
+      if (a === 'home') { if (!(PL.nav.guard && PL.nav.guard(a))) PL.nav.home(); }
+      /* Υπαγόρευση: ανοίγει πάνω από όπου είσαι (το «← Πίσω» της γυρνά εκεί) */
       else if (a === 'dictate') { if (PL.nav.current().id !== 'dictate') PL.nav.push('dictate'); }
-      else if (a === 'nova') {
-        const items = PL.bar._nova || [];
-        if (items.length === 1) items[0].fn();
-        else if ($('#pmb').classList.contains('on')) closeMenu(); else openMenu(items);
-      }
+      /* ενότητα: ανοίγει από την αρχή της (Αρχική → ενότητα), όπως οι καρτέλες κάτω στο iPhone· αν είσαι ήδη εκεί, τίποτα */
+      else if (a) { if (PL.nav.current().id !== a && !(PL.nav.guard && PL.nav.guard('home'))) PL.nav.tab(a); }
     });
     $('#pm').addEventListener('click', closeMenu);
     $('#pmb').addEventListener('click', (e) => {

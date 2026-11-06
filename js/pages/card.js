@@ -29,6 +29,7 @@
 
   PL.register('card', {
     title: 'Η κάρτα μου',
+    topTitle: true,   /* σταθερή οθόνη χωρίς κύλιση: ο τίτλος στη γραμμή του «‹ Αρχική», για να χωράει το QR */
     render(el) {
       el.innerHTML = `<h2>Η κάρτα μου</h2><div id="cdq"></div><div id="cdi" class="cdinfo"></div>
 <p class="mu" style="text-align:center">Ο πελάτης σκανάρει το QR με την κάμερα του κινητού και αποθηκεύει την επαφή σου.</p>
