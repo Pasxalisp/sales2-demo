@@ -8,11 +8,16 @@ header {
   z-index: 5;
   border-bottom: 1px solid var(--bd);
 }
-main>.page:has(>header:first-child) {
+main>.page:has(>header:first-child),
+main>.page:has(>.pnav:first-child+header) {
   margin: -12px -14px 0;
   padding: 0 14px;
 }
-main>.page>header:first-child {
+main>.page>.pnav:first-child:has(+header) {
+  margin-top: 8px;
+}
+main>.page>header:first-child,
+main>.page>.pnav:first-child+header {
   margin: 0 -14px 10px;
 }
 /* «Να πω» στη λίστα: πράσινο όπως ο τζίρος, αλλά αναδιπλώνεται (το .tz δεν σπάει γραμμή). */
@@ -66,11 +71,13 @@ main>.page>header:first-child {
 }
 /* Οριζόντια οθόνη: η λίστα κυλά μέσα στη δική της στήλη (base.css), η κεφαλίδα κολλά στην κορυφή της στήλης. */
 @media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
-  main.split>.page:has(>header:first-child) {
+  main.split>.page:has(>header:first-child),
+  main.split>.page:has(>.pnav:first-child+header) {
     margin: 0;
     padding: 0 18px 40px;
   }
-  main.split>.page>header:first-child {
+  main.split>.page>header:first-child,
+  main.split>.page>.pnav:first-child+header {
     top: 0;
     margin: 0 -18px 10px;
     padding: 12px 18px 8px;

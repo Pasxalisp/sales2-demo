@@ -77,6 +77,7 @@
 
   PL.register('dictate', {
     title: 'Υπαγόρευση',
+    noTop: true,   /* έχει δικό της «← Πίσω» (με τον φύλακα για το πρόγραμμα που μόλις τελείωσε) */
     render(el) {
       el.id = 'dsh';   /* οι κανόνες body.dictnav #dsh … του CSS (όπως στην παλιά) */
       el.style.cssText = 'display:flex;flex-direction:column'; /* ύψος & θέση του πεδίου: css/dictate.css (#dsh), όπως στην παλιά */

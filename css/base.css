@@ -238,6 +238,51 @@ body::-webkit-scrollbar {
 main>.page>h2:first-of-type {
   margin-top: 4px;
 }
+/* πάνω μέρος σελίδας όπως στο iPhone: «‹ Πίσω» αριστερά, «•••» δεξιά (core.js, topNav) */
+.pnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  margin: -4px 0 2px;
+}
+.pnav .pbk {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: 75%;
+  margin: 0 0 0 -6px;
+  padding: 6px 6px 6px 0;
+  background: none;
+  border: 0;
+  color: var(--ac);
+  font-size: calc(17 * var(--u));
+  font-weight: 500;
+}
+.pnav .pbk span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pnav .pbk svg {
+  flex: none;
+}
+.pnav .pmo {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  color: var(--ac);
+}
 .card {
   background: var(--card);
   border: 1px solid var(--bd);

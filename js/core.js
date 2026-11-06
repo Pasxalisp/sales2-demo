@@ -95,7 +95,7 @@
   /* ---- σελίδες & στοίβα πλοήγησης ---- */
   /* σήμα των καμπανιών (προσφορές): «%» σε πορτοκαλί κυκλάκι, μέσα σε κείμενο (.pct, base.css) */
   PL.pct = '<span class="pct">%</span>';
-  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:['ids σελίδων λεπτομέρειας'], aside?(el)->cleanup? }
+  const pages = {};           // id -> { title, render(el,params)->cleanup?, nova?:()=>[{label,fn}], hideBar?, split?:['ids σελίδων λεπτομέρειας'], aside?(el)->cleanup?, noTop? }
   const stack = [];           // [{id, params}]
   PL.pages = pages;
   PL.register = (id, def) => { pages[id] = def; };
@@ -144,6 +144,13 @@
       show();
     },
     back() { if (stack.length > 1) { stack.pop(); show(); } },
+    /* «‹ Πίσω» πάνω αριστερά μιας σελίδας: γυρνά στη σελίδα κάτω από αυτήν (στο τάμπλετ η λίστα αριστερά κλείνει και τη λεπτομέρεια δεξιά) */
+    backFrom(e) {
+      const i = stack.indexOf(e); if (i < 1) return;
+      if (i === stack.length - 1) { PL.nav.up(); return; }
+      if (PL.nav.guard && PL.nav.guard('back')) return;
+      stack.length = i; show();
+    },
     /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο): ρωτάει πρώτα τον φύλακα της σελίδας, μετά γυρνά */
     up() { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(); },
     home() { stack.length = 0; stack.push({ id: 'home', params: {} }); show(); },
@@ -157,12 +164,36 @@
   const slot = { L: { e: null, el: null, off: null, dr: null, obs: null }, R: { e: null, el: null, off: null, dr: null } };
   const unmount = (k) => {
     const s = slot[k];
+    if (s.top) s.top.disconnect();
     if (s.obs) s.obs.disconnect();
     if (s.dr) { try { s.dr.off(); } catch (e) { console.error(e); } }
     if (s.off) { try { s.off(); } catch (e) { console.error(e); } }
     if (s.el) s.el.remove();
     slot[k] = { e: null, el: null, off: null, dr: null, obs: null };
   };
+  /* Πάνω μέρος σελίδας, όπως στο iPhone (απόφαση 06/11): αριστερά «‹ Πίσω» με το όνομα της σελίδας όπου γυρνάς,
+     δεξιά «•••» με τις ενέργειες της σελίδας (ό,τι έχει και το «Νέο» της κάτω μπάρας· ανοίγουν από κάτω).
+     Μπαίνει πρώτο μέσα στη σελίδα και ξαναμπαίνει όταν η σελίδα ξαναγράψει όλο το περιεχόμενό της.
+     Δεν μπαίνει στην Αρχική ή όταν δεν έχει τίποτα από τα δύο· noTop: η σελίδα έχει δικό της «Πίσω» (Υπαγόρευση). */
+  const backName = (b) => (b.id === 'client' && PL.model && PL.model.byId(b.params.id) ? PL.model.byId(b.params.id).name : PL.pageTitle(b.id));
+  function topNav(el, e) {
+    const def = pages[e.id], i = stack.indexOf(e), prev = i > 0 ? stack[i - 1] : null, nova = def.nova ? def.nova(e.params) : null;
+    if (def.noTop || (!prev && !(nova && nova.length))) return null;
+    const nav = document.createElement('div');
+    nav.className = 'pnav';
+    nav.innerHTML = (prev ? `<button class="pbk" data-a="pback">${SV('<path d="M15 5l-7 7 7 7"/>', 20, 2.2)}<span></span></button>` : '<span></span>') +
+      (nova && nova.length ? `<button class="pmo" data-a="pmore" aria-label="Περισσότερα">${SV('<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>', 20, 2.4)}</button>` : '');
+    if (prev) { const t = backName(prev); nav.querySelector('.pbk span').textContent = t; nav.querySelector('.pbk').setAttribute('aria-label', 'Πίσω: ' + t); }
+    nav.addEventListener('click', (ev) => {
+      const b = ev.target.closest('button'); if (!b) return;
+      if (b.dataset.a === 'pback') PL.nav.backFrom(e);
+      else { const items = def.nova(e.params) || []; if (items.length === 1) items[0].fn(); else if (items.length) openMenu(items); }
+    });
+    const put = () => { if (el.firstChild !== nav) el.prepend(nav); };
+    put();
+    const obs = new MutationObserver(put); obs.observe(el, { childList: true });
+    return obs;
+  }
   /* asideOf: η σελίδα-λίστα· όταν δεξιά δεν είναι ανοιχτό τίποτα, δείχνει το δικό της aside(el) αν έχει (π.χ. ημερολόγιο). */
   const mount = (k, e, cls, asideOf) => {
     unmount(k);
@@ -174,6 +205,7 @@
     const aside = !e && asideOf && pages[asideOf.id].aside;
     slot[k] = { e, el, off: e ? pages[e.id].render(el, e.params) || null : aside ? aside(el, asideOf.params) || null : null, dr: e ? PL.drafts.track(el, e) : null };
     if (!e && !aside) el.innerHTML = '<p class="mu pgempty">Διάλεξε από τη λίστα.</p>';
+    if (e) slot[k].top = topNav(el, e);
     /* Η λίστα ξαναζωγραφίζεται όταν αλλάζουν τα δεδομένα: η επιλογή ξαναμπαίνει. */
     if (cls === 'paneL') { slot.L.obs = new MutationObserver(() => requestAnimationFrame(markSel)); slot.L.obs.observe(el, { childList: true, subtree: true }); }
   };
@@ -278,7 +310,7 @@
       `<button data-pmi="${k}" role="menuitem"><span class="pe">${it.e || EMO[it.label] || '＋'}</span><span><span style="display:block">${it.label}</span>${it.d ? `<span class="pd">${it.d}</span>` : ''}</span></button>`).join('');
     m._items = items;
     $('#pm').classList.add('on'); m.classList.add('on');
-    const p = $('#nav .nplus'); p.classList.add('on'); p.setAttribute('aria-label', 'Κλείσιμο');
+    const p = $('#nav .nplus'); if (p) { p.classList.add('on'); p.setAttribute('aria-label', 'Κλείσιμο'); }
   }
 
   function wire() {
