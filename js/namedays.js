@@ -153,6 +153,13 @@
     for (let k = 0; k < 366; k++) { d = tomorrow(d); const g = celebrants(d); if (g.list.length) return Object.assign({ day: d }, g); }
     return null;
   }
+  /* όλα τα ονόματα μιας γιορτής για τη μπάρα (απόφαση 11/11): πρώτα τα κύρια με τόνο (f.s), μετά οι άλλες μορφές και τα
+     υποκοριστικά που αναγνωρίζει το πρόγραμμα (f.n), για να θυμηθεί ο πωλητής πελάτη με παρατσούκλι */
+  function allNames(f) {
+    const main = f.s.split(', '), seen = new Set(main.map(norm));
+    const more = f.n.split(' ').filter((w) => !seen.has(w)).map((w) => w.charAt(0) + w.slice(1).toLowerCase().replace(/σ$/, 'ς'));
+    return { main, more };
+  }
   /* σύντομο όνομα για τη μπάρα γιορτών: το μικρό όνομα που αναγνωρίστηκε, με τόνο από τη λίστα της γιορτής
      («ΦΩΤΙΑΔΟΥ ΜΙΧΑΛΗΣ» → Μιχάλης)· με διόρθωση από το χέρι ή χωρίς γνωστό όνομα, ολόκληρο το όνομα */
   function given(c) {
@@ -170,7 +177,7 @@
     try { await PL.adapter.db.set('wish/' + day, doc); } catch (e) { /* μένει τοπικά */ }
   }
   PL.names = {
-    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, next, given, mobile, wished, markWished,
+    TEXT, F, norm, easter, dateOf, autoOf, fixOf, feastOf, setFix, year, feastsOn, celebrants, tomorrow, next, given, allNames, mobile, wished, markWished,
     today: () => u.today(),
     /* 🎉 δίπλα στο όνομα όποιου γιορτάζει σήμερα */
     badge: (c) => { const f = feastOf(c); return f && dateOf(f, +PL.names.today().slice(0, 4)) === PL.names.today() ? '🎉 ' : ''; },

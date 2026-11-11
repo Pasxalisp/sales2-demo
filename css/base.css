@@ -508,6 +508,22 @@ main>.page>h2:first-of-type {
 .ndlist .ndr:first-of-type {
   border-top: 0;
 }
+/* ανοιχτή μπάρα γιορτών: «Γιορτάζουν» (όλα τα ονόματα, με τα υποκοριστικά) και «Προτάσεις» (οι πελάτες) */
+.ndlist .ndh {
+  margin: 8px 0 3px;
+  font-weight: 600;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+}
+.ndlist .ndnm {
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.5;
+  padding-bottom: 4px;
+}
+.ndlist .ndft {
+  font-size: calc(13 * var(--u));
+  margin-top: 4px;
+}
 .ndr {
   display: flex;
   align-items: center;
