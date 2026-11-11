@@ -1,5 +1,6 @@
 /* Καθολικές κινήσεις της παλιάς σελίδας: σύρσιμο από την αριστερή άκρη = Πίσω, ✕ καθαρισμού στα πεδία,
-   γρήγορη μπάρα κύλισης δεξιά, και κύλιση ώστε να φαίνεται ό,τι ανοίγει με ▸. Δεν αγγίζουν τα δεδομένα. */
+   γρήγορη μπάρα κύλισης δεξιά. Δεν αγγίζουν τα δεδομένα.
+   Ό,τι ανοίγει με ▸/▾ ΔΕΝ κυλάει τη σελίδα: μένει σταθερή εκεί που ήταν (απόφαση Πασχάλη 11/11). */
 (function () {
   const PL = window.PL, SE = () => document.scrollingElement || document.documentElement;
   const modal = () => ['cfm', 'chm', 'callm', 'cel'].some((id) => { const m = document.getElementById(id); return m && m.style.display === 'flex'; });
@@ -77,30 +78,5 @@
     window.addEventListener('resize', check); check();
   }
 
-  /* όταν ανοίγει κάτι συμπτυγμένο (▸), κύλισε ώστε να φαίνεται */
-  function revealOnOpen() {
-    const AR = /[▸▾▴]/, arrow = (el) => { const m = (el.textContent || '').match(AR); return m ? m[0] : ''; };
-    const label = (el) => (el.textContent || '').replace(/[▸▾▴]/g, '').replace(/\s+/g, ' ').trim();
-    const key = (el) => {
-      if (el.id) return '#' + CSS.escape(el.id);
-      const ds = [...el.attributes].filter((x) => x.name.startsWith('data-'));
-      return ds.length ? el.tagName.toLowerCase() + ds.map((x) => '[' + x.name + '="' + CSS.escape(x.value) + '"]').join('') : null;
-    };
-    const reveal = (el) => { const r = el.getBoundingClientRect(); if (r.top > window.innerHeight * 0.3 || r.top < 0) { el.style.scrollMarginTop = '10px'; el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } };
-    document.addEventListener('click', (ev) => {
-      const el = ev.target.closest('button,[data-mo],[role=button],.card,summary'); if (!el || el.tagName === 'SUMMARY') return;
-      const b = arrow(el); if (b !== '▸' && b !== '▾') return;
-      const k = key(el), lb = label(el), root = el.closest('.page') || document.body;
-      setTimeout(() => {
-        let n = el.isConnected ? el : null;
-        if (!n && k) { try { n = root.querySelector(k) || document.querySelector(k); } catch (e) { /* τίποτα */ } }
-        if (!n) n = [...root.querySelectorAll('button,.card,[role=button]')].find((x) => label(x) === lb && arrow(x));
-        if (!n) return; const a = arrow(n);
-        if ((b === '▸' && a === '▾') || (b === '▾' && a === '▴')) reveal(n);
-      }, 90);
-    });
-    document.addEventListener('toggle', (ev) => { const d = ev.target; if (d.tagName === 'DETAILS' && d.open) { const sm = d.querySelector('summary') || d; setTimeout(() => reveal(sm), 30); } }, true);
-  }
-
-  clearButton(); swipeBack(); fastScroll(); revealOnOpen();
+  clearButton(); swipeBack(); fastScroll();
 })();
