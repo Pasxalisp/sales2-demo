@@ -505,6 +505,12 @@ main>.page>h2:first-of-type {
   border-top: 0;
   border-radius: 0 0 10px 10px;
 }
+/* τάμπλετ: η λίστα δεξιά, χωρίς τη μπάρα από πάνω */
+.ndlist.ndsolo {
+  margin: 4px 0 10px;
+  border-top: 1px solid rgba(217,169,31,.45);
+  border-radius: 10px;
+}
 .ndlist .ndr:first-of-type {
   border-top: 0;
 }

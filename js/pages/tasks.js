@@ -1,5 +1,7 @@
 /* Σελίδα «Εκκρεμότητες · Ημερολόγιο» (απόφαση 05/11): πάνω το ημερολόγιο του μήνα με σημάδια ανά μέρα, από κάτω ό,τι έχει
-   η μέρα που πάτησες (σήμερα: και οι καθυστερημένες). Κάρτες και «✓ Έγινε» από την παλιά σελίδα (renderDue, dueCard, ddone). */
+   η μέρα που πάτησες (σήμερα: και οι καθυστερημένες). Κάρτες και «✓ Έγινε» από την παλιά σελίδα (renderDue, dueCard, ddone).
+   Τάμπλετ (απόφαση 11/11): αριστερά ο μήνας και η μπάρα γιορτών, δεξιά η μέρα που πάτησες (χωρίς πάτημα: σήμερα) μαζί με
+   τα ονόματα της γιορτής όταν ανοίξει η μπάρα. Πελάτης / εκκρεμότητα από τη μέρα ανοίγει δεξιά· «Πίσω» → ξανά η μέρα. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, db = () => PL.adapter.db;
   const COLS = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'sos', 'seminars', 'visits', 'wish', 'ndfix'];
@@ -15,10 +17,11 @@
      πελάτης», ή χωρίς γιορτή «Επόμενη: Κυρ 8/11 · Ταξιαρχών · 4 πελάτες». Πάτημα (και με «κανένας πελάτης») → πάνω όλα
      τα ονόματα που γιορτάζουν, με τα υποκοριστικά (απόφαση 11/11, για να θυμηθεί πελάτη με παρατσούκλι)· από κάτω οι
      «Προτάσεις»: οι πελάτες που βρήκε το πρόγραμμα, με πόλη (σήμερα και WhatsApp / αντιγραφή ευχής / κλήση).
-     Όποιος λείπει ή μπήκε λάθος διορθώνεται από την καρτέλα του («✎ Αλλαγή γιορτής»). */
+     Όποιος λείπει ή μπήκε λάθος διορθώνεται από την καρτέλα του («✎ Αλλαγή γιορτής»).
+     Επιστρέφει { bar, list }: στο κινητό η λίστα μπαίνει κάτω από τη μπάρα, στο τάμπλετ δεξιά, πάνω από τη μέρα. */
   const shortDay = (k) => { const x = new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)); return WDL[x.getDay()].slice(0, 3) + ' ' + x.getDate() + '/' + (x.getMonth() + 1); };
-  function feastBar(k) {
-    if (!S.loaded('clients')) return '';
+  function feast(k) {
+    if (!S.loaded('clients')) return { bar: '', list: '' };
     const N = PL.names, G = N.celebrants(k), fts = (g) => esc(g.feasts.map((f) => f.t).join(', '));
     let txt, g = null;
     if (G.list.length) { const nm = G.list.map((c) => N.given(c)); txt = `<b>${fts(G)}</b> · ${esc(nm.slice(0, 2).join(', '))}${nm.length > 2 ? ' +' + (nm.length - 2) : ''}`; g = G; }
@@ -30,10 +33,10 @@
       const w = N.wished(k, c.i), wa = N.wa(c);
       return `<div class="ndr${w ? ' done' : ''}"><div class="ndn"><span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu">${esc(c.city)}${w ? ' · ✓ ευχήθηκες' : ''}</span></div>` +
         `${wa ? `<a class="btn ndw" href="${esc(wa)}" target="_blank" rel="noopener" data-wish="${esc(c.i)}">WhatsApp</a>` : ''}<button data-wcopy="${esc(c.i)}" aria-label="Αντιγραφή ευχής">📋</button>${PL.call.tels(c).length ? `<button data-callc="${esc(c.i)}" aria-label="Κλήση">📞</button>` : ''}</div>`; };
-    return `<div class="ndbar${open ? ' on' : ''}"${g ? ` data-ndbar="1" role="button" aria-expanded="${open}"` : ''}><span aria-hidden="true">🎉</span><span class="tx">${txt}</span>${g ? `<span class="ndc" aria-hidden="true">${open ? '▴' : '▾'}</span>` : ''}</div>` +
-      (open ? `<div class="ndlist"><div class="ndh">Γιορτάζουν${g === G ? '' : ' την ' + esc(shortDay(g.day))}</div>${g.feasts.map((f) => (g.feasts.length > 1 ? `<div class="mu ndft">${esc(f.t)}</div>` : '') + names(f)).join('')}` +
+    return { bar: `<div class="ndbar${open ? ' on' : ''}"${g ? ` data-ndbar="1" role="button" aria-expanded="${open}"` : ''}><span aria-hidden="true">🎉</span><span class="tx">${txt}</span>${g ? `<span class="ndc" aria-hidden="true">${open ? '▴' : '▾'}</span>` : ''}</div>`,
+      list: open ? `<div class="ndlist"><div class="ndh">Γιορτάζουν${g === G ? '' : ' την ' + esc(shortDay(g.day))}</div>${g.feasts.map((f) => (g.feasts.length > 1 ? `<div class="mu ndft">${esc(f.t)}</div>` : '') + names(f)).join('')}` +
         `<div class="ndh">Προτάσεις${g.list.length ? ' (' + g.list.length + ')' : ''}</div>${g.list.length ? (wish ? `<div class="mu" style="margin:2px 0 4px">Ευχή: «${esc(N.TEXT)}» · WhatsApp με έτοιμο κείμενο, 📋 αντιγραφή για Viber / SMS</div>` : '') + g.list.map(row).join('') : '<div class="mu ndr">Δεν βρήκα πελάτη με αυτά τα ονόματα.</div>'}` +
-        `<div class="mu ndfx">Λείπει κάποιος ή μπήκε λάθος; Άνοιξε την καρτέλα του και πάτα «✎ Αλλαγή γιορτής».</div></div>` : '');
+        `<div class="mu ndfx">Λείπει κάποιος ή μπήκε λάθος; Άνοιξε την καρτέλα του και πάτα «✎ Αλλαγή γιορτής».</div></div>` : '' };
   }
 
   /* κλειδί μιας εκκρεμότητας (ίδιο με το «✓ Έγινε»): ραντεβού A|πρόγραμμα|πελάτης, πληρωμή P|πελάτης, εκκρεμότητα T|id, επόμενη επαφή πελάτης|θέση */
@@ -91,61 +94,63 @@
   }
   const semCard = ([id, x]) => `<div class="card" data-semopen="${esc(id)}"><div class="row"><span class="nm">🎓 ${esc(x.title)}</span><span class="up">${esc(x.time || '')}</span></div><div class="mu">${(x.cust || []).length} πελάτες${x.notes ? ' · ' + esc(x.notes) : ''}</div></div>`;
   /* ό,τι έχει η μέρα k: (σήμερα: καθυστερημένες) → ραντεβού, εκκρεμότητες, «να πω», πληρωμές (με τη σειρά της ώρας) → σεμινάρια */
-  function dayView(k) {
+  function dayView(k, extra) {
     const t = u.today(), all = M.openTasks(t), late = k === t ? all.filter((x) => x.e.next < t) : [], dl = all.filter((x) => x.e.next === k), sms = semOn(k);
-    let h = `<h3 class="cdh">${esc(dayTitle(k))}</h3>`;
+    let h = `<h3 class="cdh">${esc(dayTitle(k))}</h3>` + (extra || '');
     if (late.length) h += `<div class="cdsub dn">Καθυστερημένες (${late.length})</div>${late.map((x) => dueCard(x, true)).join('')}` + (dl.length || sms.length ? '<div class="cdsub">Σήμερα</div>' : '');
     h += dl.map((x) => dueCard(x, false)).join('') + sms.map(semCard).join('');
     if (!late.length && !dl.length && !sms.length) h += `<p class="mu">${k === t ? 'Δεν υπάρχουν εκκρεμότητες για σήμερα. 👌' : 'Τίποτα αυτή τη μέρα.'}</p>`;
     return h;
   }
-  /* τάμπλετ, δεξιά όταν δεν έχεις πατήσει κάτι: οι επόμενες n μέρες */
-  function upcoming(n) {
-    const t = u.today(), lim = ymd(new Date(Date.parse(t) + n * 864e5)), up = M.openTasks(t).filter((x) => x.e.next > t && x.e.next <= lim);
-    return `<h3>Επόμενες ${n} μέρες</h3>` + (up.length ? up.map((x) => dueCard(x, true)).join('') : '<p class="mu">Καμία.</p>');
-  }
-  /* Πατήματα, κοινά για λίστα και ημερολόγιο. */
-  async function act(ev, repaint) {
+  /* Ό,τι φαίνεται τώρα (στο τάμπλετ: ημερολόγιο αριστερά και μέρα δεξιά) ξαναζωγραφίζεται μαζί. */
+  const panes = new Set(), repaint = () => panes.forEach((f) => f());
+  /* τάμπλετ: άλλη μέρα / μπάρα γιορτών ενώ δεξιά είναι ανοιχτός πελάτης ή εκκρεμότητα → δεξιά ξανά η μέρα */
+  const toDay = () => { if (PL.WIDE.matches && PL.nav.current().id !== 'tasks') PL.nav.back(); repaint(); };
+  /* Πατήματα, κοινά για ημερολόγιο και μέρα. */
+  async function act(ev) {
     const g = ev.target.closest('[data-wish],[data-wcopy]');
     if (g && g.dataset.wish) { PL.names.markWished(PL.names.today(), g.dataset.wish); return; }   /* ο σύνδεσμος ανοίγει το WhatsApp */
     if (g) { let ok = false; try { await navigator.clipboard.writeText(PL.names.TEXT); ok = true; } catch (x) { /* τίποτα */ }
       D.toast(ok ? '📋 Αντιγράφηκε η ευχή: άνοιξε Viber ή Μηνύματα και κάνε Επικόλληση' : 'Δεν αντιγράφηκε. Γράψε την ευχή με το χέρι.'); if (ok) PL.names.markWished(PL.names.today(), g.dataset.wcopy); return; }
     const t = ev.target.closest('[data-ndbar],[data-cnav],[data-ctoday],[data-cday],[data-semopen],[data-ddone],[data-open],[data-callc],a,button,[data-tk]'); if (!t) return;
-    if (t.dataset.ndbar) { st.ndOpen = !st.ndOpen; repaint(); }
-    else if (t.dataset.ctoday) { st.calSel = null; st.calM = null; st.ndOpen = false; repaint(); }
+    if (t.dataset.ndbar) { st.ndOpen = !st.ndOpen; toDay(); }
+    else if (t.dataset.ctoday) { st.calSel = null; st.calM = null; st.ndOpen = false; toDay(); }
     else if (t.dataset.cnav) { st.calM = new Date(st.calM.getFullYear(), st.calM.getMonth() + (+t.dataset.cnav), 1); repaint(); }
-    else if (t.dataset.cday) { st.calSel = t.dataset.cday; st.ndOpen = false; repaint(); }
+    else if (t.dataset.cday) { st.calSel = t.dataset.cday; st.ndOpen = false; toDay(); }
     else if (t.dataset.semopen) PL.nav.push('seminar', { id: t.dataset.semopen });
     else if (t.dataset.open) PL.nav.push('client', { id: t.dataset.open });
     else if (t.dataset.ddone) { t.disabled = true; try { await done(t.dataset.ddone); } catch (e) { D.toast('Δεν αποθηκεύτηκε'); t.disabled = false; } }
     else if (t.dataset.tk && PL.WIDE.matches) PL.nav.push('task', { key: t.dataset.tk });   /* τάμπλετ: το φύλλο της εκκρεμότητας δεξιά */
   }
 
+  /* ζωγραφίζει τώρα και όταν αλλάζουν τα δεδομένα· τα πατήματα πάνε στο act */
+  function mountPane(el, paint) {
+    paint(); panes.add(paint);
+    const offs = COLS.map((c) => S.on(c, paint));
+    el.addEventListener('click', act);
+    return () => { panes.delete(paint); offs.forEach((f) => f()); };
+  }
   PL.register('tasks', {
     title: 'Εκκρεμότητες · Ημερολόγιο',
     split: ['client', 'seminar', 'task'],
-    /* τάμπλετ, τίποτα πατημένο: δεξιά οι επόμενες 7 μέρες (το ημερολόγιο είναι αριστερά) */
+    /* τάμπλετ, δεξιά όταν δεν είναι ανοιχτός πελάτης / εκκρεμότητα: η μέρα που πάτησες, με τα ονόματα της γιορτής από πάνω */
     aside(el) {
       COLS.forEach((c) => S.use(c));
-      const paint = () => { el.innerHTML = '<div id="duaside">' + upcoming(7) + '</div>'; };
-      paint();
-      const offs = COLS.map((c) => S.on(c, paint));
-      el.addEventListener('click', (ev) => act(ev, paint));
-      return () => offs.forEach((f) => f());
+      const paint = () => { ensure(); el.innerHTML = '<div id="duday">' + dayView(st.calSel, feast(st.calSel).list.replace('class="ndlist"', 'class="ndlist ndsolo"')) + '</div>'; };
+      return mountPane(el, paint);
     },
     nova: () => PL.menu('Εκκρεμότητες', [
       { e: '➕', label: 'Νέα εκκρεμότητα', d: 'για κάποιον πελάτη, με υπαγόρευση', fn: () => PL.dictation.open('Εκκρεμότητα: ') },
       { e: '⏰', label: 'Υπενθύμιση', d: 'στο ημερολόγιο του iPhone', fn: () => PL.dictation.open('Θύμισέ μου ') },
     ]),
+    /* κινητό: ημερολόγιο, μπάρα γιορτών (ανοίγει από κάτω) και η μέρα · τάμπλετ: ημερολόγιο και μπάρα (η μέρα είναι δεξιά, aside) */
     render(el) {
-      el.innerHTML = `<h2>Εκκρεμότητες · Ημερολόγιο</h2><div id="ducal" class="cal"></div><div id="dund"></div><div id="dul"></div>`;
+      const wide = PL.WIDE.matches;
+      el.innerHTML = `<h2>Εκκρεμότητες · Ημερολόγιο</h2><div id="ducal" class="cal"></div><div id="dund"></div>${wide ? '' : '<div id="dul"></div>'}`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
-      const paint = () => { $('#ducal').innerHTML = calendar(); $('#dund').innerHTML = feastBar(st.calSel); $('#dul').innerHTML = dayView(st.calSel); };
-      paint();
-      const offs = COLS.map((c) => S.on(c, paint));
-      el.addEventListener('click', (ev) => act(ev, paint));
-      return () => offs.forEach((f) => f());
+      const paint = () => { $('#ducal').innerHTML = calendar(); const f = feast(st.calSel); $('#dund').innerHTML = wide ? f.bar : f.bar + f.list; if (!wide) $('#dul').innerHTML = dayView(st.calSel); };
+      return mountPane(el, paint);
     },
   });
 })();
