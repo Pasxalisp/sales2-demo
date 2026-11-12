@@ -8,9 +8,9 @@
 
   const delBtn = (id) => `<button data-pdel="${esc(id)}" style="padding:4px 10px">🗑 Διαγραφή</button>`;
   const openCard = ([id, p]) => { const d = (p.stops || []).filter((s) => s.done).length;
-    return `<div class="card" data-plan="${esc(id)}"><div class="row"><span class="nm">${esc(p.cities.join(' + '))}${p.mode ? ' <span class="mu" style="font-weight:400">' + esc(E.modeLbl(p.mode).replace(/^ · /, '')) + '</span>' : ''}</span><span class="tz">${d}/${(p.stops || []).length}</span></div><div class="row"><span class="mu">${esc(p.created)} · πάτα για να ανοίξει</span>${delBtn(id)}</div></div>`; };
+    return `<div class="card" data-plan="${esc(id)}"><div class="row"><span class="nm">${esc(E.planName(p))}${p.mode ? ' <span class="mu" style="font-weight:400">' + esc(E.modeLbl(p.mode).replace(/^ · /, '')) + '</span>' : ''}</span><span class="tz">${d}/${(p.stops || []).length}</span></div><div class="row"><span class="mu">${esc(p.created)} · πάτα για να ανοίξει</span>${delBtn(id)}</div></div>`; };
   const doneCard = ([id, p]) => { const n = (p.stops || []).length, d = (p.stops || []).filter((s) => s.done).length;
-    return `<div class="card" data-plan="${esc(id)}"><div class="row"><span class="nm">✅ ${esc(p.cities.join(' + '))}</span><span class="tz">${d}/${n}</span></div><div class="row"><span class="mu">${esc(p.created)} · πάτα για να το δεις</span>${delBtn(id)}</div></div>`; };
+    return `<div class="card" data-plan="${esc(id)}"><div class="row"><span class="nm">✅ ${esc(E.planName(p))}</span><span class="tz">${d}/${n}</span></div><div class="row"><span class="mu">${esc(p.created)} · πάτα για να το δεις</span>${delBtn(id)}</div></div>`; };
 
   PL.register('myplans', {
     title: 'Τα προγράμματά μου',
@@ -28,7 +28,7 @@
           return;
         }
         if (!$('#mpq input')) { $('#mpq').innerHTML = `<input id="mps" type="search" placeholder="Αναζήτηση πόλης…" value="${esc(st.q)}" style="margin-bottom:6px">`; $('#mps').addEventListener('input', (e) => { st.q = e.target.value; paint(); }); }
-        const f = u.nn(st.q), L = Dn.filter(([, p]) => !f || (p.cities || []).some((c) => u.nn(c).includes(f)));
+        const f = u.nn(st.q), L = Dn.filter(([, p]) => !f || u.nn(E.planName(p)).includes(f));
         let h = '', mk = '';
         L.forEach((x) => { const c = String(x[1].created || ''), k = c.slice(0, 7);
           if (k !== mk) { mk = k; h += `<h3>${k ? MNG[+c.slice(5, 7) - 1] + ' ' + c.slice(0, 4) : 'Χωρίς ημερομηνία'}</h3>`; }
@@ -44,14 +44,14 @@
           if (tb) { st.tab = tb.dataset.mpt; paint(); return; }
           if (t.dataset.pdel) {
             const p = S.get('plans', t.dataset.pdel);
-            t.closest('.card').innerHTML = `<div>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(p ? p.cities.join(' + ') : '')}»;</div><p style="margin:8px 0 0"><button class="pri" data-pdy="${esc(t.dataset.pdel)}" style="background:#d9382f;border-color:#d9382f">Ναι, διαγραφή</button> <button data-pdn="1">Άκυρο</button></p>`;
+            t.closest('.card').innerHTML = `<div>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(p ? E.planName(p) : '')}»;</div><p style="margin:8px 0 0"><button class="pri" data-pdy="${esc(t.dataset.pdel)}" style="background:#d9382f;border-color:#d9382f">Ναι, διαγραφή</button> <button data-pdn="1">Άκυρο</button></p>`;
           }
           else if (t.dataset.pdy) { try { await E.deletePlan(t.dataset.pdy); } catch (e) { /* τίποτα */ } paint(); }
           else if (t.dataset.pdn) paint();
           else if (t.dataset.pdo) PL.planview.openDraft(t.dataset.pdo);
           else if (t.dataset.pdx) {
             const id = t.dataset.pdx, x = S.get('pdrafts', id);
-            if (!(await D.confirm('Να διαγραφεί το πρόχειρο «' + ((x && x.cities) || []).join(' + ') + '»;'))) return;
+            if (!(await D.confirm('Να διαγραφεί το πρόχειρο «' + (x ? E.planName(x) : '') + '»;'))) return;
             await PL.planview.deleteDraft(id); paint();
           }
           else { const c = t.closest('[data-plan]'); if (c && !t.closest('button')) PL.planview.open(c.dataset.plan); }

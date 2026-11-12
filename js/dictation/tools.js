@@ -114,7 +114,7 @@
         const [pid, p] = hit, np = JSON.parse(JSON.stringify(p)); np.stops = np.stops || [];
         if (np.stops.some((s) => s.id === c.i)) return 'ήδη στο πρόγραμμα';
         PL.plans.insertStop(np, { id: c.i, why: 'Προστέθηκε από εσένα', say: [], done: false, added: true });
-        await PL.plans.savePlan(pid, np); act('📋 Στο πρόγραμμα ' + (p.cities || []).join(' + ') + ': ' + c.name); return 'ok'; } },
+        await PL.plans.savePlan(pid, np); act('📋 Στο πρόγραμμα ' + PL.plans.planName(p) + ': ' + c.name); return 'ok'; } },
 
     { name: 'set_appointment', description: "Βάζει ώρα ραντεβού σε πελάτη (π.χ. «με τη Χ έχω ραντεβού στις 11:30»). Αν υπάρχει ανοιχτό πρόγραμμα για την πόλη του, μπαίνει εκεί (και τον προσθέτει αν λείπει)· αλλιώς στα ραντεβού των «Επισκέψεων εκτός προγράμματος». time = HH:MM (κενό = αφαίρεση ραντεβού), date = YYYY-MM-DD (αν δεν ειπώθηκε: η μέρα του προγράμματος ή σήμερα).",
       inputSchema: { type: 'object', properties: { customer_id: str, time: str, date: str }, required: ['customer_id', 'time'] },

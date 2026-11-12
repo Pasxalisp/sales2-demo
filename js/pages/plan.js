@@ -14,7 +14,7 @@
   /* ζωντανή γραμμή κάθε πλακιδίου ('' = δείχνει μόνο την περιγραφή) */
   const live = {
     day: () => { const A = E.activeList(); if (!A.length) return ''; const [, p] = A[0], d = (p.stops || []).filter((s) => s.done).length;
-      return '▶ Ανοιχτό: ' + esc((p.cities || []).join(' + ')) + ' ' + d + '/' + (p.stops || []).length + (A.length > 1 ? ' · +' + (A.length - 1) : ''); },
+      return '▶ Ανοιχτό: ' + esc(E.planName(p)) + ' ' + d + '/' + (p.stops || []).length + (A.length > 1 ? ' · +' + (A.length - 1) : ''); },
     free: () => { const v = ((S.get('plans', E.freeId()) || {}).stops || []).filter((s) => s.done).length, a = E.freeAppts().length;
       return [v ? 'Σήμερα ' + n(v, 'επίσκεψη', 'επισκέψεις') : '', a ? n(a, 'ραντεβού', 'ραντεβού') : ''].filter(Boolean).join(' · '); },
     my: () => { const a = E.activeList().length, d = Object.keys(S.all('pdrafts')).length;

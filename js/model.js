@@ -87,7 +87,7 @@
         if (!p || (p.closed && p.mode !== 'free')) return;   // τα «εκτός προγράμματος» είναι πάντα κλειστά, αλλά τα ραντεβού τους μετράνε
         (p.stops || []).forEach((s) => {
           if (!s || !s.appt || s.done || !M.byId(s.id)) return; const d = s.apptD || p.created || t; if (d < t) return;
-          L.push({ c: M.byId(s.id), e: { next: d, nt: s.appt, todo: 'στις ' + s.appt + (p.mode === 'free' ? ' · εκτός προγράμματος' : ' · πρόγραμμα ' + (p.cities || []).join(' + ')), d: p.created || '' }, appt: pid + '|' + s.id });
+          L.push({ c: M.byId(s.id), e: { next: d, nt: s.appt, todo: 'στις ' + s.appt + (p.mode === 'free' ? ' · εκτός προγράμματος' : ' · πρόγραμμα ' + PL.plans.planName(p)), d: p.created || '' }, appt: pid + '|' + s.id });
         });
       });
       return L.sort((a, b) => ((a.e.next + (a.e.nt || '99')) < (b.e.next + (b.e.nt || '99')) ? -1 : 1));

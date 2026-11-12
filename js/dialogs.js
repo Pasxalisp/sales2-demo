@@ -45,7 +45,7 @@
     celebrate(p, onClose) {
       PL.dlg.celebrated.add(p && p.id);
       const old = $('cel'); if (old) old.remove();
-      const where = p && p.cities && p.cities.length ? p.cities.join(' + ') : '';
+      const where = p && p.cities && p.cities.length ? PL.plans.planName(p) : '';
       const o = document.createElement('div'); o.id = 'cel'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Το πρόγραμμα ολοκληρώθηκε');
       o.innerHTML = '<div class="cb"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="cc" cx="50" cy="50" r="46"/><path class="ck" d="M29 51 L44 65 L72 36"/></svg><h3>Ολοκληρώθηκε</h3><p>το πρόγραμμα' + (where ? ' <b>' + esc(where) + '</b>' : '') + '</p></div>';
       let T = 0;

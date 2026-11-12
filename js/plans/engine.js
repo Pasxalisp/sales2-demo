@@ -17,6 +17,24 @@
   const zoneRank = (c) => { const z = String(c.zip || ''); if (c.city === 'ΘΕΣΣΑΛΟΝΙΚΗ') { let b = -1, l = 0; TZO.forEach((x, k) => { if (z.startsWith(x) && x.length > l) { b = k; l = x.length; } }); if (b >= 0) return b; } return 100 + (+z || 99999) / 1e5; };
   const fbCmp = (A, B) => zoneRank(A) - zoneRank(B) || areaOf(A).localeCompare(areaOf(B), 'el') || streetOf(A).localeCompare(streetOf(B), 'el') || numOf(A) - numOf(B) || String(A.name).localeCompare(String(B.name), 'el');
   E.areaOf = areaOf;
+
+  /* ---- περιοχές μέσα σε μεγάλη πόλη (απόφαση 12/11: Θεσσαλονίκη) ----
+     Οι πόλεις του BIG διαλέγονται και ανά περιοχή. Περιοχή = το «περιοχή» του orders· όποιος έχει ΤΚ κέντρου μετράει ΚΕΝΤΡΟ,
+     ό,τι κι αν γράφει (Θεσσαλονίκη: 54621–54637). Οι άλλες πόλεις μένουν ολόκληρες. Επιλογή = 'ΠΟΛΗ' (όλη) ή 'ΠΟΛΗ|ΠΕΡΙΟΧΗ'· το πρόγραμμα κρατά τις
+     πόλεις (cities, για σειρά διαδρομής) και, αν διάλεξες περιοχές, τις περιοχές (parts). */
+  const BIG = { 'ΘΕΣΣΑΛΟΝΙΚΗ': /^546(2\d|3[0-7])$/ };   // πόλη → ΤΚ κέντρου
+  E.NOAREA = 'ΧΩΡΙΣ ΠΕΡΙΟΧΗ';
+  E.partOf = (c) => { const re = BIG[c.city]; return re && re.test(String(c.zip || '').replace(/\s/g, '')) ? 'ΚΕΝΤΡΟ' : areaOf(c) || E.NOAREA; };
+  /* [[περιοχή, πελάτες]] μιας πόλης, από τη μεγαλύτερη· κενό αν όλοι είναι σε μία */
+  E.parts = (cy) => { if (!BIG[cy]) return []; const m = {}; M.live().forEach((c) => { if (c.city === cy) { const p = E.partOf(c); m[p] = (m[p] || 0) + 1; } }); const L = Object.entries(m).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'el')); return L.length > 1 ? L : []; };
+  E.inSel = (sel, c) => !!c && (sel.has(c.city) || sel.has(c.city + '|' + E.partOf(c)));
+  E.selOf = (p) => { const z = p.parts || []; return new Set((p.cities || []).flatMap((cy) => { const m = z.filter((k) => k.startsWith(cy + '|')); return m.length ? m : [cy]; })); };
+  const near = (a, b) => a === b || a.split('|')[0] === b || b.split('|')[0] === a;
+  E.overlaps = (p, sel) => [...E.selOf(p)].some((a) => [...sel].some((b) => near(a, b)));
+  E.keyName = (k) => k.replace('|', ' · ');
+  /* «ΘΕΣΣΑΛΟΝΙΚΗ · ΚΕΝΤΡΟ, ΕΥΟΣΜΟΣ + ΣΙΝΔΟΣ» */
+  E.selName = (keys) => { const g = []; keys.forEach((k) => { const [cy, pt] = k.split('|'); let x = g.find((y) => y[0] === cy); if (!x) g.push((x = [cy, []])); if (pt) x[1].push(pt); }); return g.map(([cy, ps]) => cy + (ps.length ? ' · ' + ps.join(', ') : '')).join(' + '); };
+  E.planName = (p) => E.selName([...E.selOf(p)]);
   E.rkey = (cy) => 'r' + [...String(cy)].reduce((h, ch) => (Math.imul(h, 31) + ch.charCodeAt(0)) >>> 0, 7).toString(36);
 
   /* Σειρά πελατών μιας πόλης: η μαθημένη διαδρομή (route) και οι υπόλοιποι κατά διεύθυνση ανάμεσά της. */
@@ -54,25 +72,26 @@
   };
   E.setManual = async (id) => { if (S.get('manual', id)) return; const c = M.byId(id), doc = { d: u.today(), name: c ? c.name : '' }; await db().set('manual/' + id, doc); S.put('manual', id, doc); };
 
-  E.zeroQueue = (cities, excl) => {
+  /* πελάτες χωρίς τζίρο για την επιλογή sel (πόλεις / περιοχές), πρώτοι όσοι έχουν να μπουν τον περισσότερο καιρό */
+  E.zeroQueue = (sel, excl) => {
     const last = {};
     Object.values(S.all('plans')).forEach((pl) => (pl.stops || []).forEach((s) => { if (s.zero && (!last[s.id] || pl.created > last[s.id])) last[s.id] = pl.created; }));
     Object.entries(S.all('zskip')).forEach(([id, z]) => { if (z.d && (!last[id] || z.d > last[id])) last[id] = z.d; });
     const m6 = dateAgo(6);
-    return M.live().filter((c) => cities.has(c.city) && !c.prospect && !S.get('sos', c.i) && M.tz(c) <= 0 && !excl.has(c.i) &&
+    return M.live().filter((c) => E.inSel(sel, c) && !c.prospect && !S.get('sos', c.i) && M.tz(c) <= 0 && !excl.has(c.i) &&
       !(((S.get('zskip', c.i) || {}).n >= 2) && String((S.get('zskip', c.i) || {}).d || '') >= m6))
       .sort((a, b) => { const x = last[a.i] || '', y = last[b.i] || ''; return x < y ? -1 : x > y ? 1 : a.name.localeCompare(b.name, 'el'); });
   };
 
-  /* Ποιοι μπαίνουν αυτόματα σε πρόγραμμα για τις πόλεις sel (Set). */
+  /* Ποιοι μπαίνουν αυτόματα σε πρόγραμμα για την επιλογή sel (Set από 'ΠΟΛΗ' / 'ΠΟΛΗ|ΠΕΡΙΟΧΗ'). */
   E.candidates = (sel) => {
     const plans = S.all('plans'), lim = u.today().slice(0, 8) + '01', m6 = dateAgo(6);
     /* εκτός (M.out) δεν μπαίνουν ποτέ αυτόματα, ούτε με SOS ούτε με χρέος· μόνο αν τους προσθέσεις εσύ */
-    const inArea = M.live().filter((c) => sel.has(c.city));
-    const recent = Object.values(plans).filter((p) => (p.created || '') >= lim && (p.cities || []).some((x) => sel.has(x)));
+    const inArea = M.live().filter((c) => E.inSel(sel, c));
+    const recent = Object.values(plans).filter((p) => (p.created || '') >= lim && E.overlaps(p, sel));
     const visited = new Set();
-    Object.values(plans).forEach((p) => (p.stops || []).forEach((x) => { if (x.done && (x.doneDate || p.created || '') >= lim && M.byId(x.id) && sel.has(M.byId(x.id).city)) visited.add(x.id); }));
-    Object.entries(S.all('visits')).forEach(([id, v]) => { if (M.byId(id) && sel.has(M.byId(id).city) && (v.dates || []).some((d) => d >= lim)) visited.add(id); });
+    Object.values(plans).forEach((p) => (p.stops || []).forEach((x) => { if (x.done && (x.doneDate || p.created || '') >= lim && E.inSel(sel, M.byId(x.id))) visited.add(x.id); }));
+    Object.entries(S.all('visits')).forEach(([id, v]) => { if (E.inSel(sel, M.byId(id)) && (v.dates || []).some((d) => d >= lim)) visited.add(id); });
     const touch = {}, tch = (id, d) => { if (id && d && (!touch[id] || d > touch[id])) touch[id] = d; };
     inArea.forEach((c) => M.entries(c.i).forEach((e) => tch(c.i, e.d)));
     Object.entries(S.all('visits')).forEach(([id, v]) => (v.dates || []).forEach((d) => tch(id, d)));
@@ -81,7 +100,7 @@
     const recentTouch = new Set(inArea.filter((c) => !(M.tz(c) > 0) && touch[c.i] && touch[c.i] >= m6).map((c) => c.i));
     const sos = (id) => !!S.get('sos', id);
     const act = inArea.filter((c) => c.prospect || M.tz(c) > 0 || sos(c.i) || recentTouch.has(c.i) || E.owes(c.i) || E.manual(c.i));
-    const actPl = Object.entries(plans).filter(([, p]) => !p.closed && (p.cities || []).some((x) => sel.has(x)));
+    const actPl = Object.entries(plans).filter(([, p]) => !p.closed && E.overlaps(p, sel));
     const inPlan = new Set(); actPl.forEach(([, p]) => (p.stops || []).forEach((x) => inPlan.add(x.id)));
     return { act, visited, recent, actPl, inPlan, touch, recentTouch };
   };
@@ -124,7 +143,7 @@
     const c = M.byId(id); if (!c) throw new Error('no client'); const t = u.today(), os = E.openStop(id);
     if (os) {
       const [pid, p, k] = os, np = JSON.parse(JSON.stringify(p)); np.stops[k].done = !!on; np.stops[k].doneDate = on ? t : '';
-      await Promise.all([E.savePlan(pid, np), E.setVisit(id, on), on ? E.clearSos(id) : null]); return 'στο πρόγραμμα ' + (p.cities || []).join(' + ');
+      await Promise.all([E.savePlan(pid, np), E.setVisit(id, on), on ? E.clearSos(id) : null]); return 'στο πρόγραμμα ' + E.planName(p);
     }
     const fid = E.freeId(), p = JSON.parse(JSON.stringify(S.get('plans', fid) || { mode: 'free', cities: [], created: t, stops: [], note: 'Εκτός προγράμματος', sort: '', closed: true }));
     p.stops = p.stops || []; const k = p.stops.findIndex((s) => s.id === id);
@@ -150,7 +169,7 @@
     if (os) {
       const [pid, p, k] = os, np = JSON.parse(JSON.stringify(p)), s = np.stops[k];
       if (time) Object.assign(s, { appt: time, apptD: d || p.created || t }); else { delete s.appt; delete s.apptD; }
-      await E.savePlan(pid, np); return 'στο πρόγραμμα ' + (p.cities || []).join(' + ');
+      await E.savePlan(pid, np); return 'στο πρόγραμμα ' + E.planName(p);
     }
     const W = [], old = E.freeAppt(id);
     if (old && (!time || old[1].created !== d)) {   // βγαίνει από την παλιά μέρα

@@ -110,11 +110,11 @@
     const hit = L.find(([, p]) => (p.cities || []).includes(c.city));
     if (!hit) { D.toast('Δεν υπάρχει ανοιχτό πρόγραμμα για ' + c.city + '. Φτιάξε πρώτα πρόγραμμα με «+».'); return; }
     const [pid, p] = hit, stops = (p.stops || []).slice();
-    if (stops.some((s) => s.id === cid)) { D.toast('Ο «' + c.name + '» είναι ήδη στο πρόγραμμα ' + p.cities.join(' + ') + '.'); return; }
+    if (stops.some((s) => s.id === cid)) { D.toast('Ο «' + c.name + '» είναι ήδη στο πρόγραμμα ' + PL.plans.planName(p) + '.'); return; }
     let at = -1; stops.forEach((s, k) => { if (M.byId(s.id) && M.byId(s.id).city === c.city) at = k; });
     const st = { id: cid, why: 'Προστέθηκε από εσένα', say: [], done: false, added: true };
     if (at >= 0) stops.splice(at + 1, 0, st); else stops.push(st);
-    try { const doc = Object.assign({}, p, { stops }); await db().set('plans/' + pid, doc); S.put('plans', pid, doc); D.toast('✓ Ο «' + c.name + '» μπήκε στο πρόγραμμα ' + p.cities.join(' + ') + '.'); }
+    try { const doc = Object.assign({}, p, { stops }); await db().set('plans/' + pid, doc); S.put('plans', pid, doc); D.toast('✓ Ο «' + c.name + '» μπήκε στο πρόγραμμα ' + PL.plans.planName(p) + '.'); }
     catch (e) { D.toast('Δεν αποθηκεύτηκε. Δοκίμασε ξανά.'); }
   }
   const focusEl = (el) => { if (!el) return; el.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => { try { el.focus(); } catch (x) { /* τίποτα */ } }, 350); };

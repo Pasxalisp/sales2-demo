@@ -109,7 +109,7 @@
             if (stops.length > 1) L.polyline(stops.map((x) => [x.p[0], x.p[1]]), { color: '#2f6f5e', weight: 3, opacity: 0.7, dashArray: '6 6' }).addTo(layer);
             pts = stops.map((x) => [x.p[0], x.p[1]]);
             const route = open.map((x) => [x.p[0], x.p[1]]), parts = []; for (let i = 0; i < route.length; i += 10) parts.push(route.slice(i, i + 10));
-            side = `<h3>${esc((p.cities || []).join(' + '))}</h3><div class="mu">${stops.filter((x) => x.s.done).length}/${stops.length} έγιναν</div>` +
+            side = `<h3>${esc(PL.plans.planName(p))}</h3><div class="mu">${stops.filter((x) => x.s.done).length}/${stops.length} έγιναν</div>` +
               parts.map((r, i) => `<a class="btn lmgo" href="${esc(gmapsDir(r))}" target="_blank" rel="noopener">🚗 Διαδρομή στο Google Maps${parts.length > 1 ? ' (' + (i + 1) + '/' + parts.length + ')' : ''}</a>`).join('') +
               '<ol class="lmol">' + stops.map((x, k) => `<li class="${x.s.done ? 'dn0' : ''}" data-lmz="${k}">${x.s.done ? '✓ ' : ''}${esc(x.c.name)}<span class="mu"> · ${esc(x.c.area || x.c.city)}</span></li>`).join('') + '</ol>';
             layer._stops = stops;

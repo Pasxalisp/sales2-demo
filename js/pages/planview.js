@@ -5,11 +5,11 @@
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
   const PV = (PL.planview = {});
-  let cur = null;                                    // ανοιχτό πρόγραμμα: {id, saved, cities, created, stops, note, mode, sort, did}
+  let cur = null;                                    // ανοιχτό πρόγραμμα: {id, saved, cities, parts?, created, stops, note, mode, sort, did}
   const plOpen = new Set();                          // στάσεις με ανοιχτές «Προτάσεις»
   let apEdit = -1;                                   // στάση με ανοιχτό πεδίο ραντεβού
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const cleanPlan = (p) => ({ sort: p.sort || '', mode: p.mode || '', cities: p.cities, created: p.created, closed: p.mode === 'free' || (p.stops.length > 0 && p.stops.every((s) => s.done)), stops: p.stops, note: p.note || '' });
+  const cleanPlan = (p) => ({ sort: p.sort || '', mode: p.mode || '', cities: p.cities, parts: p.parts, created: p.created, closed: p.mode === 'free' || (p.stops.length > 0 && p.stops.every((s) => s.done)), stops: p.stops, note: p.note || '' });
 
   /* ---------- Άνοιγμα ---------- */
   PV.open = (id) => PL.nav.push('planview', { id });
@@ -27,13 +27,13 @@
     if (!cur) return;
     if (cur.saved) { if (cur.did) { clearTimeout(pdT); const d = cur.did; delete cur.did; db().remove('pdrafts/' + d).catch(() => {}); S.drop('pdrafts', d); } return; }
     if (!cur.did) cur.did = 'd' + Date.now();
-    clearTimeout(pdT); const d = cur.did, x = { cities: cur.cities || [], created: cur.created || u.today(), stops: cur.stops || [], note: cur.note || '', mode: cur.mode || '', sort: cur.sort || '', ts: new Date().toISOString() };
+    clearTimeout(pdT); const d = cur.did, x = { cities: cur.cities || [], parts: cur.parts, created: cur.created || u.today(), stops: cur.stops || [], note: cur.note || '', mode: cur.mode || '', sort: cur.sort || '', ts: new Date().toISOString() };
     pdT = setTimeout(() => { const doc = clone(x); db().set('pdrafts/' + d, doc).then(() => S.put('pdrafts', d, doc)).catch(() => {}); }, 600);
   }
   PV.draftsHtml = () => {
     const L = Object.entries(S.all('pdrafts')).sort((a, b) => String(b[1].ts).localeCompare(String(a[1].ts)));
     if (!L.length) return '';
-    return '<h3>📝 Πρόχειρα (δεν αποθηκεύτηκαν)</h3>' + L.map(([id, x]) => `<div class="card" style="cursor:default;border-style:dashed"><div class="row"><span class="nm">${esc((x.cities || []).join(' + '))}</span><span class="mu">${(x.stops || []).length} πελάτες</span></div><div class="mu" style="font-size:calc(13*var(--u))">Τελευταία αλλαγή ${esc((() => { try { return new Date(x.ts).toLocaleString('el-GR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } })())}</div><div style="display:flex;gap:6px;margin-top:8px"><button class="pri" data-pdo="${esc(id)}">▶ Συνέχεια</button><button data-pdx="${esc(id)}">🗑 Διαγραφή</button></div></div>`).join('');
+    return '<h3>📝 Πρόχειρα (δεν αποθηκεύτηκαν)</h3>' + L.map(([id, x]) => `<div class="card" style="cursor:default;border-style:dashed"><div class="row"><span class="nm">${esc(E.planName(x))}</span><span class="mu">${(x.stops || []).length} πελάτες</span></div><div class="mu" style="font-size:calc(13*var(--u))">Τελευταία αλλαγή ${esc((() => { try { return new Date(x.ts).toLocaleString('el-GR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } })())}</div><div style="display:flex;gap:6px;margin-top:8px"><button class="pri" data-pdo="${esc(id)}">▶ Συνέχεια</button><button data-pdx="${esc(id)}">🗑 Διαγραφή</button></div></div>`).join('');
   };
   PV.openDraft = (id) => { const x = S.get('pdrafts', id); if (!x) return; PV.openNew(Object.assign(clone(x), { id: null, saved: false, did: id })); };
   PV.deleteDraft = async (id) => { try { await db().remove('pdrafts/' + id); } catch (e) { /* τίποτα */ } S.drop('pdrafts', id); };
@@ -87,7 +87,7 @@
       function renderPlan() {
         if (drag.busy()) return;   /* όσο σέρνεις δεν ξαναζωγραφίζεται· στο τέλος ζωγραφίζεται */
         const p = cur; if (!p || !alive) return; const scr = PL.scroller(el), sc = scr.scrollTop;
-        $('#plt').textContent = p.cities.join(' + ') + E.modeLbl(p.mode); $('#plsum').innerHTML = E.area.sum(p.cities, p.id || 'x');
+        $('#plt').textContent = E.planName(p) + E.modeLbl(p.mode); $('#plsum').innerHTML = E.area.sum([...E.selOf(p)], p.id || 'x');
         const d = p.stops.filter((s) => s.done).length;
         $('#plp').textContent = p.saved ? d + '/' + p.stops.length + ' επισκέψεις · ' + u.fd(p.created) : 'Πρόχειρο: αφαίρεσε ή πρόσθεσε πελάτες και πάτα ΟΚ για να αποθηκευτεί. Αν βγεις, κρατιέται στα «Πρόχειρα» του Προγράμματος ημέρας. Τα τικ για τις επισκέψεις εμφανίζονται μετά το ΟΚ.';
         let h = '', cc = '', ga = '';
@@ -134,7 +134,7 @@
         const s = cur && cur.stops[k]; if (!s) return; const old = M.byId(s.id), z = S.get('zskip', s.id) || { n: 0 };
         if ((z.n || 0) >= 1 && !(await D.confirm('Τον «' + (old ? old.name : '') + '» τον αλλάζεις για δεύτερη φορά, οπότε δεν θα σου ξαναπροταθεί για 6 μήνες. Συνέχεια;', 'Ναι, αλλαγή'))) return;
         if (!cur) return;
-        const q = E.zeroQueue(new Set(cur.cities), new Set(cur.stops.map((x) => x.id))), nx = q.find((c) => old && c.city === old.city) || q[0];
+        const q = E.zeroQueue(E.selOf(cur), new Set(cur.stops.map((x) => x.id))), nx = q.find((c) => old && c.city === old.city) || q[0];
         try { await E.bumpSkip(s.id); } catch (e) { /* τίποτα */ }
         if (!cur) return; const kk = cur.stops.findIndex((x) => x.id === s.id); if (kk < 0) return;
         if (!nx) { D.toast('Δεν υπάρχει άλλος πελάτης χωρίς τζίρο στην περιοχή.'); return; }
@@ -164,7 +164,7 @@
           const at = t.closest('[data-atog]');
           if (at) { E.area.toggle(at.dataset.atog); renderPlan(); return; }
           const ap = t.closest('[data-apick]');
-          if (ap && cur) { E.area.pick(cur.id || 'x', ap.dataset.apick); $('#plsum').innerHTML = E.area.sum(cur.cities, cur.id || 'x'); return; }
+          if (ap && cur) { E.area.pick(cur.id || 'x', ap.dataset.apick); $('#plsum').innerHTML = E.area.sum([...E.selOf(cur)], cur.id || 'x'); return; }
           if (!cur) return;
           /* τάμπλετ: πάτημα στην κάρτα ή στο όνομα (όχι σε κουμπί) → φύλλο επίσκεψης δεξιά */
           const pc = t.closest('.pcard');
@@ -188,7 +188,7 @@
           }
           else if (t.dataset.psort) { const m = t.dataset.psort; cur.stops = m === 'tz' ? E.tzSort(cur.stops) : E.routeSort(cur.stops); cur.sort = m === 'tz' ? 'tz' : 'area'; renderPlan(); savePlan(); }
           else if (t.id === 'ploff' || t.id === 'plxls') { t.disabled = true; const st = $('#plxst'); st.textContent = t.id === 'plxls' ? 'Ετοιμάζω το Excel…' : ''; st.textContent = await (t.id === 'plxls' ? E.exportXlsx : E.exportOffline)(cur); t.disabled = false; }
-          else if (t.id === 'pldel') { $('#plact').innerHTML = `<span>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(cur.cities.join(' + '))}»;</span><br><button class="pri" id="pldy" style="background:#d9382f;border-color:#d9382f;margin-top:8px">Ναι, διαγραφή</button> <button id="pldn" style="margin-top:8px">Άκυρο</button>`; }
+          else if (t.id === 'pldel') { $('#plact').innerHTML = `<span>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(E.planName(cur))}»;</span><br><button class="pri" id="pldy" style="background:#d9382f;border-color:#d9382f;margin-top:8px">Ναι, διαγραφή</button> <button id="pldn" style="margin-top:8px">Άκυρο</button>`; }
           else if (t.id === 'pldn') renderPlan();
           else if (t.id === 'pldy') { const id = cur.id; cur = null; try { await E.deletePlan(id); } catch (e) { /* τίποτα */ } PL.nav.back(); }
           else if (t.id === 'pladdb') {
@@ -200,7 +200,7 @@
           }
           else if (t.id === 'plpick') {
             PL.nav.push('smpick', {
-              title: 'Για το πρόγραμμα: ' + (cur.cities || []).join(' + ') + ' · όσοι είναι ήδη μέσα φαίνονται γκρι', cities: cur.cities,
+              title: 'Για το πρόγραμμα: ' + E.planName(cur) + ' · όσοι είναι ήδη μέσα φαίνονται γκρι', cities: cur.cities,
               inSet: () => new Set(((cur && cur.stops) || []).map((s) => s.id)),
               onOk: async (ids) => { if (!cur) return; ids.forEach((id) => { if (!M.byId(id) || cur.stops.some((s) => s.id === id)) return; E.insertStop(cur, { id, why: 'Προστέθηκε από εσένα', say: [], done: false, added: true }); }); await savePlan(); },
             });

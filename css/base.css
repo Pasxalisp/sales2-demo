@@ -428,6 +428,20 @@ main>.page>h2:first-of-type {
 .pk:active {
   background: var(--ac2);
 }
+/* Πρόγραμμα ημέρας: περιοχές μιας πόλης (▸) */
+.pk .pkx {
+  margin: -6px -6px -6px 8px;
+  padding: 4px 10px;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--mu);
+  font-size: calc(15 * var(--u));
+}
+.pk.pkp {
+  padding-left: 34px;
+  background: var(--ac2);
+}
 :root[data-theme="dark"] .gv {
   --g1: #1c5cab;
   --g2: #3987e5;

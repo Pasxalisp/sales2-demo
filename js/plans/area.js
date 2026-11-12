@@ -1,5 +1,6 @@
 /* «Στοιχεία περιοχής» ενός προγράμματος: τζίρος, Goldwell φέτος/πέρσι, κατηγορίες, πελάτες που ανεβαίνουν/πέφτουν, χρέη.
-   E.area.stats(πόλεις) → αριθμοί (και για το Excel) · E.area.sum(πόλεις, κλειδί προγράμματος) → το κουτί της οθόνης.
+   E.area.stats(επιλογή) → αριθμοί (και για το Excel) · E.area.sum(επιλογή, κλειδί προγράμματος) → το κουτί της οθόνης.
+   Επιλογή = πόλεις ή 'ΠΟΛΗ|ΠΕΡΙΟΧΗ' (E.selOf(πρόγραμμα)): μετράει μόνο τις περιοχές που διάλεξες.
    Θυμάται ποια κουτιά είναι ανοιχτά (localStorage, μόνο για ευκολία) και ποια πόλη διάλεξες σε πρόγραμμα με πολλές. */
 (function () {
   const PL = window.PL, M = PL.model, S = PL.store, E = PL.plans, esc = PL.u.esc, money = PL.u.money;
@@ -9,7 +10,7 @@
   const pctTxt = (x) => (x == null ? '' : `<span class="${x >= 0 ? 'up' : 'dn'}">${x >= 0 ? '▲ +' : '▼ −'}${Math.abs(x).toFixed(0)}%</span>`);
 
   function stats(cities) {
-    const L = M.clients().filter((c) => cities.includes(c.city) && !c.prospect); let tz = 0, ty = 0, ly = 0, lf = 0, nT = 0, nL = 0, up = 0, dn = 0, lost = 0, debt = 0, over = 0;
+    const L = M.clients().filter((c) => E.inSel(new Set(cities), c) && !c.prospect); let tz = 0, ty = 0, ly = 0, lf = 0, nT = 0, nL = 0, up = 0, dn = 0, lost = 0, debt = 0, over = 0;
     L.forEach((c) => {
       const t = M.tz(c); tz += t; if (t > 0) nT++;
       const g = M.gold(c); if (g) { ly += g[0] || 0; ty += g[1] || 0; lf += g[2] || 0; if ((g[0] || 0) > 0) nL++; if ((g[0] || 0) > 0 && (g[1] || 0) <= 0) lost++; else if ((g[1] || 0) > (g[0] || 0)) up++; else if ((g[1] || 0) < (g[0] || 0)) dn++; }
@@ -20,7 +21,7 @@
   function cats(cities) {
     const CAT = M.catAll(), T = {};
     M.clients().forEach((c) => {
-      if (!cities.includes(c.city)) return; const d = CAT[c.i]; if (!d) return;
+      if (!E.inSel(new Set(cities), c)) return; const d = CAT[c.i]; if (!d) return;
       M.CATN.forEach((k) => { if (!Array.isArray(d[k])) return; const o = T[k] || (T[k] = [0, 0, 0, 0, 0]); o[0] += +d[k][0] || 0; o[1] += +d[k][1] || 0; o[2] += +d[k][2] || 0; if ((+d[k][0] || 0) > 0 && (+d[k][1] || 0) <= 0) o[3]++; if ((+d[k][1] || 0) > 0) o[4]++; });
     });
     const r = M.CATN.filter((k) => T[k] && (T[k][0] || T[k][1] || T[k][2])); if (!r.length) return '';
@@ -48,8 +49,8 @@
       const key = cities.slice().sort().join('|');
       if (cities.length < 2) return box(cities, 'all:' + key, 'Στοιχεία περιοχής');
       const sel = pick[pk] && cities.includes(pick[pk]) ? pick[pk] : '';
-      const chips = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0">${['', ...cities].map((c) => `<button class="chip${c === sel ? ' on' : ''}" data-apick="${esc(c)}" style="padding:6px 12px;border-radius:99px${c === sel ? ';background:var(--ac);color:#fff;border-color:var(--ac)' : ''}">${c ? esc(c) : 'Όλες οι περιοχές'}</button>`).join('')}</div>`;
-      return chips + (sel ? box([sel], 'city:' + sel, 'Στοιχεία ' + esc(sel)) : box(cities, 'all:' + key, 'Στοιχεία όλων των περιοχών'));
+      const chips = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0">${['', ...cities].map((c) => `<button class="chip${c === sel ? ' on' : ''}" data-apick="${esc(c)}" style="padding:6px 12px;border-radius:99px${c === sel ? ';background:var(--ac);color:#fff;border-color:var(--ac)' : ''}">${c ? esc(E.keyName(c)) : 'Όλες οι περιοχές'}</button>`).join('')}</div>`;
+      return chips + (sel ? box([sel], 'city:' + sel, 'Στοιχεία ' + esc(E.keyName(sel))) : box(cities, 'all:' + key, 'Στοιχεία όλων των περιοχών'));
     },
     /* πάτημα στο κουτί (data-atog) ή σε πόλη (data-apick) */
     toggle(k) { open.has(k) ? open.delete(k) : open.add(k); try { localStorage.setItem('aopen', JSON.stringify([...open])); } catch (e) { /* τίποτα */ } },
