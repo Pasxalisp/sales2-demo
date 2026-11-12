@@ -32,8 +32,8 @@
   const near = (a, b) => a === b || a.split('|')[0] === b || b.split('|')[0] === a;
   E.overlaps = (p, sel) => [...E.selOf(p)].some((a) => [...sel].some((b) => near(a, b)));
   E.keyName = (k) => k.replace('|', ' · ');
-  /* «ΘΕΣΣΑΛΟΝΙΚΗ · ΚΕΝΤΡΟ, ΕΥΟΣΜΟΣ + ΣΙΝΔΟΣ» */
-  E.selName = (keys) => { const g = []; keys.forEach((k) => { const [cy, pt] = k.split('|'); let x = g.find((y) => y[0] === cy); if (!x) g.push((x = [cy, []])); if (pt) x[1].push(pt); }); return g.map(([cy, ps]) => cy + (ps.length ? ' · ' + ps.join(', ') : '')).join(' + '); };
+  /* «ΘΕΣΣΑΛΟΝΙΚΗ · ΚΕΝΤΡΟ, ΕΥΟΣΜΟΣ + ΣΙΝΔΟΣ»· με 3+ περιοχές σύντομα: «ΘΕΣΣΑΛΟΝΙΚΗ · ΕΥΟΣΜΟΣ +7» (για να χωράει ο τίτλος) */
+  E.selName = (keys) => { const g = []; keys.forEach((k) => { const [cy, pt] = k.split('|'); let x = g.find((y) => y[0] === cy); if (!x) g.push((x = [cy, []])); if (pt) x[1].push(pt); }); return g.map(([cy, ps]) => cy + (ps.length ? ' · ' + (ps.length > 2 ? ps[0] + ' +' + (ps.length - 1) : ps.join(', ')) : '')).join(' + '); };
   E.planName = (p) => E.selName([...E.selOf(p)]);
   E.rkey = (cy) => 'r' + [...String(cy)].reduce((h, ch) => (Math.imul(h, 31) + ch.charCodeAt(0)) >>> 0, 7).toString(36);
 

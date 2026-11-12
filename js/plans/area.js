@@ -45,12 +45,13 @@
   E.area = {
     stats,
     /* pk: κλειδί του προγράμματος (για την επιλεγμένη πόλη) */
-    sum(cities, pk) {
-      const key = cities.slice().sort().join('|');
-      if (cities.length < 2) return box(cities, 'all:' + key, 'Στοιχεία περιοχής');
-      const sel = pick[pk] && cities.includes(pick[pk]) ? pick[pk] : '';
-      const chips = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0">${['', ...cities].map((c) => `<button class="chip${c === sel ? ' on' : ''}" data-apick="${esc(c)}" style="padding:6px 12px;border-radius:99px${c === sel ? ';background:var(--ac);color:#fff;border-color:var(--ac)' : ''}">${c ? esc(E.keyName(c)) : 'Όλες οι περιοχές'}</button>`).join('')}</div>`;
-      return chips + (sel ? box([sel], 'city:' + sel, 'Στοιχεία ' + esc(E.keyName(sel))) : box(cities, 'all:' + key, 'Στοιχεία όλων των περιοχών'));
+    sum(keys, pk) {
+      /* επιλογή = πόλεις ή 'ΠΟΛΗ|ΠΕΡΙΟΧΗ'· κουμπάκια μόνο όταν το πρόγραμμα έχει 2+ πόλεις (ένα ανά πόλη, με τις περιοχές της) */
+      const key = keys.slice().sort().join('|'), cs = [...new Set(keys.map((k) => k.split('|')[0]))], of = (cy) => keys.filter((k) => k.split('|')[0] === cy);
+      if (cs.length < 2) return box(keys, 'all:' + key, 'Στοιχεία περιοχής');
+      const sel = pick[pk] && cs.includes(pick[pk]) ? pick[pk] : '';
+      const chips = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0">${['', ...cs].map((c) => `<button class="chip${c === sel ? ' on' : ''}" data-apick="${esc(c)}" style="padding:6px 12px;border-radius:99px${c === sel ? ';background:var(--ac);color:#fff;border-color:var(--ac)' : ''}">${c ? esc(c) : 'Όλες οι περιοχές'}</button>`).join('')}</div>`;
+      return chips + (sel ? box(of(sel), 'city:' + sel, 'Στοιχεία ' + esc(sel)) : box(keys, 'all:' + key, 'Στοιχεία όλων των περιοχών'));
     },
     /* πάτημα στο κουτί (data-atog) ή σε πόλη (data-apick) */
     toggle(k) { open.has(k) ? open.delete(k) : open.add(k); try { localStorage.setItem('aopen', JSON.stringify([...open])); } catch (e) { /* τίποτα */ } },
