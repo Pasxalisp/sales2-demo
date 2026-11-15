@@ -83,7 +83,7 @@
     const paint = () => {
       const st = A.status(x.id);
       const line = !st ? '<span class="mu">Δεν φόρτωσε η κατάσταση του λογαριασμού.</span>'
-        : st.locked ? `<b class="dn">🔒 Κλειδωμένος</b> από ${esc(when(st.locked_at))}, μετά από ${A.max} λάθος κωδικούς.`
+        : st.locked ? `<b class="dn">🔒 Κλειδωμένος</b> από ${esc(when(st.locked_at))}, μετά από ${A.max} λάθος κωδικούς.${x.admin ? ` Ως διαχειριστής ξεκλειδώνει μόνος του σε ${A.adminLockMin} λεπτά.` : ''}`
           : st.must_change ? '<b>🔑 Περιμένει να βάλει δικό του κωδικό</b> (έχει προσωρινό).'
             : '<b class="up">✓ Κανονικός</b>' + (st.fails ? ` · ⚠️ ${st.fails} λάθος κωδικοί (κλειδώνει στους ${A.max})` : '');
       const last = st ? (st.last ? 'Τελευταία είσοδος: ' + esc(when(st.last)) : 'Δεν έχει μπει ακόμη.') : '';

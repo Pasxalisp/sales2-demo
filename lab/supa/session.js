@@ -18,12 +18,12 @@
   };
   const sb = window.supabase.createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: NS + ':auth' } });
   const api = window.PL_SUPA_API(sb);
-  const PASSWORD_MIN = 8, MAX_FAILS = 5;   // ίδια με τον server (supabase/functions/_shared/util.ts)
+  const PASSWORD_MIN = 8, MAX_FAILS = 5, ADMIN_LOCK_MIN = 15;   // ίδια με τον server (supabase/functions/_shared/util.ts)
   /* απαντήσεις του server → μήνυμα για τον χρήστη */
   const MSG = {
     net: 'Δεν συνδέθηκα με τον server. Έλεγξε το ίντερνετ και ξαναδοκίμασε.',
-    invalid: 'Λάθος email ή κωδικός. Μετά από ' + MAX_FAILS + ' λάθος προσπάθειες ο λογαριασμός κλειδώνει.',
-    locked: 'Ο λογαριασμός κλειδώθηκε μετά από ' + MAX_FAILS + ' λάθος κωδικούς. Ζήτα από τον διαχειριστή να τον ξεκλειδώσει.',
+    invalid: 'Λάθος email ή κωδικός.',
+    locked: 'Ο λογαριασμός κλειδώθηκε μετά από ' + MAX_FAILS + ' λάθος κωδικούς. Ζήτα από τον διαχειριστή να τον ξεκλειδώσει. (Ο λογαριασμός του διαχειριστή ξεκλειδώνει μόνος του σε ' + ADMIN_LOCK_MIN + ' λεπτά.)',
     inactive: 'Ο λογαριασμός είναι ανενεργός. Μίλα με τον διαχειριστή.',
     short: 'Ο κωδικός θέλει τουλάχιστον ' + PASSWORD_MIN + ' χαρακτήρες.',
     weak: 'Ο κωδικός είναι πολύ εύκολος. Διάλεξε άλλον.',
@@ -35,6 +35,8 @@
     server: 'Κάτι πήγε στραβά στον server. Ξαναδοκίμασε.',
   };
   const msg = (code) => MSG[code] || MSG.server;
+  /* λάθος κωδικός: πόσες προσπάθειες μένουν (ο server μετρά ανά email, ίδιο μήνυμα για όλους) */
+  const invalid = (left) => MSG.invalid + (left > 0 ? (left === 1 ? ' Μένει 1 προσπάθεια' : ' Μένουν ' + left + ' προσπάθειες') + ' πριν κλειδώσει ο λογαριασμός.' : '');
   const ROLES = { director: 'Διευθυντής', lead: 'Υπεύθυνος ομάδας', sales: 'Πωλητής' };
   const col = (p) => p.slice(0, p.lastIndexOf('/')), idOf = (p) => p.slice(p.lastIndexOf('/') + 1);
   /* γραμμή profiles → χρήστης της εφαρμογής (id = το id του demo, π.χ. u7· uuid = ο λογαριασμός στη βάση) */
@@ -69,6 +71,7 @@
   }
   const accounts = {
     max: MAX_FAILS,
+    adminLockMin: ADMIN_LOCK_MIN,
     status: (id) => STATUS[id] || null,
     async refresh() { const r = await admin('status'); Object.keys(STATUS).forEach((k) => delete STATUS[k]); Object.assign(STATUS, r.status || {}); },
     async unlock(id) { await admin('unlock', { id }); await accounts.refresh().catch(() => {}); },
@@ -113,7 +116,8 @@
     /* είσοδος μέσω του server (μετρά τα λάθη)· επιστρέφει τον χρήστη ή { error: μήνυμα } */
     async check(email, pass) {
       let r; try { r = await api.login(String(email).trim(), String(pass)); } catch (e) { return { error: MSG.net }; }
-      if (r.error || !r.session) return { error: msg(r.error || 'invalid') };
+      if (r.error === 'invalid' || (!r.error && !r.session)) return { error: invalid(r.left) };
+      if (r.error) return { error: msg(r.error) };
       const { data, error } = await sb.auth.setSession(r.session);
       if (error || !data.user) return { error: MSG.server };
       const { data: p } = await sb.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
