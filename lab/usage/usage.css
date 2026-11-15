@@ -1,33 +1,42 @@
 /* Χρήση εφαρμογής (lab/usage) — πάνω στα κουτιά της ομάδας (team.css: .tmcard, .tmbar, .tmhead). */
-.usr { padding: 7px 0; border-bottom: 1px solid var(--bd); }
-.usr:last-child { border-bottom: 0; }
-.usr .usn { overflow-wrap: anywhere; }
-.usr .usv { font-size: calc(13 * var(--u)); color: var(--mu); margin-top: 2px; }
-.usflag { display: inline-block; font-size: calc(11.5 * var(--u)); font-weight: 600; color: #a86a00; background: rgba(224,161,27,.15); border-radius: 99px; padding: 1px 7px; vertical-align: 1px; }
-.usnever { margin: 0; font-size: calc(14 * var(--u)); color: var(--mu); line-height: 1.6; }
+/* δείκτες πάνω-πάνω (συνολικός χρόνος, ενεργοί χρήστες …) */
+.uskpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(140 * var(--u)), 1fr)); gap: 8px; margin: 10px 0 12px; }
+.uskpi > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--bd); border-radius: 14px; background: var(--card); min-width: 0; }
+.uskpi span { font-size: calc(12 * var(--u)); color: var(--mu); font-weight: 600; letter-spacing: .2px; }
+.uskpi b { font-size: calc(22 * var(--u)); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+.uskpi b small { font-size: .6em; font-weight: 600; color: var(--mu); }
+.uskpi > div > small { font-size: calc(11.5 * var(--u)); color: var(--mu); }
+/* πίνακας σελίδων: όνομα και ενότητα, μπάρα, χρόνος, %, φορές */
+.ustbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ustbl th { text-align: right; font-size: calc(11.5 * var(--u)); font-weight: 600; color: var(--mu); padding: 0 0 6px 8px; border-bottom: 1px solid var(--bd); white-space: nowrap; }
+.ustbl th:first-child, .ustbl td:first-child { text-align: left; padding-left: 0; }
+.ustbl td { text-align: right; vertical-align: top; padding: 8px 0 8px 8px; border-bottom: 1px solid var(--bd); white-space: nowrap; }
+.ustbl td:first-child { white-space: normal; width: 100%; overflow-wrap: anywhere; }
+.ustbl td:first-child small { display: block; font-size: calc(12 * var(--u)); color: var(--mu); margin-top: 1px; }
+.ustbl td:nth-child(2) { font-weight: 700; }
+.ustbl tfoot td { font-weight: 700; border-bottom: 0; padding-top: 10px; }
+.usbar { display: block; height: 5px; margin-top: 6px; border-radius: 3px; background: var(--bd); overflow: hidden; }
+.usbar i { display: block; height: 100%; border-radius: 3px; background: var(--ac); }
+.usnever { margin: 10px 0 0; font-size: calc(13 * var(--u)); color: var(--mu); line-height: 1.5; }
 .usacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(150 * var(--u)), 1fr)); gap: 6px 14px; }
 .usacts > div { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--bd); }
+.usuh { display: flex; justify-content: space-between; font-size: calc(11.5 * var(--u)); font-weight: 600; color: var(--mu); padding-bottom: 6px; border-bottom: 1px solid var(--bd); }
 button.usu { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; margin: 0; padding: 9px 0; border: 0; border-bottom: 1px solid var(--bd); border-radius: 0; background: none; color: var(--tx); font: inherit; }
 button.usu:last-child { border-bottom: 0; }
 .usu .usn { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
-.usu .usv { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.usu .usv { display: flex; flex-direction: column; align-items: flex-end; flex: none; font-variant-numeric: tabular-nums; }
 .usdays { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
 .usdays span { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; background: var(--ac2); border-radius: 3px; }
 .usdays i { display: block; width: 100%; background: var(--ac); border-radius: 3px; }
-/* ομάδες οθονών */
+.usdl { display: flex; justify-content: space-between; margin-top: 6px; font-size: calc(12 * var(--u)); color: var(--mu); }
+/* χρόνος ανά ενότητα */
 .usg { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
 .usgi { width: 34px; height: 34px; border-radius: 10px; background: var(--ac2); display: flex; align-items: center; justify-content: center; font-size: 17px; flex: none; }
 .usgn { font-weight: 700; flex: 0 1 calc(118 * var(--u)); min-width: 0; overflow-wrap: anywhere; }
 .usgb { flex: 1; height: 11px; border-radius: 6px; background: var(--bd); overflow: hidden; min-width: 40px; }
 .usgb i { display: block; height: 100%; border-radius: 6px; background: var(--ac); }
-.usg > b { flex: none; min-width: 3ch; text-align: right; }
-/* πολύ / λίγο / κανείς: η μία κάτω από την άλλη */
-.uscols { display: grid; grid-template-columns: 1fr; gap: 8px; }
-.usc { border-radius: 14px; padding: 10px 12px; font-size: calc(15 * var(--u)); line-height: 1.5; }
-.usc > b { display: block; margin-bottom: 4px; }
-.usc.c1 { background: color-mix(in srgb, var(--ac) 14%, var(--card)); }
-.usc.c2 { background: color-mix(in srgb, #e0a11b 16%, var(--card)); }
-.usc.c3 { background: color-mix(in srgb, var(--rd) 13%, var(--card)); }
+.usg > b { flex: none; min-width: 6ch; text-align: right; font-variant-numeric: tabular-nums; }
+.usg > em { flex: none; min-width: 4ch; text-align: right; font-style: normal; color: var(--mu); font-size: calc(13 * var(--u)); }
 /* ημερολόγιο χρηστών × μέρες */
 .ushm { display: grid; grid-template-columns: minmax(64px, auto) repeat(var(--n), minmax(0, 24px)); gap: 3px; align-items: center; }
 .ushn { font-size: calc(13 * var(--u)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
@@ -35,5 +44,5 @@ button.usu:last-child { border-bottom: 0; }
 .ushm i.l1, .ushl i.l1 { background: color-mix(in srgb, var(--ac) 30%, var(--card)); }
 .ushm i.l2, .ushl i.l2 { background: color-mix(in srgb, var(--ac) 62%, var(--card)); }
 .ushm i.l3, .ushl i.l3 { background: var(--ac); }
-.ushl { display: flex; align-items: center; gap: 5px; margin-top: 10px; font-size: calc(12.5 * var(--u)); color: var(--mu); }
+.ushl { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 10px; font-size: calc(12.5 * var(--u)); color: var(--mu); }
 .ushl i { width: 12px; }

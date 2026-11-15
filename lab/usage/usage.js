@@ -74,7 +74,10 @@
   const ymd = (ms) => { const x = new Date(ms); return x.getFullYear() + '-' + u.pad(x.getMonth() + 1) + '-' + u.pad(x.getDate()); };   // τοπική ημερομηνία
   const from = () => ymd(Date.now() - (st.per - 1) * 864e5);
   const docs = () => { flush(); const f = from(); return O.usage.all().filter((x) => x.d >= f); };
-  const mins = (s) => { const m = Math.round(s / 60); return s > 0 && m < 1 ? '<1′' : m < 60 ? m + '′' : Math.floor(m / 60) + 'ω ' + String(m % 60).padStart(2, '0') + '′'; };
+  /* χρόνος: «45″», «4′ 12″», «1 ώ 05′» */
+  const dur = (sec) => { const t = Math.round(sec || 0); if (t < 60) return t + '″'; if (t < 3600) return Math.floor(t / 60) + '′ ' + u.pad(t % 60) + '″'; return Math.floor(t / 3600) + ' ώ ' + u.pad(Math.floor(t % 3600 / 60)) + '′'; };
+  const pct = (v, tot) => (tot > 0 ? (v / tot * 100 < 1 && v > 0 ? '<1' : Math.round(v / tot * 100)) + '%' : '—');
+  const secsOf = (z) => Object.entries(z.p || {}).reduce((a, [k, [, q]]) => a + (HIDE.has(k) ? 0 : q), 0);   // χρόνος ενός εγγράφου, χωρίς τις σελίδες του διαχειριστή
   const when = (iso) => { if (!iso) return '—'; const dt = new Date(iso), dd = ymd(dt.getTime()), t0 = u.today();
     return (dd === t0 ? 'σήμερα' : dd === ymd(Date.now() - 864e5) ? 'χθες' : u.fd(dd)) + ' ' + u.pad(dt.getHours()) + ':' + u.pad(dt.getMinutes()); };
   /* «🟢 Online τώρα» ή «τελευταία φορά σήμερα 18:17» */
@@ -87,26 +90,30 @@
     L.forEach((x) => Object.entries(x.p || {}).forEach(([k, [n, s]]) => { if (HIDE.has(k)) return; const o = m[k] || (m[k] = { id: k, title: name(k), n: 0, s: 0, who: new Set() }); o.n += n; o.s += s; o.who.add(x.u); }));
     return Object.values(m).sort((a, b) => b.s - a.s || b.n - a.n); };
   const acts = (L) => { const m = {}; L.forEach((x) => Object.entries(x.a || {}).forEach(([k, n]) => { m[k] = (m[k] || 0) + n; })); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
-  const bars = (S, nUsers) => { const max = Math.max(1, ...S.map((x) => x.s)), tot = S.reduce((a, x) => a + x.s, 0) || 1;
-    return S.map((x) => { const low = nUsers > 1 && x.s / tot < 0.01;   /* κάτω από 1% του χρόνου όλων */
-      return `<div class="usr"><div class="usn"><b>${esc(x.title)}</b>${low ? ' <span class="usflag">λίγη χρήση</span>' : ''}</div>` +
-        `<div class="usv">${mins(x.s)} · ${x.n} φορές${nUsers > 1 ? ` · ${x.who.size}/${nUsers} χρήστες` : ''}</div><div class="tmbar"><i class="up" style="width:${Math.max(2, Math.round(x.s / max * 100))}%"></i></div></div>`; }).join('') || '<p class="mu">Καμία χρήση σε αυτή την περίοδο.</p>'; };
-  /* χρόνος ανά ομάδα οθονών, ως ποσοστό του συνόλου */
-  const groups = (S) => { const m = {}, tot = S.reduce((a, x) => a + x.s, 0) || 1; S.forEach((x) => { const g = groupOf(x.id); m[g] = (m[g] || 0) + x.s; });
-    const L = Object.entries(m).sort((a, b) => b[1] - a[1]), mx = (L[0] || [0, 1])[1];
-    return L.map(([g, v]) => `<div class="usg"><span class="usgi">${GICO[g]}</span><span class="usgn">${esc(g)}</span><span class="usgb"><i style="width:${Math.max(3, Math.round(v / mx * 100))}%"></i></span><b>${Math.round(v / tot * 100)}%</b></div>`).join('') || '<p class="mu">Καμία χρήση σε αυτή την περίοδο.</p>'; };
-  /* τρεις ομάδες οθονών: πολύ (≥4% του χρόνου), λίγο (<1%), κανείς — η μία κάτω από την άλλη, ονόματα στη σειρά */
-  const cols = (S, never) => { const tot = S.reduce((a, x) => a + x.s, 0) || 1, col = (cls, h, L) => `<div class="usc ${cls}"><b>${h}</b>${L.length ? L.map(esc).join(' · ') : '<span class="mu">—</span>'}</div>`;
-    return `<div class="uscols">${col('c1', '👍 Πολύ', S.filter((x) => x.s / tot >= 0.04).map((x) => x.title))}${col('c2', '🤏 Λίγο', S.filter((x) => x.s / tot < 0.01).map((x) => x.title))}${col('c3', '🚫 Κανείς', never)}</div>`; };
+  /* δείκτες πάνω-πάνω: [[τίτλος, τιμή, υπότιτλος]] */
+  const kpis = (L) => `<div class="uskpi">${L.map(([t, v, sub]) => `<div><span>${t}</span><b>${v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`).join('')}</div>`;
+  /* όλες οι σελίδες που χρησιμοποιήθηκαν: χρόνος, % του συνόλου, φορές (και πόσοι χρήστες, όταν είναι πολλοί) */
+  const pageTable = (S, nUsers) => {
+    if (!S.length) return '<p class="mu">Καμία χρήση σε αυτή την περίοδο.</p>';
+    const tot = S.reduce((a, x) => a + x.s, 0), max = Math.max(1, ...S.map((x) => x.s));
+    return `<table class="ustbl"><thead><tr><th>Σελίδα</th><th>Χρόνος</th><th>%</th><th>Φορές</th></tr></thead><tbody>` +
+      S.map((x) => `<tr><td><b>${esc(x.title)}</b><small>${esc(groupOf(x.id))}${nUsers > 1 ? ` · ${x.who.size} ${x.who.size === 1 ? 'χρήστης' : 'χρήστες'}` : ''}</small><span class="usbar"><i style="width:${Math.max(1, Math.round(x.s / max * 100))}%"></i></span></td>` +
+        `<td>${dur(x.s)}</td><td>${pct(x.s, tot)}</td><td>${x.n}</td></tr>`).join('') +
+      `</tbody><tfoot><tr><td>Σύνολο · ${S.length} σελίδες</td><td>${dur(tot)}</td><td>100%</td><td>${S.reduce((a, x) => a + x.n, 0)}</td></tr></tfoot></table>`;
+  };
+  /* χρόνος ανά ενότητα (Πελάτες, Πρόγραμμα, …): χρόνος και % του συνόλου */
+  const sections = (S) => { const m = {}, tot = S.reduce((a, x) => a + x.s, 0); S.forEach((x) => { const g = groupOf(x.id); m[g] = (m[g] || 0) + x.s; });
+    const L = Object.entries(m).sort((a, b) => b[1] - a[1]), mx = (L[0] || [0, 1])[1] || 1;
+    return L.map(([g, v]) => `<div class="usg"><span class="usgi">${GICO[g]}</span><span class="usgn">${esc(g)}</span><span class="usgb"><i style="width:${Math.max(2, Math.round(v / mx * 100))}%"></i></span><b>${dur(v)}</b><em>${pct(v, tot)}</em></div>`).join('') || '<p class="mu">Καμία χρήση σε αυτή την περίοδο.</p>'; };
   /* ποιος μπαίνει κάθε μέρα: χρήστες × μέρες (ως 30 στήλες· για 3 μήνες ανά εβδομάδα), όσο πιο σκούρο τόσο περισσότερος χρόνος */
   const heatmap = (L, U) => {
     const span = Math.max(st.per, 7), wk = span > 30, cells = [];
     if (wk) for (let k = Math.ceil(span / 7) - 1; k >= 0; k--) cells.push([ymd(Date.now() - (k * 7 + 6) * 864e5), ymd(Date.now() - k * 7 * 864e5)]);
     else for (let k = span - 1; k >= 0; k--) { const d = ymd(Date.now() - k * 864e5); cells.push([d, d]); }
-    const secs = (uid, [a, b]) => L.filter((z) => z.u === uid && z.d >= a && z.d <= b).reduce((t, z) => t + Object.values(z.p || {}).reduce((q, [, v]) => q + v, 0), 0);
+    const secs = (uid, [a, b]) => L.filter((z) => z.u === uid && z.d >= a && z.d <= b).reduce((t, z) => t + secsOf(z), 0);
     const lv = (s) => (s <= 0 ? 0 : s < (wk ? 3000 : 600) ? 1 : s < (wk ? 9000 : 1800) ? 2 : 3);
-    return `<div class="ushm" style="--n:${cells.length}">` + U.map((x) => `<span class="ushn">${esc(x.name.split(' ')[0])}</span>` + cells.map((c) => { const s = secs(x.id, c); return `<i class="l${lv(s)}" title="${esc(u.fd(c[0]))}${wk ? '–' + esc(u.fd(c[1])) : ''} · ${mins(s)}"></i>`; }).join('')).join('') + '</div>' +
-      `<div class="ushl">λίγο <i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i> πολύ${wk ? ' · ένα τετράγωνο = μία εβδομάδα' : ''}</div>`; };
+    return `<div class="ushm" style="--n:${cells.length}">` + U.map((x) => `<span class="ushn">${esc(x.name.split(' ')[0])}</span>` + cells.map((c) => { const s = secs(x.id, c); return `<i class="l${lv(s)}" title="${esc(u.fd(c[0]))}${wk ? '–' + esc(u.fd(c[1])) : ''} · ${dur(s)}"></i>`; }).join('')).join('') + '</div>' +
+      `<div class="ushl"><i class="l0"></i>καθόλου <i class="l1"></i>${wk ? '&lt;50′' : '&lt;10′'} <i class="l2"></i>${wk ? '50′–2½ ώ' : '10–30′'} <i class="l3"></i>${wk ? '2½ ώ+' : '30′+'}${wk ? ' · ένα τετράγωνο = μία εβδομάδα' : ' · ανά μέρα'}</div>`; };
   const actList = (A) => (A.length ? `<div class="usacts">${A.map(([k, n]) => `<div><span>${esc(k)}</span><b>${n}</b></div>`).join('')}</div>` : '<p class="mu">Καμία ενέργεια.</p>');
   const deny = (el) => { el.innerHTML = '<h2>Χωρίς πρόσβαση</h2><p class="mu">Αυτή η οθόνη είναι μόνο για τον διαχειριστή.</p>'; };
   const ICO = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
@@ -115,25 +122,26 @@
     title: 'Χρήση εφαρμογής',
     render(el) {
       el.classList.add('tmpage');
-      let allOpen = false;
       const draw = () => {
-        const L = docs(), U = O.users().filter((x) => x.active), S = screens(L), on = new Set(L.map((x) => x.u));
+        const L = docs(), U = O.users().filter((x) => x.active), S = screens(L), on = new Set(L.filter((z) => secsOf(z) > 0).map((x) => x.u));
+        const tot = S.reduce((a, x) => a + x.s, 0), udays = L.filter((z) => secsOf(z) > 0).length, nAct = acts(L).reduce((a, [, n]) => a + n, 0);
         const never = PL.pageIds().filter((id) => !HIDE.has(id) && !S.some((x) => x.id === id)).map(name).sort((a, b) => a.localeCompare(b, 'el'));
-        const rows = U.map((x) => { const M = L.filter((z) => z.u === x.id), s = M.reduce((a, z) => a + Object.values(z.p || {}).reduce((b, [, q]) => b + q, 0), 0);
-          return { x, s, days: M.length, top: screens(M).slice(0, 3).map((q) => q.title) }; }).sort((a, b) => b.s - a.s);
-        el.innerHTML = `<div class="tmhead"><h2>${ICO}Χρήση εφαρμογής</h2><p class="mu">${on.size} από ${U.length} χρήστες μπήκαν σε αυτή την περίοδο</p></div>` + chips() +
+        const rows = U.map((x) => { const M = L.filter((z) => z.u === x.id);
+          return { x, s: M.reduce((a, z) => a + secsOf(z), 0), days: M.filter((z) => secsOf(z) > 0).length, n: acts(M).reduce((a, [, q]) => a + q, 0) }; }).sort((a, b) => b.s - a.s);
+        el.innerHTML = `<div class="tmhead"><h2>${ICO}Χρήση εφαρμογής</h2><p class="mu">Χρόνος μπροστά στην οθόνη ανά σελίδα και χρήστη</p></div>` + chips() +
+          kpis([['Ενεργοί χρήστες', `${on.size}<small>/${U.length}</small>`, ''], ['Online τώρα', U.filter((x) => seen(x.id).on).length, ''],
+            ['Συνολικός χρόνος', dur(tot), ''], ['Μέσος χρόνος', udays ? dur(tot / udays) : '—', 'ανά χρήστη και μέρα'], ['Αποθηκεύσεις', nAct, '']]) +
           `<div class="tmgrid">` +
-          card('Τι δουλεύεται', groups(S)) + card('Οθόνες', cols(S, never)) +
+          card('Χρόνος ανά σελίδα', pageTable(S, on.size) + (never.length ? `<p class="usnever">Χωρίς χρήση: ${never.map(esc).join(' · ')}</p>` : ''), 'tmwide2') +
+          card('Χρήστες', `<div class="usuh"><span>Χρήστης</span><span>Χρόνος</span></div>` + rows.map((r) => `<button class="usu" data-usu="${esc(r.x.id)}"><span class="usn"><b>${esc(r.x.name)}</b><small class="mu">${esc(r.x.admin ? 'Διαχειριστής' : O.ROLES[r.x.role] || '')} · ${status(r.x.id)}</small>` +
+            `</span><span class="usv"><b>${r.s ? dur(r.s) : '—'}</b><small class="mu">${r.days} ${r.days === 1 ? 'μέρα' : 'μέρες'} · ${r.n} αποθ.</small></span></button>`).join('')) +
+          card('Χρόνος ανά ενότητα', sections(S)) +
           card('Ποιος μπαίνει κάθε μέρα', heatmap(L, rows.map((r) => r.x)), 'tmwide2') +
-          card('Ενέργειες (αποθηκεύσεις)', actList(acts(L))) +
-          card('Χρήστες', rows.map((r) => `<button class="usu" data-usu="${esc(r.x.id)}"><span class="usn"><b>${esc(r.x.name)}</b><small class="mu">${esc(r.x.admin ? 'Διαχειριστής' : O.ROLES[r.x.role] || '')} · ${status(r.x.id)}</small>` +
-            `</span><span class="usv"><b>${mins(r.s)}</b><small class="mu">${r.days} ${r.days === 1 ? 'μέρα' : 'μέρες'}</small></span></button>`).join('')) +
-          `</div><button class="tmmore" data-usall="1">${allOpen ? 'Λιγότερα ▴' : 'Όλες οι οθόνες αναλυτικά ▾'}</button>` + (allOpen ? `<div class="tmgrid tmdet">${card('Οθόνες · χρόνος μπροστά τους', bars(S, on.size), 'tmwide2')}</div>` : '');
+          card('Αποθηκεύσεις ανά είδος', actList(acts(L))) + `</div>`;
       };
       draw();
       el.addEventListener('click', (ev) => {
         const p = ev.target.closest('[data-usper]'); if (p) { st.per = +p.dataset.usper; draw(); return; }
-        if (ev.target.closest('[data-usall]')) { allOpen = !allOpen; draw(); return; }
         const b = ev.target.closest('[data-usu]'); if (b) PL.nav.push('usageuser', { id: b.dataset.usu });
       });
       return live(el, draw);
@@ -146,13 +154,15 @@
       el.classList.add('tmpage');
       const x = O.users().find((z) => z.id === params.id); if (!x) { deny(el); return; }
       const draw = () => {
-        const L = docs().filter((z) => z.u === x.id), S = screens(L);
+        const L = docs().filter((z) => z.u === x.id), S = screens(L), tot = S.reduce((a, q) => a + q.s, 0), nAct = acts(L).reduce((a, [, n]) => a + n, 0);
         const days = []; for (let k = st.per - 1; k >= 0; k--) days.push(ymd(Date.now() - k * 864e5));
-        const per = days.map((dd) => { const z = L.find((q) => q.d === dd); return [dd, z ? Object.values(z.p || {}).reduce((a, [, q]) => a + q, 0) : 0]; }), mx = Math.max(60, ...per.map((q) => q[1]));
+        const per = days.map((dd) => { const z = L.find((q) => q.d === dd); return [dd, z ? secsOf(z) : 0]; }), mx = Math.max(60, ...per.map((q) => q[1])), act = per.filter((q) => q[1] > 0).length;
         el.innerHTML = `<div class="tmhead"><h2>${esc(x.name)}</h2><p class="mu">${esc(x.admin ? 'Διαχειριστής' : O.ROLES[x.role] || '')} · ${status(x.id)}</p></div>` + chips() +
+          kpis([['Συνολικός χρόνος', dur(tot), ''], ['Ενεργές μέρες', `${act}<small>/${per.length}</small>`, ''], ['Μέσος χρόνος', act ? dur(tot / act) : '—', 'ανά ενεργή μέρα'],
+            ['Σελίδες', S.length, ''], ['Αποθηκεύσεις', nAct, '']]) +
           `<div class="tmgrid">` +
-          (st.per > 1 ? card('Ανά μέρα', `<div class="usdays">${per.map(([dd, s]) => `<span title="${esc(u.fd(dd))} · ${mins(s)}"><i style="height:${Math.round(s / mx * 100)}%"></i></span>`).join('')}</div><p class="mu">${per.filter((q) => q[1] > 0).length} από ${per.length} μέρες · σύνολο ${mins(per.reduce((a, q) => a + q[1], 0))}</p>`) : '') +
-          card('Τι δουλεύει', groups(S)) + card('Οθόνες', bars(S, 1)) + card('Ενέργειες (αποθηκεύσεις)', actList(acts(L))) + `</div>`;
+          (st.per > 1 ? card('Χρόνος ανά μέρα', `<div class="usdays">${per.map(([dd, s]) => `<span title="${esc(u.fd(dd))} · ${dur(s)}"><i style="height:${Math.round(s / mx * 100)}%"></i></span>`).join('')}</div><div class="usdl"><span>${esc(u.fd(days[0]))}</span><span>${esc(u.fd(days[days.length - 1]))}</span></div>`, 'tmwide2') : '') +
+          card('Χρόνος ανά σελίδα', pageTable(S, 1), 'tmwide2') + card('Χρόνος ανά ενότητα', sections(S)) + card('Αποθηκεύσεις ανά είδος', actList(acts(L))) + `</div>`;
       };
       draw();
       el.addEventListener('click', (ev) => { const p = ev.target.closest('[data-usper]'); if (p) { st.per = +p.dataset.usper; draw(); } });
