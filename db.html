@@ -16,6 +16,7 @@
 <script src="js/core.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="lab/supa/config.js"></script>
+<script src="lab/supa/api.js"></script>
 <script src="lab/supa/session.js"></script>
 <script src="js/adapter.js"></script>
 <script src="js/util.js"></script>
@@ -74,10 +75,10 @@
 <script>/* σπάνιες σελίδες: φορτώνουν την πρώτη φορά που ανοίγουν (core.js, PL.lazy) */
 PL.lazy({ charts: ['css/charts.css', 'js/pages/charts.js'], flash: ['css/charts.css', 'js/pages/flash.js'], sales: ['js/pages/sales.js'], salesitem: ['js/pages/sales.js'], card: ['css/card.css', 'js/lib/qr.js', 'js/pages/card.js'] });</script>
 <link rel="stylesheet" href="lab/map/map.css"><script src="lab/map/map.js"></script>
-<link rel="stylesheet" href="lab/team/team.css"><script src="lab/team/team.js"></script>
+<link rel="stylesheet" href="lab/team/team.css"><script src="lab/team/team.js"></script><script src="lab/team/accounts.js"></script>
 <link rel="stylesheet" href="lab/usage/usage.css"><script src="lab/usage/usage.js"></script>
 <script>/* με βάση: ξεκινά όταν φορτώσουν τα δεδομένα του συνδεδεμένου (lab/supa/session.js) */
-(window.PL_BOOT || Promise.resolve()).then(() => { PL.start(); PL.model.boot(); }, () => {
+(window.PL_BOOT || Promise.resolve()).then(() => { document.getElementById('app').textContent = ''; PL.start(); PL.model.boot(); }, () => {
   document.getElementById('app').innerHTML = '<p style="padding:24px">Δεν συνδέθηκα με τη βάση. Έλεγξε το ίντερνετ και ξαναδοκίμασε.</p><p style="padding:0 24px"><button onclick="location.reload()">Ξαναδοκίμασε</button></p>';
 });</script>
 </body></html>

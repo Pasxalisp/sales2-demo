@@ -3,7 +3,7 @@
    - Αρχική: ποιος είναι μέσα, «Αλλαγή», πλακίδια ανάλογα με τον ρόλο.
    - «Η ομάδα μου» (υπεύθυνος) / «Όλες οι ομάδες» (διευθυντής): λίστα πωλητών → πωλητής σε όλη την οθόνη με γραφήματα,
      → κατηγορία/μάρκα → πελάτες. ΜΟΝΟ ανάγνωση.
-   - «Χρήστες και ρόλοι» (διαχειριστής).
+   - «Χρήστες και ρόλοι» (διαχειριστής). Με βάση (db.html) και εργαλεία λογαριασμών: lab/team/accounts.js (PL.teamAcc).
    Χρήστες, ομάδες και δεδομένα πωλητών: ΜΟΝΟ από το PL.adapter.org (τους κανόνες πρόσβασης τους κρατά εκείνο).
    Νούμερα: ΜΟΝΟ από το μοντέλο (PL.model.over(δεδομένα πωλητή)) και το PL.flash — οι ίδιοι υπολογισμοί με τις σελίδες
    του πωλητή, ώστε ο υπεύθυνος να βλέπει ακριβώς ό,τι βλέπει ο πωλητής. Εδώ μόνο συνδυάζονται και ζωγραφίζονται. */
@@ -171,9 +171,9 @@
       let open = false;
       el.classList.add('tmpage');
       const paint = () => {
-        el.innerHTML = `<div class="tmhead"><h2>${ICON.team}${me.team === tid ? 'Η ομάδα μου' : esc(t.name)}</h2><p class="mu">${esc(t.name)} · ${ppl(list.map(({ x }) => x))} ${RO}</p></div>` +
-          `<div class="tmgrid">${attention(list, med, tid)}${teamSummary(list)}${card('Πωλητές', `<div class="tmsl">${sellers(sorted, med, tid)}</div>`, 'tmwide2')}</div>` + details(sorted, open) +
-          '<p class="mu tmfoot">Χρώμα: πράσινο πάει καλά, κίτρινο θέλει ματιά, κόκκινο χρειάζεται βοήθεια. Η μαύρη γραμμή στη μπάρα δείχνει πού έπρεπε να είναι σήμερα.</p>';
+          el.innerHTML = `<div class="tmhead"><h2>${ICON.team}${me.team === tid ? 'Η ομάδα μου' : esc(t.name)}</h2><p class="mu">${esc(t.name)} · ${ppl(list.map(({ x }) => x))} ${RO}</p></div>` +
+            `<div class="tmgrid">${attention(list, med, tid)}${teamSummary(list)}${card('Πωλητές', `<div class="tmsl">${sellers(sorted, med, tid)}</div>`, 'tmwide2')}</div>` + details(sorted, open) +
+            '<p class="mu tmfoot">Χρώμα: πράσινο πάει καλά, κίτρινο θέλει ματιά, κόκκινο χρειάζεται βοήθεια. Η μαύρη γραμμή στη μπάρα δείχνει πού έπρεπε να είναι σήμερα.</p>';
       };
       paint();
       el.addEventListener('click', (ev) => {
@@ -279,16 +279,22 @@
     title: 'Χρήστες και ρόλοι',
     render(el) {
       if (!me.admin) return deny(el, 'Μόνο ο διαχειριστής της εφαρμογής βλέπει αυτή την οθόνη.');
+      const ACC = O.accounts && PL.teamAcc;   // εργαλεία λογαριασμών (μόνο με βάση)
+      el.classList.add('tmpage');
+      const paint = () => {
       const U = O.users(), n = O.clientCounts(), codes = new Set(U.filter((x) => x.active && x.code).map((x) => x.code)), orphan = Object.entries(n).filter(([c]) => !codes.has(c)).reduce((a, [, v]) => a + v, 0);
       const grp = (title, L) => (L.length ? `<h3 class="tmsec">${esc(title)}</h3><div class="tmrows">` + L.map((x) => `<button class="tmrow tmu${x.active ? '' : ' off'}" data-uid="${esc(x.id)}"><span class="tmav${x.role === 'lead' ? ' l' : x.role === 'director' ? ' d' : ''}">${esc(initials(x.name))}</span><span class="tmrb"><b>${esc(x.name)}</b>` +
-        `<span class="tmmini"><span class="tmrole ${esc(x.role)}">${esc(O.ROLES[x.role])}</span>${x.admin ? '<span>🛠 διαχειριστής</span>' : ''}<span>${esc(x.email)}</span>${x.code ? `<span>κωδ. ${esc(x.code)} · ${n[x.code] || 0} πελάτες</span>` : ''}${x.active ? '' : '<span class="dn">ανενεργός</span>'}</span></span><span class="tmchev">›</span></button>`).join('') + '</div>' : '');
-      el.classList.add('tmpage');
+        `<span class="tmmini"><span class="tmrole ${esc(x.role)}">${esc(O.ROLES[x.role])}</span>${x.admin ? '<span>🛠 διαχειριστής</span>' : ''}<span>${esc(x.email)}</span>${x.code ? `<span>κωδ. ${esc(x.code)} · ${n[x.code] || 0} πελάτες</span>` : ''}${x.active ? '' : '<span class="dn">ανενεργός</span>'}${ACC ? PL.teamAcc.badges(x) : ''}</span></span><span class="tmchev">›</span></button>`).join('') + '</div>' : '');
       el.innerHTML = `<div class="tmhead"><h2>${ICON.users}Χρήστες και ρόλοι</h2><p class="mu">${U.filter((x) => x.active).length} ενεργοί χρήστες · ${O.teams().length} ομάδες</p></div>` +
         `<div class="tmgrid"><section class="tmcard tmwide2"><h3>Ποιος βλέπει τι</h3><div class="tmrl"><b>Πωλητής</b><span>Τους δικούς του πελάτες: όσους έχουν τον κωδικό πωλητή του στο orders.</span></div><div class="tmrl"><b>Υπεύθυνος ομάδας</b><span>Τους δικούς του πελάτες, και τα νούμερα και τις σημειώσεις των πωλητών της ομάδας του, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διευθυντής</b><span>Όλες τις ομάδες, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διαχειριστής</b><span>Προσθέτει χρήστες και αλλάζει ρόλους και ομάδες. Είναι και πωλητής.</span></div></section></div>` +
         `<p><button class="pri" id="tmnew">+ Νέος χρήστης</button></p>` +
         grp('Διεύθυνση', U.filter((x) => x.role === 'director')) + O.teams().map((t) => grp(t.name, U.filter((x) => x.role !== 'director' && x.team === t.id).sort((a, b) => (a.role === 'lead' ? -1 : b.role === 'lead' ? 1 : 0)))).join('') +
         (orphan ? `<p class="warn">${orphan} πελάτες έχουν κωδικό πωλητή που δεν ανήκει σε ενεργό χρήστη· δεν τους βλέπει κανείς.</p>` : '') +
-        `<p class="mu tmfoot">Δοκιμαστική έκδοση: οι αλλαγές μένουν σε αυτή τη συσκευή. Στην κανονική μένουν στον server.</p><p><button id="tmrst">Επαναφορά αρχικών χρηστών</button></p>`;
+        (O.db ? '<p class="mu tmfoot">Οι αλλαγές γράφονται στη βάση και ισχύουν σε όλες τις συσκευές.</p>'
+          : '<p class="mu tmfoot">Δοκιμαστική έκδοση: οι αλλαγές μένουν σε αυτή τη συσκευή. Στην κανονική μένουν στον server.</p><p><button id="tmrst">Επαναφορά αρχικών χρηστών</button></p>');
+      };
+      paint();
+      if (ACC) O.accounts.refresh().then(() => { if (el.isConnected) paint(); }, () => {});   // φρέσκια κατάσταση (κλειδωμένοι κ.λπ.)
       el.addEventListener('click', async (ev) => {
         const c = ev.target.closest('[data-uid]'); if (c) { PL.nav.push('useredit', { id: c.dataset.uid }); return; }
         if (ev.target.id === 'tmnew') PL.nav.push('useredit', { id: '' });
@@ -304,22 +310,26 @@
       const U = O.users(), n = O.clientCounts(), isNew = !params.id;
       const x = isNew ? { id: 'u' + Date.now().toString(36), name: '', email: '', role: 'sales', team: (O.teams()[0] || {}).id || '', code: '', active: true, admin: false } : U.find((z) => z.id === params.id);
       if (!x) { el.innerHTML = '<p class="mu">Δεν βρέθηκε ο χρήστης.</p>'; return; }
+      const ACC = O.accounts && PL.teamAcc, mailFixed = ACC && !isNew;   // με βάση το email είναι ο λογαριασμός εισόδου: δεν αλλάζει από εδώ
       const self = x.id === me.id, opt = (v, t, on) => `<option value="${esc(v)}"${on ? ' selected' : ''}>${esc(t)}</option>`;
       el.classList.add('tmpage');
       el.innerHTML = `<div class="tmtop"><button class="shlink" data-shback="1">‹ Χρήστες</button></div><div class="tmwho">${isNew ? '' : `<span class="tmav big">${esc(initials(x.name))}</span>`}<div><h2>${isNew ? 'Νέος χρήστης' : esc(x.name)}</h2><div class="mu">${isNew ? 'Συμπλήρωσε και πάτησε Αποθήκευση' : esc(O.ROLES[x.role])}</div></div></div>` +
         `<div class="tmform"><label>Όνομα<input id="ufn" value="${esc(x.name)}" placeholder="π.χ. Δημήτρης Αλεξίου"></label>` +
-        `<label>Email (για την είσοδο)<input id="ufe" type="email" value="${esc(x.email)}" placeholder="onoma@sales2.demo"></label>` +
+        `<label>Email (για την είσοδο)<input id="ufe" type="email" value="${esc(x.email)}" placeholder="onoma@sales2.demo"${mailFixed ? ' readonly' : ''}>${mailFixed ? '<small class="mu">Είναι ο λογαριασμός εισόδου του· δεν αλλάζει από εδώ.</small>' : ''}</label>` +
         `<label>Ρόλος<select id="ufr">${Object.entries(O.ROLES).map(([k, t]) => opt(k, t, x.role === k)).join('')}</select></label>` +
         `<label class="ufs">Ομάδα<select id="uft">${O.teams().map((t) => opt(t.id, t.name, x.team === t.id)).join('')}</select></label>` +
         `<label class="ufs">Κωδικός πωλητή στο orders<input id="ufc" value="${esc(x.code || '')}" placeholder="π.χ. 009" inputmode="numeric"><small class="mu" id="ufcn"></small></label>` +
         `<label class="tmck"><input type="checkbox" id="ufadm"${x.admin ? ' checked' : ''}${self ? ' disabled' : ''}> Διαχειριστής εφαρμογής</label>` +
-        `<label class="tmck"><input type="checkbox" id="ufon"${x.active ? ' checked' : ''}${self ? ' disabled' : ''}> Ενεργός (μπορεί να μπει)</label>` +
-        `<p class="mu">Οι πελάτες έρχονται από τον κωδικό πωλητή, όπως είναι στο orders. Κωδικός εισόδου στη δοκιμαστική: <b>demo</b>· στην κανονική ο καθένας βάζει δικό του.</p>` +
-        `<p><button class="pri" id="ufsave">Αποθήκευση</button> <span id="uferr" class="dn"></span></p></div>`;
+        `<label class="tmck"><input type="checkbox" id="ufon"${x.active ? ' checked' : ''}${self || (ACC && isNew) ? ' disabled' : ''}> Ενεργός (μπορεί να μπει)</label>` +
+        (ACC ? `<p class="mu">Οι πελάτες έρχονται από τον κωδικό πωλητή, όπως είναι στο orders. ${isNew ? 'Με την αποθήκευση βγαίνει προσωρινός κωδικός εισόδου για να του τον δώσεις· στην πρώτη είσοδο βάζει δικό του.' : ''}</p>`
+          : '<p class="mu">Οι πελάτες έρχονται από τον κωδικό πωλητή, όπως είναι στο orders. Κωδικός εισόδου στη δοκιμαστική: <b>demo</b>· στην κανονική ο καθένας βάζει δικό του.</p>') +
+        `<p><button class="pri" id="ufsave">Αποθήκευση</button> <span id="uferr" class="dn"></span></p></div>` +
+        (ACC && !isNew ? '<div id="ufacc"></div>' : '');
+      if (ACC && !isNew) PL.teamAcc.panel(el.querySelector('#ufacc'), x);
       const $ = (s) => el.querySelector(s);
       const sync = () => { const dir = $('#ufr').value === 'director'; el.querySelectorAll('.ufs').forEach((z) => { z.style.display = dir ? 'none' : ''; }); const c = $('#ufc').value.trim(); $('#ufcn').textContent = c ? (n[c] || 0) + ' πελάτες με αυτόν τον κωδικό' : ''; };
       $('#ufr').addEventListener('change', sync); $('#ufc').addEventListener('input', sync); sync();
-      el.addEventListener('click', (ev) => {
+      el.addEventListener('click', async (ev) => {
         if (ev.target.id !== 'ufsave') return;
         const v = { name: $('#ufn').value.trim(), email: $('#ufe').value.trim().toLowerCase(), role: $('#ufr').value, team: $('#uft').value, code: $('#ufc').value.trim(), admin: $('#ufadm').checked, active: $('#ufon').checked };
         const err = (t) => { $('#uferr').textContent = t; };
@@ -330,6 +340,12 @@
         if (v.role !== 'director' && !v.code) return err('Ο πωλητής χρειάζεται κωδικό πωλητή.');
         if (v.code && U.some((z) => z.id !== x.id && z.active && z.code === v.code)) return err('Ο κωδικός ' + v.code + ' ανήκει ήδη σε άλλο χρήστη.');
         if (v.role === 'lead' && U.some((z) => z.id !== x.id && z.active && z.role === 'lead' && z.team === v.team)) return err('Η ομάδα έχει ήδη υπεύθυνο. Άλλαξε πρώτα τον άλλον σε πωλητή.');
+        if (ACC && isNew) {   // με βάση: λογαριασμός στον server + προσωρινός κωδικός
+          const b = ev.target; b.disabled = true; err('');
+          let r; try { r = await O.accounts.create(v); } catch (e) { b.disabled = false; return err(e.message); }
+          await PL.teamAcc.showTemp(v, r.temp);
+          PL.dlg.toast('Ο χρήστης προστέθηκε'); PL.nav.back(); return;
+        }
         O.saveUser(Object.assign({}, x, v));
         PL.dlg.toast(isNew ? 'Ο χρήστης προστέθηκε' : 'Αποθηκεύτηκε');
         if (self) setTimeout(() => location.reload(), 900); else PL.nav.back();
@@ -389,7 +405,7 @@
       const go = o.querySelector('#tmgo'), err = o.querySelector('#tmerr'); go.disabled = true; err.textContent = '';
       let x = null; try { x = await O.check(o.querySelector('#tme').value, o.querySelector('#tmpw').value); } catch (e) { x = null; }
       go.disabled = false;
-      if (x) O.login(x.id); else err.textContent = 'Λάθος email ή κωδικός.';
+      if (x && x.id) O.login(x.id); else err.textContent = (x && x.error) || 'Λάθος email ή κωδικός.';   // με βάση: το μήνυμα του server (π.χ. κλειδωμένος)
     });
     o.addEventListener('click', (ev) => { const b = ev.target.closest('[data-quick]'); if (b) O.login(b.dataset.quick); });
   }

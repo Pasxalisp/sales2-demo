@@ -2,7 +2,7 @@
 
 /* ---- οθόνη εισόδου ---- */
 body.tmlock { overflow: hidden; }
-#tmlogin { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: max(28px, env(safe-area-inset-top)) 16px 28px; }
+#tmlogin, .tmover { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: max(28px, env(safe-area-inset-top)) 16px 28px; }
 .tmlb { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; }
 .tmlogo { display: flex; align-items: center; gap: 10px; font-size: calc(30 * var(--u)); font-weight: 800; color: var(--tx); margin-top: 6px; }
 .tmlogo svg { width: 44px; height: 44px; }
@@ -12,6 +12,12 @@ body.tmlock { overflow: hidden; }
 .tmlb input { font-size: calc(17 * var(--u)); padding: 12px; }
 #tmgo { padding: 13px; font-size: calc(17 * var(--u)); margin-top: 4px; }
 #tmerr { margin: 0; min-height: 1.2em; }
+/* «Βάλε δικό σου κωδικό» (lab/team/accounts.js): ίδια όψη με την είσοδο, πάνω από την εφαρμογή */
+.tmover { z-index: 210; }
+.tmover h2 { margin: 6px 0 0; font-size: calc(24 * var(--u)); }
+#tmps { padding: 13px; font-size: calc(17 * var(--u)); margin-top: 4px; }
+#tmpe { margin: 0; min-height: 1.2em; color: var(--rd); }
+#tmpx { align-self: center; background: none; border: 0; color: var(--mu); font-size: calc(15 * var(--u)); }
 .tmq { border-top: 1px solid var(--bd); padding-top: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 8px; }
 .tmq h3 { margin: 0 0 2px; font-size: calc(13 * var(--u)); color: var(--mu); text-transform: uppercase; letter-spacing: .3px; }
 .tmq button { display: flex; align-items: center; gap: 12px; text-align: left; padding: 11px 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--bd); color: var(--tx); }
@@ -211,3 +217,19 @@ button.tmmore { display: block; width: 100%; margin: 12px 0 0; padding: 11px; bo
   .tmgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tmrows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* ---- λογαριασμοί (lab/team/accounts.js, μόνο με βάση) ---- */
+.tmacc { margin-top: 18px; padding: 14px; max-width: 560px; border: 1px solid var(--bd); border-radius: 16px; background: var(--card); }
+.tmacc h3 { margin: 0 0 8px; font-size: calc(16 * var(--u)); }
+.tmacc p { margin: 6px 0; }
+.tmaccst { font-size: calc(15 * var(--u)); }
+.tmaccb { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 !important; }
+/* προσωρινός κωδικός: παράθυρο στη μέση, ο κωδικός μεγάλος και καθαρός για να διαβαστεί στο τηλέφωνο */
+.tmtemp { position: fixed; inset: 0; z-index: 220; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.tmtb { width: 100%; max-width: 400px; background: var(--card); color: var(--tx); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.tmtb h3 { margin: 0; font-size: calc(19 * var(--u)); }
+.tmtb p { margin: 0; line-height: 1.4; }
+.tmtc { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; border: 1px solid var(--bd); border-radius: 14px; background: var(--bg); }
+.tmtc code { text-align: center; white-space: nowrap; font: 700 calc(22 * var(--u)) ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .5px; user-select: all; -webkit-user-select: all; }
+#tmtok { padding: 12px; font-size: calc(16 * var(--u)); }
+
