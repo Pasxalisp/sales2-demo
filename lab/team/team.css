@@ -234,3 +234,8 @@ button.tmmore { display: block; width: 100%; margin: 12px 0 0; padding: 11px; bo
 .tmtc code { text-align: center; white-space: nowrap; font: 700 calc(22 * var(--u)) ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .5px; user-select: all; -webkit-user-select: all; }
 #tmtok { padding: 12px; font-size: calc(16 * var(--u)); }
 
+/* «🟢 Online τώρα» (lab/usage/usage.js, στη λίστα χρηστών και στη Χρήση εφαρμογής) */
+.uson {
+  color: var(--ac);
+  font-weight: 600;
+}

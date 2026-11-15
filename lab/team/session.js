@@ -77,7 +77,7 @@
      Ο server τα κρατά USAGE_DAYS μέρες· μόνο ο διαχειριστής τα διαβάζει. Εδώ: σπόρος + ό,τι μετρήθηκε σε αυτή τη συσκευή. */
   const USAGE_DAYS = 90;
   const addUse = (x, y) => {
-    const o = { u: x.u, d: x.d, p: Object.assign({}, x.p), a: Object.assign({}, x.a), last: x.last > y.last ? x.last : y.last };
+    const o = { u: x.u, d: x.d, p: Object.assign({}, x.p), a: Object.assign({}, x.a), last: x.last > y.last ? x.last : y.last, away: (x.away || '') > (y.away || '') ? x.away || '' : y.away || '' };
     Object.entries(y.p || {}).forEach(([k, [n, s]]) => { const c = o.p[k] || [0, 0]; o.p[k] = [c[0] + n, c[1] + s]; });
     Object.entries(y.a || {}).forEach(([k, n]) => { o.a[k] = (o.a[k] || 0) + n; });
     return o;

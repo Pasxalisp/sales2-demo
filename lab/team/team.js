@@ -285,7 +285,7 @@
       const paint = () => {
       const U = O.users(), n = O.clientCounts(), codes = new Set(U.filter((x) => x.active && x.code).map((x) => x.code)), orphan = Object.entries(n).filter(([c]) => !codes.has(c)).reduce((a, [, v]) => a + v, 0);
       const grp = (title, L) => (L.length ? `<h3 class="tmsec">${esc(title)}</h3><div class="tmrows">` + L.map((x) => `<button class="tmrow tmu${x.active ? '' : ' off'}" data-uid="${esc(x.id)}"><span class="tmav${x.role === 'lead' ? ' l' : x.role === 'director' ? ' d' : ''}">${esc(initials(x.name))}</span><span class="tmrb"><b>${esc(x.name)}</b>` +
-        `<span class="tmmini"><span class="tmrole ${esc(x.role)}">${esc(O.ROLES[x.role])}</span>${x.admin ? '<span>🛠 διαχειριστής</span>' : ''}<span>${esc(x.email)}</span>${x.code ? `<span>κωδ. ${esc(x.code)} · ${n[x.code] || 0} πελάτες</span>` : ''}${x.active ? '' : '<span class="dn">ανενεργός</span>'}${ACC ? PL.teamAcc.badges(x) : ''}</span></span><span class="tmchev">›</span></button>`).join('') + '</div>' : '');
+        `<span class="tmmini"><span class="tmrole ${esc(x.role)}">${esc(O.ROLES[x.role])}</span>${x.admin ? '<span>🛠 διαχειριστής</span>' : ''}<span>${esc(x.email)}</span>${x.code ? `<span>κωδ. ${esc(x.code)} · ${n[x.code] || 0} πελάτες</span>` : ''}${x.active ? '' : '<span class="dn">ανενεργός</span>'}${ACC ? PL.teamAcc.badges(x) : ''}${PL.usage && PL.usage.status ? `<span>${PL.usage.status(x.id)}</span>` : ''}</span></span><span class="tmchev">›</span></button>`).join('') + '</div>' : '');
       el.innerHTML = `<div class="tmhead"><h2>${ICON.users}Χρήστες και ρόλοι</h2><p class="mu">${U.filter((x) => x.active).length} ενεργοί χρήστες · ${O.teams().length} ομάδες</p></div>` +
         `<div class="tmgrid"><section class="tmcard tmwide2"><h3>Ποιος βλέπει τι</h3><div class="tmrl"><b>Πωλητής</b><span>Τους δικούς του πελάτες: όσους έχουν τον κωδικό πωλητή του στο orders.</span></div><div class="tmrl"><b>Υπεύθυνος ομάδας</b><span>Τους δικούς του πελάτες, και τα νούμερα και τις σημειώσεις των πωλητών της ομάδας του, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διευθυντής</b><span>Όλες τις ομάδες, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διαχειριστής</b><span>Προσθέτει χρήστες και αλλάζει ρόλους και ομάδες. Είναι και πωλητής.</span></div></section></div>` +
         `<p><button class="pri" id="tmnew">+ Νέος χρήστης</button></p>` +
@@ -296,11 +296,13 @@
       };
       paint();
       if (ACC) O.accounts.refresh().then(() => { if (el.isConnected) paint(); }, () => {});   // φρέσκια κατάσταση (κλειδωμένοι κ.λπ.)
+      const offLive = PL.usage && PL.usage.live ? PL.usage.live(el, paint) : null;   // online τώρα / τελευταία φορά, ζωντανά
       el.addEventListener('click', async (ev) => {
         const c = ev.target.closest('[data-uid]'); if (c) { PL.nav.push('useredit', { id: c.dataset.uid }); return; }
         if (ev.target.id === 'tmnew') PL.nav.push('useredit', { id: '' });
         else if (ev.target.id === 'tmrst' && await PL.dlg.confirm('Να γυρίσουν οι χρήστες και οι ρόλοι όπως ήταν στην αρχή; Τα δεδομένα των πωλητών μένουν.', 'Ναι, επαναφορά')) O.resetUsers();
       });
+      return () => { if (offLive) offLive(); };
     },
   });
 

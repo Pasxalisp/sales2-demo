@@ -53,6 +53,9 @@
 
   let PROFILES = [], TEAMS = [], USAGE = [], COUNTS = {};
   const STATUS = {};   // κατάσταση λογαριασμών (μόνο για τον διαχειριστή): demo id → { locked, fails, must_change, last }
+  const usageListeners = new Set();
+  /* γραμμή usage → { u: id του demo, d, p, a, last, away }· με το τωρινό PROFILES, ώστε να ισχύει και για νέους χρήστες */
+  const toUse = (r) => { const p = PROFILES.find((z) => z.id === r.uid), x = r.data || {}; return { u: p ? p.demo_id : r.uid, d: r.d, p: x.p || {}, a: x.a || {}, last: x.last || '', away: x.away || '' }; };
   const SRC = {}, listeners = new Set();
   const cached = ls.get(NS + ':me'), me = cached && cached.active ? toUser(cached) : null;
   const users = () => PROFILES.map(toUser);
@@ -98,6 +101,8 @@
     data: (uid) => (visible().some((x) => x.id === uid) ? SRC[uid] || null : null),
     usage: {
       record(delta) { if (me) sb.rpc('usage_add', { day: delta.d, delta }).then(() => {}, () => {}); },
+      /* διαχειριστής: ειδοποίηση όταν αλλάζει η χρήση κάποιου (online, στατιστικά), ζωντανά από τη βάση */
+      onChange(f) { usageListeners.add(f); return () => usageListeners.delete(f); },
       all: () => (me && me.admin ? USAGE.slice() : []),
     },
     users: () => (me && me.admin ? users() : []),
@@ -191,8 +196,16 @@
       others.forEach((x) => { SRC[x.id] = source(layer(base, all.filter((r) => r.uid === x.uuid))); });
     }
     if (me.admin) {
-      const byUuid = Object.fromEntries(PROFILES.map((p) => [p.id, p.demo_id]));
-      USAGE = (await rows(() => sb.from('usage').select('uid,d,data').order('d'))).map((r) => ({ u: byUuid[r.uid] || r.uid, d: r.d, p: r.data.p || {}, a: r.data.a || {}, last: r.data.last || '' }));
+      USAGE = (await rows(() => sb.from('usage').select('uid,d,data').order('d'))).map(toUse);
+      /* ζωντανά: κάθε αλλαγή στη χρήση ενός χρήστη (κάθε λεπτό όσο έχει την εφαρμογή ανοιχτή) */
+      sb.channel('usage-admin')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'usage' }, (ev) => {
+          const r = ev.new; if (!r || !r.uid) return;
+          const x = toUse(r), i = USAGE.findIndex((z) => z.u === x.u && z.d === x.d);
+          if (i >= 0) USAGE[i] = x; else USAGE.push(x);
+          usageListeners.forEach((f) => { try { f(x); } catch (e) { console.error(e); } });
+        })
+        .subscribe();
       const { data: cc } = await sb.rpc('client_counts'); (cc || []).forEach((r) => { COUNTS[r.owner] = +r.n; });
       await accounts.refresh().catch(() => {});   // χωρίς κατάσταση λογαριασμών η εφαρμογή δουλεύει κανονικά
     }
