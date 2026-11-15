@@ -120,51 +120,48 @@ main,
   --tmix: 14%;
   --tbd: 38%;
 }
-#home .htt {
-  font-size: clamp(calc(17 * var(--u)), 2.8vh, calc(20 * var(--u)));
-  font-weight: 600;
-  letter-spacing: .3px;
-  line-height: 1.2;
-  color: var(--hic);
-  align-items: center;
-  gap: 9px;
-  display: contents;
-}
-#home .htt svg {
-  flex: none;
-  grid-row: 1/3;
-  grid-column: 1;
-  width: clamp(44px,6.4vh,54px);
-  height: clamp(44px,6.4vh,54px);
-  filter: drop-shadow(0 4px 12px rgba(47,111,94,.35));
-}
-#home .htt span {
+/* πάνω γραμμή: μικρό λογότυπο (κουμπί → «Σχετικά», js/about.js) και δίπλα η ημερομηνία
+   (απόφαση Πασχάλη 15/11: χωρίς το μεγάλο «Sales 2.0») */
+#home button#hlogo {
   grid-row: 1;
-  grid-column: 2;
-  align-self: end;
-  font-size: clamp(calc(26 * var(--u)), 4vh, calc(32 * var(--u)));
-  font-weight: 700;
-  letter-spacing: -.3px;
-  color: var(--tt);
-  line-height: 1.05;
+  grid-column: 1;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#home .htt span small {
-  font-size: .42em;
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--tsub);
-  margin-left: 5px;
-  vertical-align: baseline;
+#home button#hlogo svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+  filter: drop-shadow(0 3px 8px rgba(47,111,94,.30));
+}
+#home button#hlogo:active {
+  transform: scale(.92);
 }
 #home .hdt {
-  line-height: 1.15;
-  font-weight: 400;
-  letter-spacing: 0;
-  grid-row: 2;
+  grid-row: 1;
   grid-column: 2;
-  align-self: start;
-  font-size: clamp(calc(14 * var(--u)), 2vh, calc(17 * var(--u)));
-  color: var(--tsub);
+  align-self: center;
+  min-width: 0;
+  font-size: clamp(calc(16 * var(--u)), 2.2vh, calc(18 * var(--u)));
+  font-weight: 600;
+  letter-spacing: -.1px;
+  line-height: 1.15;
+  color: var(--tt);
+  /* μεγάλη ημερομηνία (π.χ. «Παρασκευή 30 Σεπτεμβρίου») σε μικρή οθόνη: δύο γραμμές, ποτέ κομμένη */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-wrap: balance;
 }
 #home button.duec {
   font-size: calc(14 * var(--u));
@@ -524,9 +521,9 @@ body.home #nvo .oc {
   gap: 10px;
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 14px;
-  row-gap: 2px;
+  grid-template-rows: auto;
+  column-gap: 10px;
+  min-height: 44px;
   align-items: center;
   margin: 2px 2px 4px;
   position: relative;
@@ -593,4 +590,99 @@ html.big #home .hg {
 /* χώρος για την εικόνα κάτω από το κείμενο του πλακιδίου */
 html.big #home button.tl {
   min-height: calc(100 * var(--u));
+}
+
+/* «Σχετικά» (js/about.js): κάρτα στη μέση της οθόνης, όπως το «Σχετικά» των εφαρμογών */
+#about {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,.42);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity .2s;
+}
+#about.on {
+  opacity: 1;
+}
+#about .abb {
+  width: 100%;
+  max-width: 320px;
+  padding: 28px 22px 18px;
+  border-radius: 22px;
+  background: var(--card);
+  color: var(--tx);
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  transform: scale(.94);
+  transition: transform .2s;
+}
+#about.on .abb {
+  transform: none;
+}
+#about .abb svg {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+  filter: drop-shadow(0 6px 16px rgba(47,111,94,.35));
+}
+#about h2 {
+  margin: 0;
+  font-size: calc(26 * var(--u));
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+#about h2 small {
+  margin-left: 4px;
+  font-size: .55em;
+  font-weight: 500;
+  color: var(--mu);
+}
+#about .abv {
+  margin: 4px 0 0;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+}
+#about .abl {
+  height: 1px;
+  margin: 18px 0;
+  background: var(--bd);
+}
+#about .abk {
+  margin: 0;
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+  letter-spacing: .8px;
+  color: var(--mu);
+}
+#about .abo {
+  margin: 6px 0 0;
+  font-size: calc(18 * var(--u));
+  font-weight: 600;
+}
+#about .abc {
+  margin: 0;
+  text-wrap: balance;
+  font-size: calc(12 * var(--u));
+  line-height: 1.4;
+  color: var(--mu);
+}
+#about .abx {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: calc(16 * var(--u));
+}
+@media (prefers-reduced-motion:reduce) {
+  #about,
+  #about .abb {
+    transition: none;
+  }
 }
