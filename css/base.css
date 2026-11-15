@@ -621,6 +621,9 @@ html.big .cal {
   margin-bottom: 3px;
 }
 .cday {
+  -webkit-touch-callout: none;   /* παρατεταμένο πάτημα = νέα εκκρεμότητα, όχι μενού του κινητού */
+  -webkit-user-select: none;
+  user-select: none;
   margin: 0;
   padding: 4px 0 3px;
   min-height: calc(42 * var(--u));
@@ -1468,6 +1471,48 @@ html.big .sha > :last-child:nth-child(odd) {
   font-weight: 600;
   letter-spacing: .3px;
   text-transform: uppercase;
+}
+/* φόρμα «Νέα εκκρεμότητα» (js/pages/taskedit.js) */
+.shbox>h3 .tew {
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.tewhen {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tewhen input[type=date] {
+  flex: 1;
+  min-width: 0;
+}
+.tewhen input[type=time] {
+  flex: none;
+  width: calc(120 * var(--u));
+}
+.tecl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ac2);
+}
+.tecl button {
+  flex: none;
+  padding: 4px 10px;
+}
+.teact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 16px;
+}
+.teact .pri {
+  padding: 12px 22px;
+  font-size: calc(16 * var(--u));
 }
 .shbox.hi {
   background: var(--ac2);

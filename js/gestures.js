@@ -6,6 +6,22 @@
   const modal = () => ['cfm', 'chm', 'callm', 'cel'].some((id) => { const m = document.getElementById(id); return m && m.style.display === 'flex'; });
   const pageEl = () => document.querySelector('#app > .page');
 
+  /* Παρατεταμένο πάτημα (όπως στο Google Calendar): fn(στοιχείο) μετά από ~½″ χωρίς μετακίνηση. Το «κλικ» που ακολουθεί
+     δεν μετρά (δεν ανοίγει και η μέρα). Κύλιση ή σύρσιμο ακυρώνει. Χρήση: PL.longPress(ρίζα, 'επιλογέας', fn). */
+  PL.longPress = function (root, sel, fn, ms) {
+    let tm = 0, x0 = 0, y0 = 0, fired = false;
+    const cancel = () => { clearTimeout(tm); tm = 0; };
+    root.addEventListener('pointerdown', (e) => {
+      const t = e.target.closest(sel); if (!t || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      fired = false; x0 = e.clientX; y0 = e.clientY; cancel();
+      tm = setTimeout(() => { tm = 0; fired = true; if (navigator.vibrate) navigator.vibrate(15); fn(t); }, ms || 500);
+    });
+    root.addEventListener('pointermove', (e) => { if (tm && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) cancel(); });
+    ['pointerup', 'pointercancel'].forEach((n) => root.addEventListener(n, cancel));
+    root.addEventListener('click', (e) => { if (fired && e.target.closest(sel)) { fired = false; e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+    root.addEventListener('contextmenu', (e) => { if (e.target.closest(sel)) e.preventDefault(); });   // όχι μενού του κινητού
+  };
+
   /* ✕ μέσα σε κάθε πεδίο κειμένου */
   function clearButton() {
     const x = document.createElement('button'); x.id = 'clrx'; x.type = 'button'; x.setAttribute('aria-label', 'Καθαρισμός'); x.textContent = '✕'; document.body.appendChild(x);

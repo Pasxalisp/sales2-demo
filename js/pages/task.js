@@ -23,7 +23,7 @@
         $('#tknb').hidden = !c;
         const when = (x.e.next === t ? 'Σήμερα' : (late ? 'Από ' : 'Στις ') + esc(u.fd(x.e.next))) + (x.e.nt ? ' ' + esc(x.e.nt) : '') + (late ? ' · <span class="dn">καθυστέρηση</span>' : '');
         $('#tktop').innerHTML = (c ? H.head(c, esc(c.city) + ' · ' + when) : `<div class="shh"><div><h2>📝 Εκκρεμότητα</h2><div class="mu">${when}</div></div></div>`) +
-          `<div class="shbox hi" style="margin-top:12px"><h3>Τι εκκρεμεί</h3><div style="font-size:calc(18*var(--u))">${esc(x.e.todo || '—')}</div></div>` +
+          `<div class="shbox hi" style="margin-top:12px"><h3>Τι εκκρεμεί</h3><div style="font-size:calc(18*var(--u))">${esc(x.e.todo || '—')}</div>${x.e.w ? `<div class="mu" style="margin-top:4px">📍 ${esc(x.e.w)}</div>` : ''}${x.tid ? `<p style="margin:8px 0 0"><button data-tkedit="${esc(x.tid)}">Αλλαγή</button></p>` : ''}</div>` +
           H.acts(H.call(c), H.sms(c), '<button class="shdone" id="tkdone">✓ Έγινε</button>');
         $('#tkbot').innerHTML = (c ? H.facts(c) + H.last(c.i) : '') + H.nav(c && c.i, 'Ημερολόγιο');
       };
@@ -32,6 +32,7 @@
       /* η σημείωση (αν γράφτηκε) μπαίνει στην καρτέλα πριν το ✓ ή τη μετάθεση */
       const saveNote = async () => { const x = PL.tasks.find(key), n = $('#tknote').value.trim(); if (x && x.c && n) { await PL.notes.add(x.c.i, { d: u.today(), products: '', text: n, todo: '', next: '' }); $('#tknote').value = ''; } };
       el.addEventListener('click', async (ev) => {
+        const ed = ev.target.closest('[data-tkedit]'); if (ed) { PL.nav.push('taskedit', { id: ed.dataset.tkedit }); return; }
         const b = ev.target.closest('#tkdone,[data-tkm]'); if (!b) return;
         try {
           if (b.id === 'tkdone') { b.disabled = true; await saveNote(); await PL.tasks.done(key); D.toast('✓ Έγινε'); PL.nav.back(); }

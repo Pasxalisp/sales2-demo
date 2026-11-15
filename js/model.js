@@ -76,7 +76,7 @@
       M.clients().forEach((c) => M.entries(c.i).forEach((e, k) => { if (e && e.next && !e.done) L.push({ c, e, k }); }));
       Object.entries(S().all('tasks')).forEach(([tid, x]) => {
         if (!x || x.done) return; const nx = x.next || x.d || t;
-        L.push({ c: (x.cid && M.byId(x.cid)) || null, e: { next: nx, nt: x.nt || '', todo: x.t || '', d: x.d || '' }, tid });
+        L.push({ c: (x.cid && M.byId(x.cid)) || null, e: { next: nx, nt: x.nt || '', todo: x.t || '', d: x.d || '', w: x.w || '' }, tid });
       });
       Object.entries(S().all('balnotes')).forEach(([id, n]) => {
         if (!n || !n.pay || n.pdone === n.pay || !M.byId(id)) return;

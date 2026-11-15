@@ -1,7 +1,8 @@
 /* Σελίδα «Εκκρεμότητες · Ημερολόγιο» (απόφαση 05/11): πάνω το ημερολόγιο του μήνα με σημάδια ανά μέρα, από κάτω ό,τι έχει
    η μέρα που πάτησες (σήμερα: και οι καθυστερημένες). Κάρτες και «✓ Έγινε» από την παλιά σελίδα (renderDue, dueCard, ddone).
    Τάμπλετ (απόφαση 11/11): αριστερά ο μήνας και η μπάρα γιορτών, δεξιά η μέρα που πάτησες (χωρίς πάτημα: σήμερα) μαζί με
-   τα ονόματα της γιορτής όταν ανοίξει η μπάρα. Πελάτης / εκκρεμότητα από τη μέρα ανοίγει δεξιά· «Πίσω» → ξανά η μέρα. */
+   τα ονόματα της γιορτής όταν ανοίξει η μπάρα. Πελάτης / εκκρεμότητα από τη μέρα ανοίγει δεξιά· «Πίσω» → ξανά η μέρα.
+   Νέα εκκρεμότητα (απόφαση 15/11, όπως στο Google Calendar): παρατεταμένο πάτημα σε μέρα ή ➕ → φόρμα (js/pages/taskedit.js). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, db = () => PL.adapter.db;
   const COLS = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'sos', 'seminars', 'visits', 'wish', 'ndfix'];
@@ -48,7 +49,8 @@
     const when = `<span class="${e.next < t || (e.next === t && e.nt && e.nt <= nowHM()) ? 'dn' : 'up'}" style="white-space:nowrap">${e.next < t ? 'από ' + dd : e.next === t ? 'σήμερα' : (showDate ? dd : '')}${e.nt ? ' ' + esc(e.nt) : ''}</span>`;
     return `<div class="card" data-tk="${esc(keyOf(x))}" style="cursor:${PL.WIDE.matches ? 'pointer' : 'default'}"><div class="row"><span class="nm">${c ? (SOS[c.i] ? '⭐ ' : '') + PL.prospects.tag(c) + esc(c.name) : '📝 ' + esc(e.todo)}</span>${when}</div>` +
       (c ? `<div class="mu">${esc(c.city)}${tel ? ' · ' + PL.call.btn(tel, c.name, true) : ''}</div>${e.todo ? `<div style="margin-top:4px"><b>${pay ? '💶 Πληρωμή' : appt ? '🕐 Ραντεβού' : tid ? 'Εκκρεμότητα' : 'Να πω'}:</b> ${esc(e.todo)}</div>` : ''}${!tid && e.text ? `<div class="mu">Τελευταία (${esc(e.d)}): ${esc(e.text)}</div>` : ''}` : '') +
-      `<div style="margin-top:6px;display:flex;gap:6px"><button class="pri" data-ddone="${esc(keyOf(x))}">✓ Έγινε</button>${c ? `<button data-open="${c.i}">Καρτέλα</button>` : ''}</div></div>`;
+      (e.w ? `<div class="mu">📍 ${esc(e.w)}</div>` : '') +
+      `<div style="margin-top:6px;display:flex;gap:6px"><button class="pri" data-ddone="${esc(keyOf(x))}">✓ Έγινε</button>${c ? `<button data-open="${c.i}">Καρτέλα</button>` : ''}${tid ? `<button data-tedit="${esc(tid)}">Αλλαγή</button>` : ''}</div></div>`;
   }
   const semOn = (d) => Object.entries(S.all('seminars')).filter(([, x]) => x && x.date === d);
 
@@ -68,7 +70,16 @@
     else if (id === 'T') { const n = Object.assign({}, S.get('tasks', k), { next: d }); await db().set('tasks/' + k, n); S.put('tasks', k, n); }
     else { const e = M.entries(id)[+k]; if (e) await PL.notes.mark(id, [e], { next: d }); }
   }
-  PL.tasks = { keyOf, find, done, move };
+  /* Νέα (id κενό) ή αλλαγμένη εκκρεμότητα από τη φόρμα (taskedit): { t, cid, next, nt, w }. Επιστρέφει το id. */
+  async function save(id, x) {
+    const k = id || 't' + Date.now() + Math.floor(Math.random() * 1000);
+    const n = Object.assign({ d: u.today(), done: false }, id ? S.get('tasks', k) : {}, x);
+    await db().set('tasks/' + k, n); S.put('tasks', k, n);
+    return k;
+  }
+  /* δείξε αυτή τη μέρα στο ημερολόγιο (π.χ. μετά την αποθήκευση από τη φόρμα) */
+  const select = (d) => { st.calSel = d; st.calM = null; st.ndOpen = false; };
+  PL.tasks = { keyOf, find, done, move, save, select };
 
   /* Ημερολόγιο μήνα: κάθε μέρα με σημάδια · κόκκινο = καθυστέρηση, μπλε = εκκρεμότητα / να πω / πληρωμή, πράσινο = ραντεβού,
      κίτρινο = γιορτή με πελάτες, μωβ = σεμινάριο. Πλαίσιο = σήμερα, γέμισμα = η μέρα που πάτησες. */
@@ -112,13 +123,14 @@
     if (g && g.dataset.wish) { PL.names.markWished(PL.names.today(), g.dataset.wish); return; }   /* ο σύνδεσμος ανοίγει το WhatsApp */
     if (g) { let ok = false; try { await navigator.clipboard.writeText(PL.names.TEXT); ok = true; } catch (x) { /* τίποτα */ }
       D.toast(ok ? '📋 Αντιγράφηκε η ευχή: άνοιξε Viber ή Μηνύματα και κάνε Επικόλληση' : 'Δεν αντιγράφηκε. Γράψε την ευχή με το χέρι.'); if (ok) PL.names.markWished(PL.names.today(), g.dataset.wcopy); return; }
-    const t = ev.target.closest('[data-ndbar],[data-cnav],[data-ctoday],[data-cday],[data-semopen],[data-ddone],[data-open],[data-callc],a,button,[data-tk]'); if (!t) return;
+    const t = ev.target.closest('[data-ndbar],[data-cnav],[data-ctoday],[data-cday],[data-semopen],[data-ddone],[data-tedit],[data-open],[data-callc],a,button,[data-tk]'); if (!t) return;
     if (t.dataset.ndbar) { st.ndOpen = !st.ndOpen; toDay(); }
     else if (t.dataset.ctoday) { st.calSel = null; st.calM = null; st.ndOpen = false; toDay(); }
     else if (t.dataset.cnav) { st.calM = new Date(st.calM.getFullYear(), st.calM.getMonth() + (+t.dataset.cnav), 1); repaint(); }
     else if (t.dataset.cday) { st.calSel = t.dataset.cday; st.ndOpen = false; toDay(); }
     else if (t.dataset.semopen) PL.nav.push('seminar', { id: t.dataset.semopen });
     else if (t.dataset.open) PL.nav.push('client', { id: t.dataset.open });
+    else if (t.dataset.tedit) PL.nav.push('taskedit', { id: t.dataset.tedit });
     else if (t.dataset.ddone) { t.disabled = true; try { await done(t.dataset.ddone); } catch (e) { D.toast('Δεν αποθηκεύτηκε'); t.disabled = false; } }
     else if (t.dataset.tk && PL.WIDE.matches) PL.nav.push('task', { key: t.dataset.tk });   /* τάμπλετ: το φύλλο της εκκρεμότητας δεξιά */
   }
@@ -132,7 +144,7 @@
   }
   PL.register('tasks', {
     title: 'Εκκρεμότητες · Ημερολόγιο',
-    split: ['client', 'seminar', 'task'],
+    split: ['client', 'seminar', 'task', 'taskedit'],
     /* τάμπλετ, δεξιά όταν δεν είναι ανοιχτός πελάτης / εκκρεμότητα: η μέρα που πάτησες, με τα ονόματα της γιορτής από πάνω */
     aside(el) {
       COLS.forEach((c) => S.use(c));
@@ -140,7 +152,7 @@
       return mountPane(el, paint);
     },
     nova: () => PL.menu('Εκκρεμότητες', [
-      { e: '➕', label: 'Νέα εκκρεμότητα', d: 'για κάποιον πελάτη, με υπαγόρευση', fn: () => PL.dictation.open('Εκκρεμότητα: ') },
+      { e: '➕', label: 'Νέα εκκρεμότητα', d: 'τι, πελάτης, μέρα, ώρα, πού (ή κράτα πατημένη μια μέρα)', fn: () => { ensure(); PL.nav.push('taskedit', { day: st.calSel }); } },
       { e: '⏰', label: 'Υπενθύμιση', d: 'στο ημερολόγιο του iPhone', fn: () => PL.dictation.open('Θύμισέ μου ') },
     ]),
     /* κινητό: ημερολόγιο, μπάρα γιορτών (ανοίγει από κάτω) και η μέρα · τάμπλετ: ημερολόγιο και μπάρα (η μέρα είναι δεξιά, aside) */
@@ -150,6 +162,8 @@
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
       const paint = () => { $('#ducal').innerHTML = calendar(); const f = feast(st.calSel); $('#dund').innerHTML = wide ? f.bar : f.bar + f.list; if (!wide) $('#dul').innerHTML = dayView(st.calSel); };
+      /* κράτα πατημένη μια μέρα → νέα εκκρεμότητα εκείνη τη μέρα (όπως στο Google Calendar) */
+      PL.longPress($('#ducal'), '[data-cday]', (d) => { st.calSel = d.dataset.cday; repaint(); PL.nav.push('taskedit', { day: d.dataset.cday }); });
       return mountPane(el, paint);
     },
   });
