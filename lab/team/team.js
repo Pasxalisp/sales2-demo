@@ -379,14 +379,17 @@
       `<label>Email<input id="tme" type="email" autocomplete="username" placeholder="onoma@sales2.demo" required></label>` +
       `<label>Κωδικός<input id="tmpw" type="password" autocomplete="current-password" required></label>` +
       `<button class="pri" id="tmgo" type="submit">Είσοδος</button><p id="tmerr" class="dn" aria-live="polite"></p>` +
-      `<div class="tmq"><h3>Γρήγορη είσοδος</h3>${O.quick().map((x) => { const [i, r] = x.admin ? ['🛠', 'Διαχειριστής'] : LBL[x.role]; const t = O.team(x.team);
-        return `<button type="button" data-quick="${esc(x.id)}"><span class="tmqi">${i}</span><span><b>${r}</b><small>${esc(x.name)}${t && !x.admin ? ' · ' + esc(t.name) : ''}</small></span></button>`; }).join('')}</div>` +
-      `<p class="mu tmhint">Όλοι οι δοκιμαστικοί λογαριασμοί έχουν κωδικό <b>demo</b>.</p></form>`;
+      (O.quick().length ? `<div class="tmq"><h3>Γρήγορη είσοδος</h3>${O.quick().map((x) => { const [i, r] = x.admin ? ['🛠', 'Διαχειριστής'] : LBL[x.role]; const t = O.team(x.team);
+        return `<button type="button" data-quick="${esc(x.id)}"><span class="tmqi">${i}</span><span><b>${r}</b><small>${esc(x.name)}${t && !x.admin ? ' · ' + esc(t.name) : ''}</small></span></button>`; }).join('')}</div>` : '') +
+      `<p class="mu tmhint">${O.hint}</p></form>`;
     document.body.appendChild(o); document.body.classList.add('tmlock');
-    o.querySelector('form').addEventListener('submit', (ev) => {
+    /* ο έλεγχος μπορεί να ρωτά τον server (βάση): περιμένουμε την απάντηση */
+    o.querySelector('form').addEventListener('submit', async (ev) => {
       ev.preventDefault();
-      const x = O.check(o.querySelector('#tme').value, o.querySelector('#tmpw').value);
-      if (x) O.login(x.id); else o.querySelector('#tmerr').textContent = 'Λάθος email ή κωδικός.';
+      const go = o.querySelector('#tmgo'), err = o.querySelector('#tmerr'); go.disabled = true; err.textContent = '';
+      let x = null; try { x = await O.check(o.querySelector('#tme').value, o.querySelector('#tmpw').value); } catch (e) { x = null; }
+      go.disabled = false;
+      if (x) O.login(x.id); else err.textContent = 'Λάθος email ή κωδικός.';
     });
     o.addEventListener('click', (ev) => { const b = ev.target.closest('[data-quick]'); if (b) O.login(b.dataset.quick); });
   }

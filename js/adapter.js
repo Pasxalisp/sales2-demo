@@ -4,6 +4,8 @@
    (π.χ. Supabase + δικό μας server για το Claude). Αν δεν υπάρχει claude.ai → τοπική μνήμη (δοκιμές).
    Δοκιμαστική έκδοση σε δική της σελίδα: το js/demo-seed.js ορίζει window.PL_LOCAL = {key, seed:{path: doc}}.
    Τότε η τοπική μνήμη ξεκινά από τα ψεύτικα δεδομένα και οι αλλαγές του χρήστη φυλάγονται στη συσκευή (localStorage).
+   Με βάση δεδομένων (db.html, lab/supa/session.js): το PL_LOCAL.remote γράφει κάθε αλλαγή στη βάση και φέρνει τις αλλαγές
+   άλλης συσκευής· τα δεδομένα φορτώνουν πριν ξεκινήσει η εφαρμογή (window.PL_BOOT).
    Πολλοί χρήστες (PL.adapter.org): χρήστες, ομάδες, ποιος βλέπει ποιον και τα δεδομένα ενός πωλητή για τον υπεύθυνο/διευθυντή.
    Σήμερα υπάρχει μόνο στη δοκιμαστική (lab/team/session.js, PL_LOCAL.org)· στο claude.ai είναι null. Στην κανονική έκδοση
    θα τα δίνει ο server (π.χ. Supabase): org.me, teams(), team(id), sellers(tid), data(uid) → {all, get}, users(), saveUser(x), login/logout. */
@@ -34,7 +36,20 @@
   const memList = (col) => [...mem.entries()]
     .filter(([p]) => colOf(p) === col)
     .map(([p, v]) => Object.assign({ id: parts(p).pop() }, v));
-  const memChanged = (path) => { keep(path); memWatch.forEach((w) => { if (w.col === colOf(path)) w.cb(memList(w.col)); }); };
+  const notify = (path) => memWatch.forEach((w) => { if (w.col === colOf(path)) w.cb(memList(w.col)); });
+  /* μία αλλαγή στη μνήμη: ενημερώνει τις σελίδες και τη φυλάει (βάση ή συσκευή). Αν η βάση την απορρίψει, γυρνά πίσω. */
+  const memChanged = async (path, had, prev) => {
+    notify(path);
+    if (!(LOCAL && LOCAL.remote)) { keep(path); return; }
+    try { await LOCAL.remote.put(path, mem.has(path) ? mem.get(path) : null); }
+    catch (e) { if (had) mem.set(path, prev); else mem.delete(path); notify(path); throw e; }
+  };
+  /* αλλαγή από άλλη συσκευή (μόνο με βάση): μπαίνει στη μνήμη χωρίς να ξαναγραφτεί */
+  const fromRemote = (path, d) => {
+    if (JSON.stringify(d === undefined ? null : d) === JSON.stringify(mem.has(path) ? mem.get(path) : null)) return;
+    if (d === null || d === undefined) mem.delete(path); else mem.set(path, d);
+    notify(path);
+  };
 
   const ready = (async () => {
     try {
@@ -47,7 +62,8 @@
       }
     } catch (e) { /* μένει τοπικά */ }
     mode = db ? 'cloud' : 'local';
-    if (!db && LOCAL) loadLocal();
+    if (!db && window.PL_BOOT) { try { await window.PL_BOOT; } catch (e) { /* χωρίς σύνδεση με τη βάση: η σελίδα το λέει (db.html) */ } }
+    if (!db && LOCAL) { loadLocal(); if (LOCAL.remote) LOCAL.remote.listen(fromRemote); }
     PL.bus && PL.bus.emit('adapter', mode);
     return mode;
   })();
@@ -68,17 +84,17 @@
       },
       async set(path, obj) {
         PL.bus.emit('write', path);
-        if (!db) { mem.set(path, JSON.parse(JSON.stringify(obj))); memChanged(path); return; }
+        if (!db) { const had = mem.has(path), prev = mem.get(path); mem.set(path, JSON.parse(JSON.stringify(obj))); await memChanged(path, had, prev); return; }
         await db.doc(path).set(obj);
       },
       async merge(path, obj) {
         PL.bus.emit('write', path);
-        if (!db) { mem.set(path, Object.assign({}, mem.get(path) || {}, obj)); memChanged(path); return; }
+        if (!db) { const had = mem.has(path), prev = mem.get(path); mem.set(path, Object.assign({}, mem.get(path) || {}, obj)); await memChanged(path, had, prev); return; }
         await db.doc(path).update(obj);
       },
       async remove(path) {
         PL.bus.emit('write', path);
-        if (!db) { mem.delete(path); memChanged(path); return; }
+        if (!db) { const had = mem.has(path), prev = mem.get(path); mem.delete(path); await memChanged(path, had, prev); return; }
         await db.doc(path).delete();
       },
       async list(col) {

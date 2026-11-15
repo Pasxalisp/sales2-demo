@@ -121,6 +121,7 @@
     resetUsers: () => { const o = ls.get(NS + ':org') || {}; delete o.users; ls.set(NS + ':org', o); location.reload(); },
     /* ---- είσοδος (όλοι οι δοκιμαστικοί λογαριασμοί έχουν κωδικό «demo») ---- */
     quick: () => ['u3', 'u2', 'u1', FIRST].map(user).filter((x) => x && x.active),
+    hint: 'Όλοι οι δοκιμαστικοί λογαριασμοί έχουν κωδικό <b>demo</b>.',
     check: (email, pass) => { const x = users().find((z) => z.email.toLowerCase() === String(email).trim().toLowerCase()); return x && x.active && pass === PASS ? x : null; },
     login: (uid) => { ls.set(NS + ':session', uid); location.reload(); },
     logout: () => { ls.del(NS + ':session'); location.reload(); },
