@@ -74,7 +74,8 @@ body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hmatch { display
 /* ---- σελίδα: κεφαλίδα, πλέγμα καρτών ---- */
 .tmhead h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
 .tmhead h2 svg { color: var(--ac); flex: none; }
-.tmtop { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+/* μόνο προηγούμενος / επόμενος πωλητής, δεξιά (το «‹ Πίσω» είναι στην πάνω γραμμή της εφαρμογής) */
+.tmtop { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 6px; }
 .tmpn { display: flex; gap: 6px; }
 .tmpn button { border-radius: 999px; padding: 5px 12px; font-size: calc(14 * var(--u)); margin: 0; }
 .tmwho { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }

@@ -198,7 +198,8 @@
       const p = fp(f), open = new Set(), st = status(f, ctxOf(O.sellers(x.team).map((z) => ({ f: z.id === x.id ? f : figOf(z.id) })).filter((z) => z.f)));
       el.classList.add('tmpage');
       const paint = () => {
-        el.innerHTML = `<div class="tmtop"><button class="shlink" data-shback="1">‹ ${params.scope === '*' ? 'Όλες οι ομάδες' : 'Ομάδα'}</button><span class="tmpn">${prev ? `<button data-go="${esc(prev.id)}">‹ ${esc(prev.name.split(' ')[0])}</button>` : ''}${next ? `<button data-go="${esc(next.id)}">${esc(next.name.split(' ')[0])} ›</button>` : ''}</span></div>` +
+        /* «‹ Πίσω» το βάζει η πάνω γραμμή της εφαρμογής (core.js)· εδώ μόνο προηγούμενος / επόμενος πωλητής */
+        el.innerHTML = (prev || next ? `<div class="tmtop"><span class="tmpn">${prev ? `<button data-go="${esc(prev.id)}">‹ ${esc(prev.name.split(' ')[0])}</button>` : ''}${next ? `<button data-go="${esc(next.id)}">${esc(next.name.split(' ')[0])} ›</button>` : ''}</span></div>` : '') +
           `<div class="tmwho"><span class="tmav big${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span><div><h2>${esc(x.name)}</h2><div class="mu">${esc(O.ROLES[x.role])}${t ? ' · ' + esc(t.name) : ''} · ${f.n} πελάτες</div><div style="margin-top:4px">${RO}</div></div></div>` +
           '<div class="tmgrid">' + talk(f, st, x) +
           (f.fl ? `<section class="tmcard tmsum">${donut(p, 120, 'του στόχου')}<div class="tmsumb"><h3>FLASH ${esc(f.fl.month)}</h3><div class="tmbig"><b>${m0(f.fl.now.sales)}</b> <span class="mu">από ${m0(f.fl.now.target)}</span></div>` +
@@ -241,7 +242,7 @@
       const up = r.filter((z) => z.a > 0 && z.b >= z.a).sort((a, b) => (b.b - b.a) - (a.b - a.a)), nw = r.filter((z) => z.a <= 0 && z.b > 0).sort((a, b) => b.b - a.b);
       const line = (z) => `<div class="shr"><span><b>${esc(z.name)}</b><div class="mu">${esc(z.city)}</div></span><span style="white-space:nowrap;text-align:right">${m0(z.a)} → <b>${m0(z.b)}</b><div class="${z.b >= z.a ? 'up' : 'dn'}" style="font-size:calc(12.5*var(--u))">${yoyTxt(z.a, z.b)}</div></span></div>`;
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmtop"><button class="shlink" data-shback="1">‹ ${esc(x.name)}</button></div><div class="tmhead"><h2>${esc(M.turnLabel(params.k))}</h2><p class="mu">${esc(x.name)} · πέρσι ίδια περίοδο → φέτος ${RO}</p></div>` +
+      el.innerHTML = `<div class="tmhead"><h2>${esc(M.turnLabel(params.k))}</h2><p class="mu">${esc(x.name)} · πέρσι ίδια περίοδο → φέτος ${RO}</p></div>` +
         `<div class="tmgrid"><section class="tmcard tmkp">${kp('Φέτος', m0(B), yoyCls(A, B), `<span class="${yoyCls(A, B)}">${yoyTxt(A, B)}</span> · πέρσι ${m0(A)}`)}${kp('Πελάτες φέτος', r.filter((z) => z.b > 0).length, '', 'πέρσι ' + r.filter((z) => z.a > 0).length)}${kp('Σταμάτησαν', stop.length, stop.length ? 'dn' : '', 'έπαιρναν ≥ ' + W + ' €')}${kp('Νέοι', nw.length, nw.length ? 'up' : '')}</section>` +
         card(`Σταμάτησαν (${stop.length})`, rows(stop, line, 'Κανένας.')) + card(`Πέφτουν (${down.length})`, rows(down, line, 'Κανένας.')) +
         card(`Ανεβαίνουν (${up.length})`, rows(up, line, 'Κανένας.')) + card(`Νέοι φέτος (${nw.length})`, rows(nw, line, 'Κανένας.')) + '</div>';
@@ -313,7 +314,7 @@
       const ACC = O.accounts && PL.teamAcc, mailFixed = ACC && !isNew;   // με βάση το email είναι ο λογαριασμός εισόδου: δεν αλλάζει από εδώ
       const self = x.id === me.id, opt = (v, t, on) => `<option value="${esc(v)}"${on ? ' selected' : ''}>${esc(t)}</option>`;
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmtop"><button class="shlink" data-shback="1">‹ Χρήστες</button></div><div class="tmwho">${isNew ? '' : `<span class="tmav big">${esc(initials(x.name))}</span>`}<div><h2>${isNew ? 'Νέος χρήστης' : esc(x.name)}</h2><div class="mu">${isNew ? 'Συμπλήρωσε και πάτησε Αποθήκευση' : esc(O.ROLES[x.role])}</div></div></div>` +
+      el.innerHTML = `<div class="tmwho">${isNew ? '' : `<span class="tmav big">${esc(initials(x.name))}</span>`}<div><h2>${isNew ? 'Νέος χρήστης' : esc(x.name)}</h2><div class="mu">${isNew ? 'Συμπλήρωσε και πάτησε Αποθήκευση' : esc(O.ROLES[x.role])}</div></div></div>` +
         `<div class="tmform"><label>Όνομα<input id="ufn" value="${esc(x.name)}" placeholder="π.χ. Δημήτρης Αλεξίου"></label>` +
         `<label>Email (για την είσοδο)<input id="ufe" type="email" value="${esc(x.email)}" placeholder="onoma@sales2.demo"${mailFixed ? ' readonly' : ''}>${mailFixed ? '<small class="mu">Είναι ο λογαριασμός εισόδου του· δεν αλλάζει από εδώ.</small>' : ''}</label>` +
         `<label>Ρόλος<select id="ufr">${Object.entries(O.ROLES).map(([k, t]) => opt(k, t, x.role === k)).join('')}</select></label>` +
