@@ -1,6 +1,6 @@
 /* Ανοιχτό πρόγραμμα ημέρας (ίδιο με της παλιάς σελίδας): ταξινόμηση, κάρτες στάσεων, ραντεβού, αφαίρεση με λόγο,
    αλλαγή πελάτη χωρίς τζίρο, προσθήκη πελάτη / νέο κομμωτήριο, ΟΚ-αποθήκευση πρόχειρου.
-   Χωριστά κομμάτια (js/plans/): area.js «Στοιχεία περιοχής» · drag.js σύρσιμο · export.js Excel και «Για χωρίς σήμα».
+   Χωριστά κομμάτια (js/plans/): area.js «Στοιχεία περιοχής» · drag.js σύρσιμο · export.js Excel.
    Το «cur» είναι το ανοιχτό πρόγραμμα· αλλαγές γίνονται σε αυτό και γράφονται με savePlan(). */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
@@ -108,7 +108,7 @@
         /* η οδηγία για τη σειρά κάτω από τη λίστα (όχι στην κορυφή: εκεί πρέπει να φαίνονται οι πελάτες) */
         if (h && p.saved) h += '<p class="mu" style="font-size:calc(12.5*var(--u));margin:10px 2px">Κράτα πατημένο έναν πελάτη ή σύρε το ≡ για να αλλάξεις σειρά.</p>';
         $('#plb').innerHTML = h || '<p class="mu">Κανένας πελάτης.</p>'; scr.scrollTop = sc;
-        $('#plact').innerHTML = p.saved ? (p.stops.length && p.stops.every((x) => x.done) ? '<div class="warn" style="font-weight:600">✅ Το πρόγραμμα ολοκληρώθηκε</div>' : '') + '<p style="display:flex;gap:6px;flex-wrap:wrap"><button class="pri" id="plxls">📤 Excel</button><button id="ploff">📴 Για χωρίς σήμα</button><button id="pldel">🗑 Διαγραφή προγράμματος</button></p><div id="plxst" class="mu"></div>' : '<button class="pri" id="plok">ΟΚ — αποθήκευση προγράμματος</button>';
+        $('#plact').innerHTML = p.saved ? (p.stops.length && p.stops.every((x) => x.done) ? '<div class="warn" style="font-weight:600">✅ Το πρόγραμμα ολοκληρώθηκε</div>' : '') + '<p style="display:flex;gap:6px;flex-wrap:wrap"><button class="pri" id="plxls">📤 Excel</button><button id="pldel">🗑 Διαγραφή προγράμματος</button></p><div id="plxst" class="mu"></div>' : '<button class="pri" id="plok">ΟΚ — αποθήκευση προγράμματος</button>';
         $('#dclh').innerHTML = PL.dcl() + `<datalist id="ccl">${[...new Set(M.clients().map((c) => c.city))].sort((a, b) => a.localeCompare(b, 'el')).map((k) => `<option value="${esc(k)}">`).join('')}</datalist>`;
         draftSave();
       }
@@ -187,7 +187,7 @@
             renderPlan();
           }
           else if (t.dataset.psort) { const m = t.dataset.psort; cur.stops = m === 'tz' ? E.tzSort(cur.stops) : E.routeSort(cur.stops); cur.sort = m === 'tz' ? 'tz' : 'area'; renderPlan(); savePlan(); }
-          else if (t.id === 'ploff' || t.id === 'plxls') { t.disabled = true; const st = $('#plxst'); st.textContent = t.id === 'plxls' ? 'Ετοιμάζω το Excel…' : ''; st.textContent = await (t.id === 'plxls' ? E.exportXlsx : E.exportOffline)(cur); t.disabled = false; }
+          else if (t.id === 'plxls') { t.disabled = true; const st = $('#plxst'); st.textContent = 'Ετοιμάζω το Excel…'; st.textContent = await E.exportXlsx(cur); t.disabled = false; }
           else if (t.id === 'pldel') { $('#plact').innerHTML = `<span>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(E.planName(cur))}»;</span><br><button class="pri" id="pldy" style="background:#d9382f;border-color:#d9382f;margin-top:8px">Ναι, διαγραφή</button> <button id="pldn" style="margin-top:8px">Άκυρο</button>`; }
           else if (t.id === 'pldn') renderPlan();
           else if (t.id === 'pldy') { const id = cur.id; cur = null; try { await E.deletePlan(id); } catch (e) { /* τίποτα */ } PL.nav.back(); }
