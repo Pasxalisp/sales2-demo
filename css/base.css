@@ -1130,15 +1130,18 @@ main {
 #nvo.hint .ol {
   opacity: 1;
 }
-/* η ενότητα όπου βρίσκεσαι: πράσινο κείμενο, απαλό πράσινο φόντο πίσω από το εικονίδιο (όπως στο iPhone) */
+/* η ενότητα όπου βρίσκεσαι: πράσινο κείμενο και απαλό πλαίσιο που πιάνει όλο το κουμπί, εικονίδιο και λέξη
+   (απόφαση Πασχάλη 15/11). Το πλαίσιο παίρνει το χρώμα του κειμένου, άρα ταιριάζει σε ανοιχτό και σκούρο θέμα.
+   Το «Υπαγόρευση» δεν το παίρνει: έχει ήδη το δικό του κόκκινο κουμπάκι (.mc). */
 #nav .nb.on {
   color: var(--ac);
 }
+#nav .nb.on:not(.nmic) {
+  margin: -2px 3px;
+  border-radius: 20px;
+  background: color-mix(in srgb,currentColor 15%,transparent);
+}
 #nav .nb.on>svg {
-  box-sizing: content-box;
-  padding: 2px 11px;
-  border-radius: 12px;
-  background: color-mix(in srgb,var(--ac) 17%,transparent);
   stroke-width: 2.3;
 }
 #nav .nmic.on .mc {
