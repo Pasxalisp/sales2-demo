@@ -136,7 +136,8 @@
     },
     get accounts() { return me && me.admin ? accounts : null; },
     login: () => location.reload(),
-    async logout() { try { await sb.auth.signOut(); } catch (e) { /* τίποτα */ } ls.del(NS + ':me'); location.reload(); },
+    /* έξοδος μόνο από αυτή τη συσκευή (οι άλλες συσκευές μένουν συνδεδεμένες) */
+    async logout() { try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ } ls.del(NS + ':me'); location.reload(); },
   };
 
   /* για τον adapter: κάθε αλλαγή γράφεται στη βάση· αλλαγές από άλλη συσκευή έρχονται στο listen */
@@ -150,9 +151,23 @@
   window.PL_LOCAL = { key: NS + ':' + (me ? me.id : 'none'), seed: {}, org, remote: me ? remote : null };
   if (me) me.mustChange = false;
 
+  /* Λάθος δικτύου (όχι «η συνεδρία δεν ισχύει»): π.χ. το κινητό μόλις ξύπνησε και δεν έχει ακόμη ίντερνετ. */
+  const netError = (e) => !!e && ((window.supabase.isAuthRetryableFetchError && window.supabase.isAuthRetryableFetchError(e)) || e.name === 'AuthRetryableFetchError' || e.status === 0 || !navigator.onLine);
+  /* Η συνεδρία μου. Μένεις συνδεδεμένος μέχρι να πατήσεις «Έξοδος» (απόφαση Πασχάλη 15/11): χωρίς ίντερνετ τη στιγμή
+     που ανοίγει η εφαρμογή ΔΕΝ σε βγάζει έξω, περιμένει τη σύνδεση και ξαναδοκιμάζει. Έξω μόνο αν η βάση πει ότι η συνεδρία δεν ισχύει. */
+  async function mySession() {
+    for (let i = 1; ; i++) {
+      const { data, error } = await sb.auth.getSession();
+      if (data && data.session) return data.session;
+      if (!netError(error)) return null;
+      const app = document.getElementById('app'); if (app) app.textContent = 'Δεν υπάρχει ίντερνετ. Μόλις έρθει σύνδεση, η εφαρμογή ανοίγει μόνη της…';
+      await new Promise((res) => { const done = () => { clearTimeout(t); removeEventListener('online', done); res(); }; const t = setTimeout(done, Math.min(15000, 2000 * i)); addEventListener('online', done); });
+    }
+  }
+
   window.PL_BOOT = (async () => {
     if (!me) return;
-    const { data: { session } } = await sb.auth.getSession();
+    const session = await mySession();
     if (!session || session.user.id !== me.uuid) { ls.del(NS + ':me'); location.reload(); return new Promise(() => {}); }
     const [prof, teams, shared, own] = await Promise.all([
       rows(() => sb.from('profiles').select('*').order('demo_id')),
