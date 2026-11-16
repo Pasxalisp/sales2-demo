@@ -120,6 +120,8 @@
     if (lvl === 'g' && why.length >= 2) lvl = 'y'; else if (lvl === 'y' && why.length >= 3) lvl = 'r';
     return { lvl, pace, why };
   }
+  /* οι ίδιοι κανόνες και για άλλες οθόνες (π.χ. δείγμα «Διαχείριση», lab/admin/): κατάσταση, ποσοστό στόχου, χρώμα ποσοστού */
+  Object.assign(PL.teamFigures, { status, ctxOf, fp, pc });
   const first = (n) => esc(String(n || '').split(' ')[0]);
   /* «Χρειάζεται προσοχή»: όσοι είναι στο κόκκινο (αλλιώς στο κίτρινο), με λόγια */
   function attention(list, med, scope) {
