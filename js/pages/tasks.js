@@ -16,26 +16,26 @@
   const dayTitle = (k) => { const x = new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)); return (k === u.today() ? 'Σήμερα, ' : '') + WDL[x.getDay()] + ' ' + x.getDate() + '/' + (x.getMonth() + 1); };
   /* μπάρα γιορτών (μία γραμμή, κάτω από το ημερολόγιο) για τη μέρα k: «🎉 Ταξιαρχών · Αγγελική, Μιχάλης +2», ή «… · κανένας
      πελάτης», ή χωρίς γιορτή «Επόμενη: Κυρ 8/11 · Ταξιαρχών · 4 πελάτες». Πάτημα (και με «κανένας πελάτης») → πάνω όλα
-     τα ονόματα που γιορτάζουν, με τα υποκοριστικά (απόφαση 11/11, για να θυμηθεί πελάτη με παρατσούκλι)· από κάτω οι
+     τα ονόματα που γιορτάζουν, μόνο τα επίσημα (απόφαση 16/11: όλα τα ονόματα της μέρας, όχι παραλλαγές)· από κάτω οι
      «Προτάσεις»: οι πελάτες που βρήκε το πρόγραμμα, με πόλη (σήμερα και WhatsApp / αντιγραφή ευχής / κλήση).
      Όποιος λείπει ή μπήκε λάθος διορθώνεται από την καρτέλα του («✎ Αλλαγή γιορτής»).
      Επιστρέφει { bar, list }: στο κινητό η λίστα μπαίνει κάτω από τη μπάρα, στο τάμπλετ δεξιά, πάνω από τη μέρα. */
   const shortDay = (k) => { const x = new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)); return WDL[x.getDay()].slice(0, 3) + ' ' + x.getDate() + '/' + (x.getMonth() + 1); };
   function feast(k) {
     if (!S.loaded('clients')) return { bar: '', list: '' };
-    const N = PL.names, G = N.celebrants(k), fts = (g) => esc(g.feasts.map((f) => f.t).join(', '));
+    const N = PL.names, G = N.celebrants(k), fts = (g) => esc(g.feasts.map(N.label).join(', '));
     let txt, g = null;
     if (G.list.length) { const nm = G.list.map((c) => N.given(c)); txt = `<b>${fts(G)}</b> · ${esc(nm.slice(0, 2).join(', '))}${nm.length > 2 ? ' +' + (nm.length - 2) : ''}`; g = G; }
     else if (G.feasts.length) { txt = `<b>${fts(G)}</b> · κανένας πελάτης`; g = G; }
     else { const nx = N.next(k); if (nx) { txt = `Επόμενη: <b>${esc(shortDay(nx.day))} · ${fts(nx)}</b> · ${nx.list.length} ${nx.list.length === 1 ? 'πελάτης' : 'πελάτες'}`; g = nx; } else txt = 'Καμία γιορτή πελάτη τον επόμενο χρόνο'; }
     const open = !!g && st.ndOpen, wish = g === G && k === N.today() && G.list.length > 0;
-    const names = (f) => { const a = N.allNames(f); return `<div class="ndnm"><b>${esc(a.main.join(', '))}</b>${a.more.length ? `<span class="mu"> · ${esc(a.more.join(', '))}</span>` : ''}</div>`; };
+    const names = (f) => `<div class="ndnm"><b>${esc(f.s.join(', '))}</b></div>`;
     const row = (c) => { if (!wish) return `<div class="ndr"><div class="ndn"><span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu">${esc(c.city)}</span></div></div>`;
       const w = N.wished(k, c.i), wa = N.wa(c);
       return `<div class="ndr${w ? ' done' : ''}"><div class="ndn"><span class="nm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)}</span><span class="mu">${esc(c.city)}${w ? ' · ✓ ευχήθηκες' : ''}</span></div>` +
         `${wa ? `<a class="btn ndw" href="${esc(wa)}" target="_blank" rel="noopener" data-wish="${esc(c.i)}">WhatsApp</a>` : ''}<button data-wcopy="${esc(c.i)}" aria-label="Αντιγραφή ευχής">📋</button>${PL.call.tels(c).length ? `<button data-callc="${esc(c.i)}" aria-label="Κλήση">📞</button>` : ''}</div>`; };
     return { bar: `<div class="ndbar${open ? ' on' : ''}"${g ? ` data-ndbar="1" role="button" aria-expanded="${open}"` : ''}><span aria-hidden="true">🎉</span><span class="tx">${txt}</span>${g ? `<span class="ndc" aria-hidden="true">${open ? '▴' : '▾'}</span>` : ''}</div>`,
-      list: open ? `<div class="ndlist"><div class="ndh">Γιορτάζουν${g === G ? '' : ' την ' + esc(shortDay(g.day))}</div>${g.feasts.map((f) => (g.feasts.length > 1 ? `<div class="mu ndft">${esc(f.t)}</div>` : '') + names(f)).join('')}` +
+      list: open ? `<div class="ndlist"><div class="ndh">Γιορτάζουν${g === G ? '' : ' την ' + esc(shortDay(g.day))}</div>${g.feasts.map((f) => (g.feasts.length > 1 && f.t ? `<div class="mu ndft">${esc(f.t)}</div>` : '') + names(f)).join('')}` +
         `<div class="ndh">Προτάσεις${g.list.length ? ' (' + g.list.length + ')' : ''}</div>${g.list.length ? (wish ? `<div class="mu" style="margin:2px 0 4px">Ευχή: «${esc(N.TEXT)}» · WhatsApp με έτοιμο κείμενο, 📋 αντιγραφή για Viber / SMS</div>` : '') + g.list.map(row).join('') : '<div class="mu ndr">Δεν βρήκα πελάτη με αυτά τα ονόματα.</div>'}` +
         `<div class="mu ndfx">Λείπει κάποιος ή μπήκε λάθος; Άνοιξε την καρτέλα του και πάτα «✎ Αλλαγή γιορτής».</div></div>` : '' };
   }

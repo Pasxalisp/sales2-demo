@@ -68,10 +68,22 @@
   /* ---- πάνω μέρος ---- */
   /* σεμινάριο / καμπάνια (actions.js): ⏳ περιμένει · ✅ επιβεβαιώθηκε / την πήρε */
   const MARK = { '': '', wait: ' ⏳', ok: ' ✅', in: '' };
+  /* 🎉 γραμμή γιορτής: μία μέρα («Γιορτάζει: Αγίου Δημητρίου (26/10)»), πολλές πιθανές («Διονύσιος: πιθανόν 24/8 · 3/10 · 17/12»),
+     καμία, ή «δεν γιορτάζει» (με το χέρι) */
+  function ndLine(c, up, fx, today) {
+    const N = PL.names, dm = (d) => esc(u.fd(d).slice(0, 5)), hand = fx ? ' · ορίστηκε με το χέρι' : '';
+    if (!up.length) return (fx ? 'Δεν γιορτάζει' : 'Γιορτή: δεν βρέθηκε από το όνομα') + hand;
+    const now = up[0].day === today ? ' · <b class="up">σήμερα!</b>' : '';
+    if (up.length === 1) return `Γιορτάζει: ${esc(N.label(up[0].f))} (${esc(u.fd(up[0].day))})${now}${hand}`;
+    return `${esc(N.given(c))}: γιορτάζει πιθανόν ${up.map((x) => dm(x.day)).join(' · ')}${now} <span class="mu">(διάλεξε τη σωστή με «✎ Αλλαγή γιορτής»)</span>`;
+  }
+  /* επιλογή γιορτής: «16/11 · Αγίου Ματθαίου: Ιφιγένεια, Ματθαίος» (έως 6 ονόματα) */
+  const ndOpt = (x, dm) => { const f = x.f, s = f.s.slice(0, 6).join(', ') + (f.s.length > 6 ? '…' : '');
+    return `<option value="${esc(f.k)}">${esc(dm(x.day))} · ${esc(f.t ? f.t + ': ' + s : s)}</option>`; };
   function topHtml(id, c) {
     const SOS = !!S.get('sos', id), T = S.get('tech', id), A = PL.actions, sem = A.seminar.state(id), cmp = A.campaign.state(id), I = PL.icon, map = PL.call.mapUrl(c);
     const tz = M.tz(c);
-    const N = PL.names, nd = N.feastOf(c), fx = N.fixOf(id), Y = +N.today().slice(0, 4), ndD = nd ? N.dateOf(nd, Y) : '';
+    const N = PL.names, T0 = N.today(), Y = +T0.slice(0, 4), fx = N.fixOf(id), up = N.upcoming(c, T0), dm = (d) => u.fd(d).slice(0, 5);
     return `<h2 style="margin:4px 0 2px">${SOS ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}</h2>` +
       `<div class="mu">${esc(c.addr)}${c.addr && c.city ? ', ' : ''}${esc(c.city)} ${esc(c.zip)}${' · κωδ. ' + esc(c.prospect ? 'ΝΕΟΣ' : (c.codes || [c.code]).join(', '))}</div>` +
       `<div class="cact"><button class="cat" data-callc="${esc(id)}"${PL.call.tels(c).length ? '' : ' disabled'}>${I.phone}<span>Κλήση</span></button>` +
@@ -82,10 +94,11 @@
       `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${MARK[sem]}</button>` +
       `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${MARK[cmp]}</button></div>` +
       `${T && T.note ? `<div class="mu">Τεχνικός: ${esc(T.note)}</div>` : ''}` +
-      `<div class="mu">🎉 ${nd ? `Γιορτάζει: ${esc(nd.t)} (${esc(u.fd(ndD))})${ndD === N.today() ? ' · <b class="up">σήμερα!</b>' : ''}` : fx ? 'Δεν γιορτάζει' : 'Γιορτή: δεν βρέθηκε από το όνομα'}${fx ? ' · ορίστηκε με το χέρι' : ''}` +
-      `<br><label class="ndbtn">✎ ${nd || fx ? 'Αλλαγή γιορτής' : 'Ορισμός γιορτής'}<select id="ndsel" aria-label="Αλλαγή γιορτής"><option value="" selected disabled>Διάλεξε γιορτή</option>` +
+      `<div class="mu">🎉 ${ndLine(c, up, fx, T0)}` +
+      `<br><label class="ndbtn">✎ ${up.length || fx ? 'Αλλαγή γιορτής' : 'Ορισμός γιορτής'}<select id="ndsel" aria-label="Αλλαγή γιορτής"><option value="" selected disabled>Διάλεξε γιορτή</option>` +
       `${fx ? '<option value="*">↺ Αυτόματα, από το όνομα</option>' : ''}${fx !== '-' ? '<option value="-">🚫 Δεν γιορτάζει</option>' : ''}` +
-      `${N.year(Y).map((x) => `<option value="${esc(x.f.t)}">${esc(u.fd(x.day).slice(0, 5))} · ${esc(x.f.t)} (${esc(x.f.s)})</option>`).join('')}</select></label></div>` +
+      `${up.length > 1 ? `<optgroup label="Από το όνομα">${up.map((x) => ndOpt(x, dm)).join('')}</optgroup>` : ''}` +
+      `<optgroup label="Όλες οι μέρες">${N.year(Y).map((x) => ndOpt(x, dm)).join('')}</optgroup></select></label></div>` +
       `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${tz !== 0 ? `<p class="tz">Τζίρος: ${money(tz)}</p>` : ''}` +
       `${c.ex ? `<div class="mu">Έχουν αφαιρεθεί: ${esc(c.exn)} (αρχικός τζίρος ${money(c.tz0)})</div>` : ''}` +
       `${c.tzold != null ? `<div class="mu">Ο τζίρος ενημερώθηκε στο μεγαλύτερο ποσό (Goldwell φέτος· πριν ${money(c.tzold)})</div>` : ''}` +
@@ -138,11 +151,11 @@
       const offs = COLS.map((c) => S.on(c, () => { if (c === 'notes') paintHist(); paintTop(); }));
       const closeAfter = () => { PL.nav.back(); };
 
-      /* 🎉 αλλαγή γιορτής: '*' = πίσω στο όνομα, '-' = δεν γιορτάζει, αλλιώς ο τίτλος της γιορτής */
+      /* 🎉 αλλαγή γιορτής: '*' = πίσω στο όνομα, '-' = δεν γιορτάζει, αλλιώς το κλειδί της γιορτής */
       el.addEventListener('change', async (ev) => {
         if (ev.target.id !== 'ndsel') return;
         const v = ev.target.value, c = M.byId(id); if (!c) return;
-        try { await PL.names.setFix(c, v === '*' ? '' : v); D.toast(v === '*' ? '🎉 Η γιορτή βγαίνει πάλι από το όνομα' : v === '-' ? '🎉 Δεν θα εμφανίζεται στις γιορτές' : '🎉 Γιορτάζει: ' + v); }
+        try { await PL.names.setFix(c, v === '*' ? '' : v); D.toast(v === '*' ? '🎉 Η γιορτή βγαίνει πάλι από το όνομα' : v === '-' ? '🎉 Δεν θα εμφανίζεται στις γιορτές' : '🎉 Γιορτάζει: ' + PL.names.label(PL.names.byKey(v))); }
         catch (e) { D.toast('Δεν αποθηκεύτηκε: ' + (e && e.message || e)); paintTop(); }
       });
       el.addEventListener('click', async (ev) => {
