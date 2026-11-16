@@ -1,0 +1,77 @@
+/* ΔΕΙΓΜΑ «Κίνηση» (πρόταση 17/11/2026) — μαζί με το js/motion.js, μόνο στη σελίδα kinisi.html του demo.
+   Μόνο transform και opacity, σύντομα (≈0,3″). Με «Μείωση κίνησης» στο κινητό δεν παίζει τίποτα (στο τέλος). */
+
+/* 1. Νέα σελίδα: τα κουτιά ανεβαίνουν λίγο και φανερώνονται ένα ένα (το js βάζει .mv-b και τη σειρά --mv-i) */
+@keyframes mv-up {
+  from {
+    opacity: 0;
+    transform: translateY(calc(14 * var(--u)));
+  }
+}
+.page.mv-in .mv-b {
+  animation: mv-up .34s cubic-bezier(.2,.75,.3,1) both;
+  animation-delay: calc(var(--mv-i, 0) * 35ms);
+}
+
+/* 3. Μπάρες γραφημάτων που μεγαλώνουν (Τζίρος, FLASH, στόχοι) */
+@keyframes mv-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes mv-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+.page.mv-in .gv .gb,
+.page.mv-in .gv .prog > div,
+.page.mv-in .gv .flbar i,
+.page.mv-in .gv .flbar b,
+.page.mv-in .gv .dvr .dvb {
+  transform-origin: left center;
+  animation: mv-grow-x .6s cubic-bezier(.2,.75,.3,1) .12s both;
+}
+.page.mv-in .gv .dvl .dvb {
+  transform-origin: right center;
+  animation: mv-grow-x .6s cubic-bezier(.2,.75,.3,1) .12s both;
+}
+.page.mv-in .gv .flc i {
+  transform-origin: center bottom;
+  animation: mv-grow-y .6s cubic-bezier(.2,.75,.3,1) .12s both;
+}
+
+/* 4. Κάτω μπάρα: όσο γλιστράει το πλαίσιο (.mvpill), το κουμπί δεν δείχνει το δικό του */
+#nav.mv-sliding .nb.on:not(.nmic) {
+  background: transparent;
+}
+#nav .mvpill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 20px;
+  background: color-mix(in srgb,var(--ac) 15%,transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+#nav .mvpill.go {
+  transition: transform .28s cubic-bezier(.3,.8,.3,1),width .28s,height .28s;
+}
+#nav .nb {
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page.mv-in .mv-b,
+  .page.mv-in .gv .gb,
+  .page.mv-in .gv .prog > div,
+  .page.mv-in .gv .flbar i,
+  .page.mv-in .gv .flbar b,
+  .page.mv-in .gv .dvb,
+  .page.mv-in .gv .flc i {
+    animation: none;
+  }
+  #nav .mvpill {
+    display: none;
+  }
+}
