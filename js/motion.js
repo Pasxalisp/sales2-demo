@@ -1,8 +1,6 @@
 /* ΔΕΙΓΜΑ «Κίνηση» (πρόταση 17/11/2026, μόνο στη σελίδα kinisi.html του demo — ό,τι εγκριθεί περνά στις εφαρμογές, τα άλλα σβήνονται).
    Μικρές κινήσεις, χωρίς βιβλιοθήκη, μόνο με transform/opacity (τις κάνει η κάρτα γραφικών, δεν βαραίνουν):
-   1. Κινητό (ιδέα Πασχάλη 17/11, όπως στο iPhone): νέα σελίδα έρχεται από δεξιά και η προηγούμενη φεύγει λίγο αριστερά·
-      με «‹ Πίσω» το αντίθετο. Με σύρσιμο από την άκρη (js/gestures.js) η σελίδα έχει ήδη φύγει, οπότε τίποτα παραπάνω.
-      Ενότητες της κάτω μπάρας και Αρχική: χωρίς κίνηση (όπως οι καρτέλες στο iPhone).
+   1. (Η σελίδα από δεξιά στο κινητό εγκρίθηκε 17/11 και είναι πια στο κανονικό: js/slide.js.)
    2. Τάμπλετ/υπολογιστής: τα κουτιά της νέας σελίδας ανεβαίνουν λίγο και φανερώνονται ένα ένα (έως 14, όλα σε ≈0,8″).
    3. Μπάρες γραφημάτων που μεγαλώνουν (μόνο CSS, css/motion.css).
    (Οι αριθμοί που μετρούσαν από το 0 αφαιρέθηκαν 17/11: «κουραστικό».)
@@ -34,40 +32,21 @@
       if (depth < 3 && wrapper(c)) boxes(c, out, depth + 1); else out.push(c);
     }
   }
-  /* πώς ανοίγει η επόμενη σελίδα: 'push' (πιο μέσα), 'back' («‹ Πίσω»), 'swipe' (σύρσιμο από την άκρη), '' (ενότητα/Αρχική) */
-  let kind = '', edge = false, edgeAt = 0, snap = null;
-  document.addEventListener('touchstart', (e) => { edge = !!e.touches[0] && e.touches[0].clientX <= 40; }, { passive: true, capture: true });
-  document.addEventListener('touchend', (e) => { const t = e.changedTouches[0]; if (edge && t && t.clientX > 80) edgeAt = performance.now(); edge = false; }, { passive: true, capture: true });
-  const wrap = (name, k) => { const f = PL.nav[name]; PL.nav[name] = function () { kind = typeof k === 'function' ? k() : k; snap = phone() && kind && kind !== 'swipe' ? shot() : null; try { return f.apply(this, arguments); } finally { kind = ''; } }; };
-  const phone = () => !PL.WIDE.matches && !still();
-  wrap('push', 'push'); wrap('back', () => (performance.now() - edgeAt < 450 ? 'swipe' : 'back')); wrap('home', ''); wrap('tab', '');
-  /* «φωτογραφία» της σελίδας που φεύγει (αντίγραφο, χωρίς id και χωρίς πατήματα), μόνο αν δεν είναι τεράστια */
-  function shot() {
-    const el = [...document.querySelectorAll('#app > .page')].pop(); if (!el || el.getElementsByTagName('*').length > 2500) return null;
-    const r = el.getBoundingClientRect(), c = el.cloneNode(true);
-    c.removeAttribute('id'); c.querySelectorAll('[id]').forEach((x) => x.removeAttribute('id'));
-    const w = document.createElement('div'); w.className = 'mv-snap'; w.setAttribute('aria-hidden', 'true'); w.inert = true;
-    w.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${Math.max(0, innerHeight - r.top)}px`;
-    w.appendChild(c); return w;
-  }
-  function slide(page, k) {
-    const s = snap; snap = null;
-    const cls = k === 'push' ? ['mv-push', 'out'] : ['mv-pop', 'pop'];
-    page.classList.add(cls[0]);
-    if (s) { s.classList.add(cls[1]); document.body.appendChild(s); }
-    setTimeout(() => { page.classList.remove(cls[0]); if (s) s.remove(); }, 380);
-  }
+  /* «Πίσω»: τα κουτιά δεν ξαναπαίζουν */
+  let goingBack = false;
+  const back0 = PL.nav.back;
+  PL.nav.back = function () { goingBack = true; try { return back0.apply(this, arguments); } finally { goingBack = false; } };
+  const phone = () => !PL.WIDE.matches;
 
   function enter(page) {
     page.dataset.mv = '1';
     if (still()) return;
-    if (phone()) {   // κινητό: η σελίδα έρχεται ολόκληρη (όχι κουτιά ένα ένα)· οι μπάρες κανονικά
-      if (kind === 'push' || kind === 'back') slide(page, kind);
+    if (phone()) {   // κινητό: η σελίδα έρχεται ολόκληρη από δεξιά (κανονικό πια, js/slide.js)· εδώ μόνο οι μπάρες
       page.classList.add('mv-in');
       setTimeout(() => page.classList.remove('mv-in'), ENTER_MS);
       return;
     }
-    if (kind === 'back' || kind === 'swipe') return;
+    if (goingBack) return;
     page.classList.add('mv-in');
     let moved = []; const t0 = performance.now();
     const play = (list) => list.forEach((b) => { b.style.setProperty('--mv-i', moved.length); b.classList.add('mv-b'); moved.push(b); });
@@ -89,6 +68,6 @@
       moved.forEach((b) => { b.classList.remove('mv-b'); b.style.removeProperty('--mv-i'); });
     }, ENTER_MS);
   }
-  PL.bus.on('page', () => { document.querySelectorAll('#app > .page:not([data-mv])').forEach(enter); snap = null; });
+  PL.bus.on('page', () => document.querySelectorAll('#app > .page:not([data-mv])').forEach(enter));
 
 })();

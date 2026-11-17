@@ -1,5 +1,5 @@
-/* ΔΕΙΓΜΑ «Κίνηση» (πρόταση 17/11/2026) — μαζί με το js/motion.js, μόνο στη σελίδα kinisi.html του demo. Κινητό: σελίδες από δεξιά·
-   τάμπλετ: κουτιά ένα ένα· παντού: μπάρες που μεγαλώνουν.
+/* ΔΕΙΓΜΑ «Κίνηση» (πρόταση 17/11/2026) — μαζί με το js/motion.js, μόνο στη σελίδα kinisi.html του demo. Τάμπλετ: κουτιά ένα ένα·
+   παντού: μπάρες που μεγαλώνουν. (Η σελίδα από δεξιά στο κινητό είναι πια στο κανονικό: css/base.css.)
    Μόνο transform και opacity, σύντομα (≈0,3″). Με «Μείωση κίνησης» στο κινητό δεν παίζει τίποτα (στο τέλος). */
 
 /* 1. Νέα σελίδα: τα κουτιά ανεβαίνουν λίγο και φανερώνονται ένα ένα (το js βάζει .mv-b και τη σειρά --mv-i) */
@@ -42,62 +42,6 @@
   animation: mv-grow-y .6s cubic-bezier(.2,.75,.3,1) .12s both;
 }
 
-/* Κινητό: νέα σελίδα από δεξιά, η προηγούμενη («φωτογραφία», .mv-snap) φεύγει λίγο αριστερά· «Πίσω» το αντίθετο (όπως στο iPhone) */
-@keyframes mv-push-in {
-  from {
-    transform: translateX(100%);
-  }
-}
-@keyframes mv-push-out {
-  to {
-    transform: translateX(-28%);
-    opacity: .55;
-  }
-}
-@keyframes mv-pop-in {
-  from {
-    transform: translateX(-28%);
-    opacity: .55;
-  }
-}
-@keyframes mv-pop-out {
-  to {
-    transform: translateX(100%);
-  }
-}
-.page.mv-push,
-.page.mv-pop {
-  min-height: 100dvh;
-  background: var(--bg);
-}
-.page.mv-push {
-  position: relative;
-  z-index: 21;
-  box-shadow: -10px 0 28px rgba(0,0,0,.14);
-  animation: mv-push-in .34s cubic-bezier(.2,.8,.2,1) both;
-}
-.page.mv-pop {
-  animation: mv-pop-in .32s cubic-bezier(.2,.8,.2,1) both;
-}
-.mv-snap {
-  position: fixed;
-  z-index: 20;
-  overflow: hidden;
-  pointer-events: none;
-  background: var(--bg);
-}
-.mv-snap > .page {
-  margin: 0;
-}
-.mv-snap.out {
-  animation: mv-push-out .34s cubic-bezier(.2,.8,.2,1) both;
-}
-.mv-snap.pop {
-  z-index: 22;
-  box-shadow: -10px 0 28px rgba(0,0,0,.14);
-  animation: mv-pop-out .32s cubic-bezier(.2,.8,.2,1) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .page.mv-in .mv-b,
   .page.mv-in .gv .gb,
@@ -106,11 +50,6 @@
   .page.mv-in .gv .flbar b,
   .page.mv-in .gv .dvb,
   .page.mv-in .gv .flc i {
-    animation: none;
-  }
-  .page.mv-push,
-  .page.mv-pop,
-  .mv-snap {
     animation: none;
   }
 }

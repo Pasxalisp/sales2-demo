@@ -141,18 +141,19 @@
       const e = { id, params: params || {} }, m = masterOf(), top = stack[stack.length - 1];
       /* Δίπλα στη λίστα: νέα λεπτομέρεια αντικαθιστά την προηγούμενη (το «Πίσω» γυρνά στη λίστα, όχι από πελάτη σε πελάτη). */
       if (m && m !== top && details(m).includes(id)) stack[stack.length - 1] = e; else stack.push(e);
-      show();
+      show('push');
     },
-    back() { if (stack.length > 1) { stack.pop(); show(); } },
+    /* o.swiped: γύρισε με σύρσιμο από την άκρη (gestures.js), η σελίδα έχει ήδη φύγει· αλλιώς κίνηση «Πίσω» (js/slide.js) */
+    back(o) { if (stack.length > 1) { stack.pop(); show(o && o.swiped ? '' : 'back'); } },
     /* «‹ Πίσω» πάνω αριστερά μιας σελίδας: γυρνά στη σελίδα κάτω από αυτήν (στο τάμπλετ η λίστα αριστερά κλείνει και τη λεπτομέρεια δεξιά) */
     backFrom(e) {
       const i = stack.indexOf(e); if (i < 1) return;
       if (i === stack.length - 1) { PL.nav.up(); return; }
       if (PL.nav.guard && PL.nav.guard('back')) return;
-      stack.length = i; show();
+      stack.length = i; show('back');
     },
     /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο): ρωτάει πρώτα τον φύλακα της σελίδας, μετά γυρνά */
-    up() { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(); },
+    up(o) { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(o); },
     home() { stack.length = 0; stack.push({ id: 'home', params: {} }); show(); },
     /* ενότητα της κάτω μπάρας: Αρχική → ενότητα */
     tab(id) { stack.length = 0; stack.push({ id: 'home', params: {} }, { id, params: {} }); show(); },
@@ -227,10 +228,15 @@
   const keepDrafts = () => ['L', 'R'].forEach((k) => { if (slot[k].dr) slot[k].dr.keep(); });
   addEventListener('pagehide', keepDrafts);
   document.addEventListener('visibilitychange', () => { if (document.hidden) keepDrafts(); });
-  function show() {
+  /* how: 'push' (πιο μέσα), 'back' («Πίσω»), '' (ενότητα, Αρχική, σύρσιμο, στροφή οθόνης) — για την κίνηση στο κινητό (js/slide.js) */
+  function show(how) {
     const cur = stack[stack.length - 1], m = masterOf(), root = $('#app');
     root.classList.toggle('split', !!m);
-    if (!m) { unmount('R'); mount('L', cur); window.scrollTo(0, 0); }
+    if (!m) {
+      const snap = how && PL.slide ? PL.slide.shot(slot.L.el) : null;   // η σελίδα που φεύγει, πριν βγει
+      unmount('R'); mount('L', cur); window.scrollTo(0, 0);
+      if (how && PL.slide) PL.slide.play(how, snap, slot.L.el);
+    }
     else {
       const newL = slot.L.e !== m, d = m === cur ? null : cur;
       if (newL) mount('L', m, 'paneL');

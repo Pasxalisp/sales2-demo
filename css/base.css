@@ -1732,6 +1732,53 @@ html.big .sha > :last-child:nth-child(odd) {
   }
 }
 
+/* ---- Κίνηση σελίδων στο κινητό (js/slide.js, απόφαση 17/11): πιο μέσα → από δεξιά, «Πίσω» → το αντίθετο ----
+   Η «φωτογραφία» (.pgsnap) της σελίδας που φεύγει κάθεται από κάτω (ή από πάνω στο «Πίσω»). Ένα συμπαγές περίγραμμα στο
+   χρώμα του φόντου καλύπτει τα περιθώρια δεξιά-αριστερά της σελίδας, ώστε να μη φαίνεται η πίσω σελίδα στις άκρες. */
+@keyframes pg-in { from { transform: translateX(100%); } }
+@keyframes pg-out { to { transform: translateX(-28%); opacity: .5; } }
+@keyframes pg-back { from { transform: translateX(-28%); opacity: .5; } }
+@keyframes pg-away { to { transform: translateX(100%); } }
+.page.pgin,
+.page.pgback {
+  min-height: 100dvh;
+  background: var(--bg);
+}
+.page.pgin {
+  position: relative;
+  z-index: 21;
+  box-shadow: 0 0 0 16px var(--bg),-12px 0 30px rgba(0,0,0,.16);
+  animation: pg-in .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.page.pgback {
+  animation: pg-back .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.pgsnap {
+  position: fixed;
+  z-index: 20;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg);
+}
+.pgsnap > .page {
+  margin: 0;
+}
+.pgsnap.pgout {
+  animation: pg-out .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.pgsnap.pgaway {
+  z-index: 22;
+  box-shadow: 0 0 0 16px var(--bg),-12px 0 30px rgba(0,0,0,.16);
+  animation: pg-away .34s cubic-bezier(.2,.8,.2,1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page.pgin,
+  .page.pgback,
+  .pgsnap {
+    animation: none;
+  }
+}
+
 /* ---- Κινήσεις ---- */
 @keyframes pbi { 0%{left:-35%}100%{left:100%} }
 @keyframes celC { to{transform:scale(1)} }

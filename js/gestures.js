@@ -60,7 +60,7 @@
       if (!mv) { sx = null; el = null; return; }   /* απλό πάτημα: καμία αλλαγή στη σελίδα, για να μη χάνεται το πάτημα */
       const dx = (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : sx) - sx, x = el, go = mv && dx > 80; sx = null; el = null;
       x.style.transition = 'transform .18s'; x.style.transform = go ? 'translateX(100%)' : '';
-      setTimeout(() => { x.style.transition = ''; x.style.transform = ''; x.style.boxShadow = ''; if (go) PL.nav.up(); }, go ? 170 : 190);
+      setTimeout(() => { x.style.transition = ''; x.style.transform = ''; x.style.boxShadow = ''; if (go) PL.nav.up({ swiped: true }); }, go ? 170 : 190);
     };
     document.addEventListener('touchend', end); document.addEventListener('touchcancel', end);
   }
