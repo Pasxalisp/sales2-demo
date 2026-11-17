@@ -288,18 +288,37 @@
        «Πίσω» και ενέργειες είναι πάνω στη σελίδα («‹ …» και «•••»). Πατημένη φαίνεται η ενότητα όπου βρίσκεσαι:
        η πιο πρόσφατη σελίδα της στοίβας που είναι στην μπάρα (π.χ. καρτέλα από το Πελατολόγιο → «Πελάτες»). */
     update() {
-      const sec = [...stack].reverse().map((e) => e.id).find((id) => TABS.some((t) => t[0] === id)) || 'home';
-      $('#nav').innerHTML = TABS.map(([id, label, aria, icon]) => {
-        const ic = id === 'dictate' ? `<span class="mc">${SV(icon, 18)}</span>` : SV(icon, id === 'home' ? 25 : 22);
-        return `<button class="nb${id === 'home' ? ' nhome' : ''}${id === 'dictate' ? ' nmic' : ''}${id === sec ? ' on' : ''}" data-a="${id}" aria-label="${aria}"${id === sec ? ' aria-current="page"' : ''}>${ic}<span>${label}</span>` +
-          (id === 'tasks' ? `<i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i>` : '') + '</button>';
-      }).join('');
+      const sec = [...stack].reverse().map((e) => e.id).find((id) => TABS.some((t) => t[0] === id)) || 'home', nav = $('#nav');
+      /* τα κουμπιά φτιάχνονται μία φορά· σε κάθε αλλαγή σελίδας αλλάζει μόνο ποιο είναι πατημένο (και γλιστράει το πλαίσιο) */
+      if (!nav.querySelector('.nb')) {
+        nav.innerHTML = '<i class="npill" aria-hidden="true"></i>' + TABS.map(([id, label, aria, icon]) => {
+          const ic = id === 'dictate' ? `<span class="mc">${SV(icon, 18)}</span>` : SV(icon, id === 'home' ? 25 : 22);
+          return `<button class="nb${id === 'home' ? ' nhome' : ''}${id === 'dictate' ? ' nmic' : ''}" data-a="${id}" aria-label="${aria}">${ic}<span>${label}</span>` +
+            (id === 'tasks' ? `<i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i>` : '') + '</button>';
+        }).join('');
+        /* στροφή οθόνης (μπάρα κάτω ↔ στο πλάι): το πλαίσιο πάει στη θέση του χωρίς κίνηση. Μόνο όταν αλλάξει το πλάτος της
+           μπάρας· το ύψος αλλάζει λίγο με κάθε πατημένο κουμπί και δεν πρέπει να κόβει την κίνηση. */
+        let w0 = 0; if (window.ResizeObserver) new ResizeObserver(() => { if (nav.offsetWidth !== w0) { w0 = nav.offsetWidth; pill(true); } }).observe(nav);
+      }
+      nav.querySelectorAll('.nb').forEach((b) => { const on = b.dataset.a === sec; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
       closeMenu();
       apply();
     },
   };
+  /* Το πλαίσιο της ενότητας όπου βρίσκεσαι (απόφαση Πασχάλη 17/11): ένα στοιχείο (.npill) που γλιστράει στο πατημένο κουμπί
+     αντί να πηδάει. Θέση από το offsetLeft/Top (όχι από το «πάτημα» του κουμπιού). Στην Υπαγόρευση δεν φαίνεται (έχει δικό της). */
+  function pill(instant) {
+    const nav = $('#nav'), p = nav.querySelector('.npill'), b = nav.querySelector('.nb.on:not(.nmic)'); if (!p) return;
+    if (!b) { p.classList.remove('vis'); return; }
+    if (!b.offsetWidth) return;   // κρυμμένη μπάρα: μένει εκεί που ήταν
+    const still = instant || !p.classList.contains('vis'); if (still) p.classList.add('np0');
+    p.style.width = b.offsetWidth + 'px'; p.style.height = b.offsetHeight + 'px'; p.style.transform = `translate(${b.offsetLeft}px,${b.offsetTop}px)`;
+    p.classList.add('vis');
+    if (still) { void p.offsetWidth; p.classList.remove('np0'); }
+  }
   function apply() {
     $('#nav').classList.toggle('off', hideReasons.size > 0);
+    pill();
     /* Υπαγόρευση όπως στην παλιά: χωρίς πληκτρολόγιο φαίνεται η μπάρα (body.dictnav)· όσο γράφεις κρύβεται και φαίνεται το «← Πίσω» */
     const cur = stack[stack.length - 1];
     document.body.classList.toggle('dictnav', !!(cur && cur.id === 'dictate' && !hideReasons.has('typing')));

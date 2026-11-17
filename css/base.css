@@ -1134,15 +1134,35 @@ main {
   opacity: 1;
 }
 /* η ενότητα όπου βρίσκεσαι: πράσινο κείμενο και απαλό πλαίσιο που πιάνει όλο το κουμπί, εικονίδιο και λέξη
-   (απόφαση Πασχάλη 15/11). Το πλαίσιο παίρνει το χρώμα του κειμένου, άρα ταιριάζει σε ανοιχτό και σκούρο θέμα.
+   (απόφαση Πασχάλη 15/11)· το πλαίσιο (.npill) γλιστράει στο νέο κουμπί (17/11). Χρώμα από το --ac, ταιριάζει σε ανοιχτό και σκούρο.
    Το «Υπαγόρευση» δεν το παίρνει: έχει ήδη το δικό του κόκκινο κουμπάκι (.mc). */
 #nav .nb.on {
   color: var(--ac);
 }
 #nav .nb.on:not(.nmic) {
   margin: -2px 3px;
+}
+/* το πλαίσιο γλιστράει από κουμπί σε κουμπί (απόφαση 17/11, core.js: pill) */
+#nav .npill {
+  position: absolute;
+  left: 0;
+  top: 0;
   border-radius: 20px;
-  background: color-mix(in srgb,currentColor 15%,transparent);
+  background: color-mix(in srgb,var(--ac) 15%,transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: transform .28s cubic-bezier(.3,.8,.3,1),width .28s,height .28s,opacity .15s;
+}
+#nav .npill.vis {
+  opacity: 1;
+}
+#nav .npill.np0 {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #nav .npill {
+    transition: none;
+  }
 }
 #nav .nb.on>svg {
   stroke-width: 2.3;

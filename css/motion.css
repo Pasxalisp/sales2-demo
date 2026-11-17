@@ -1,4 +1,5 @@
-/* ΔΕΙΓΜΑ «Κίνηση» (πρόταση 17/11/2026) — μαζί με το js/motion.js, μόνο στη σελίδα kinisi.html του demo.
+/* ΔΕΙΓΜΑ «Κίνηση» (πρόταση 17/11/2026) — μαζί με το js/motion.js, μόνο στη σελίδα kinisi.html του demo. Κινητό: σελίδες από δεξιά·
+   τάμπλετ: κουτιά ένα ένα· παντού: μπάρες που μεγαλώνουν.
    Μόνο transform και opacity, σύντομα (≈0,3″). Με «Μείωση κίνησης» στο κινητό δεν παίζει τίποτα (στο τέλος). */
 
 /* 1. Νέα σελίδα: τα κουτιά ανεβαίνουν λίγο και φανερώνονται ένα ένα (το js βάζει .mv-b και τη σειρά --mv-i) */
@@ -41,24 +42,60 @@
   animation: mv-grow-y .6s cubic-bezier(.2,.75,.3,1) .12s both;
 }
 
-/* 4. Κάτω μπάρα: όσο γλιστράει το πλαίσιο (.mvpill), το κουμπί δεν δείχνει το δικό του */
-#nav.mv-sliding .nb.on:not(.nmic) {
-  background: transparent;
+/* Κινητό: νέα σελίδα από δεξιά, η προηγούμενη («φωτογραφία», .mv-snap) φεύγει λίγο αριστερά· «Πίσω» το αντίθετο (όπως στο iPhone) */
+@keyframes mv-push-in {
+  from {
+    transform: translateX(100%);
+  }
 }
-#nav .mvpill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  border-radius: 20px;
-  background: color-mix(in srgb,var(--ac) 15%,transparent);
+@keyframes mv-push-out {
+  to {
+    transform: translateX(-28%);
+    opacity: .55;
+  }
+}
+@keyframes mv-pop-in {
+  from {
+    transform: translateX(-28%);
+    opacity: .55;
+  }
+}
+@keyframes mv-pop-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+.page.mv-push,
+.page.mv-pop {
+  min-height: 100dvh;
+  background: var(--bg);
+}
+.page.mv-push {
+  position: relative;
+  z-index: 21;
+  box-shadow: -10px 0 28px rgba(0,0,0,.14);
+  animation: mv-push-in .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.page.mv-pop {
+  animation: mv-pop-in .32s cubic-bezier(.2,.8,.2,1) both;
+}
+.mv-snap {
+  position: fixed;
+  z-index: 20;
+  overflow: hidden;
   pointer-events: none;
-  z-index: 0;
+  background: var(--bg);
 }
-#nav .mvpill.go {
-  transition: transform .28s cubic-bezier(.3,.8,.3,1),width .28s,height .28s;
+.mv-snap > .page {
+  margin: 0;
 }
-#nav .nb {
-  z-index: 1;
+.mv-snap.out {
+  animation: mv-push-out .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.mv-snap.pop {
+  z-index: 22;
+  box-shadow: -10px 0 28px rgba(0,0,0,.14);
+  animation: mv-pop-out .32s cubic-bezier(.2,.8,.2,1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -71,7 +108,9 @@
   .page.mv-in .gv .flc i {
     animation: none;
   }
-  #nav .mvpill {
-    display: none;
+  .page.mv-push,
+  .page.mv-pop,
+  .mv-snap {
+    animation: none;
   }
 }
