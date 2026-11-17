@@ -4,14 +4,14 @@
       με «‹ Πίσω» το αντίθετο. Με σύρσιμο από την άκρη (js/gestures.js) η σελίδα έχει ήδη φύγει, οπότε τίποτα παραπάνω.
       Ενότητες της κάτω μπάρας και Αρχική: χωρίς κίνηση (όπως οι καρτέλες στο iPhone).
    2. Τάμπλετ/υπολογιστής: τα κουτιά της νέας σελίδας ανεβαίνουν λίγο και φανερώνονται ένα ένα (έως 14, όλα σε ≈0,8″).
-   3. Αριθμοί που μετράνε από το 0 (πλακίδια Αρχικής, FLASH, Τζίρος, Πωλήσεις), μία φορά όταν ανοίγει η σελίδα.
-   4. Μπάρες γραφημάτων που μεγαλώνουν (μόνο CSS, css/motion.css).
+   3. Μπάρες γραφημάτων που μεγαλώνουν (μόνο CSS, css/motion.css).
+   (Οι αριθμοί που μετρούσαν από το 0 αφαιρέθηκαν 17/11: «κουραστικό».)
    (Το πλαίσιο που γλιστράει στην κάτω μπάρα εγκρίθηκε 17/11 και είναι πια στο κανονικό: js/core.js, css/base.css.)
    Με «Μείωση κίνησης» στο κινητό δεν παίζει τίποτα. Οι εμφανίσεις: css/motion.css. */
 (function () {
   const PL = window.PL; if (!PL || !PL.bus || !PL.nav) return;
   const REDUCE = matchMedia('(prefers-reduced-motion: reduce)'), still = () => REDUCE.matches;
-  const ENTER_MS = 1500;   // όσο η σελίδα θεωρείται «μόλις άνοιξε» (κουτιά, μπάρες, αριθμοί που φτάνουν λίγο μετά)
+  const ENTER_MS = 1500;   // όσο η σελίδα θεωρείται «μόλις άνοιξε» (κουτιά και μπάρες που φτάνουν λίγο μετά)
 
   /* ---------- 1–2. Εμφάνιση νέας σελίδας ---------- */
   /* Ποια κουτιά κινούνται: τα παιδιά της σελίδας που φαίνονται στην οθόνη· όσα είναι απλά «περιτυλίγματα» (χωρίς δικό τους
@@ -61,10 +61,10 @@
   function enter(page) {
     page.dataset.mv = '1';
     if (still()) return;
-    if (phone()) {   // κινητό: η σελίδα έρχεται ολόκληρη (όχι κουτιά ένα ένα)· αριθμοί και μπάρες κανονικά
+    if (phone()) {   // κινητό: η σελίδα έρχεται ολόκληρη (όχι κουτιά ένα ένα)· οι μπάρες κανονικά
       if (kind === 'push' || kind === 'back') slide(page, kind);
-      page.classList.add('mv-in'); const stop = watchNumbers(page);
-      setTimeout(() => { stop(); page.classList.remove('mv-in'); }, ENTER_MS);
+      page.classList.add('mv-in');
+      setTimeout(() => page.classList.remove('mv-in'), ENTER_MS);
       return;
     }
     if (kind === 'back' || kind === 'swipe') return;
@@ -84,45 +84,11 @@
       }));
     });
     late.observe(page, { childList: true, subtree: true });
-    const stop = watchNumbers(page);
     setTimeout(() => {
-      late.disconnect(); stop(); page.classList.remove('mv-in');
+      late.disconnect(); page.classList.remove('mv-in');
       moved.forEach((b) => { b.classList.remove('mv-b'); b.style.removeProperty('--mv-i'); });
     }, ENTER_MS);
   }
   PL.bus.on('page', () => { document.querySelectorAll('#app > .page:not([data-mv])').forEach(enter); snap = null; });
-
-  /* ---------- 3. Αριθμοί που μετράνε ---------- */
-  const NUMBERS = '.tl .ts, .hero, .flhero, .flgrid b, .slk .v, .uskpi b, .hubn';
-  const TOKEN = /\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?/g;   // ελληνική γραφή: 12.345,67
-  const done = new WeakSet(), mine = new WeakMap();
-  const parse = (t) => +t.replace(/\./g, '').replace(',', '.');
-  const fmt = (v, t) => { const dec = (t.split(',')[1] || '').length; return v.toLocaleString('el-GR', { minimumFractionDigits: dec, maximumFractionDigits: dec, useGrouping: t.includes('.') || v >= 10000 }); };
-  function count(el) {
-    if (done.has(el) || !el.isConnected) return;
-    const text = el.textContent, parts = text.split(TOKEN), nums = text.match(TOKEN);
-    if (!nums || nums.every((n) => parse(n) === 0)) return;
-    done.add(el);
-    const t0 = performance.now(), D = 650;
-    const step = (now) => {
-      if (!el.isConnected || (mine.has(el) && el.textContent !== mine.get(el))) { mine.delete(el); return; }   // την άλλαξε ήδη η σελίδα
-      const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
-      const out = k < 1 ? parts.map((p, i) => p + (i < nums.length ? fmt(parse(nums[i]) * e, nums[i]) : '')).join('') : text;
-      el.textContent = out; mine.set(el, out);
-      if (k < 1) requestAnimationFrame(step); else mine.delete(el);
-    };
-    requestAnimationFrame(step);
-  }
-  /* οι αριθμοί που υπάρχουν ήδη, και όσοι γράφονται λίγο μετά (π.χ. η Αρχική όταν φορτώσουν οι πελάτες) */
-  function watchNumbers(page) {
-    page.querySelectorAll(NUMBERS).forEach(count);
-    const obs = new MutationObserver((ms) => ms.forEach((m) => {
-      const el = (m.target.nodeType === 1 ? m.target : m.target.parentElement); if (!el || mine.has(el)) return;
-      const n = el.closest(NUMBERS); if (n) count(n);
-      if (m.type === 'childList') m.addedNodes.forEach((x) => { if (x.nodeType === 1) x.querySelectorAll(NUMBERS).forEach(count); });
-    }));
-    obs.observe(page, { childList: true, characterData: true, subtree: true });
-    return () => obs.disconnect();
-  }
 
 })();
