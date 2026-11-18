@@ -57,9 +57,9 @@
     const rest = await Promise.all(from.map((f) => ask().range(f, f + PAGE - 1).then((r) => { if (r.error) throw r.error; return r.data; })));
     return first.data.concat(...rest);
   }
-  /* πόσες γραμμές βλέπω σε έναν πίνακα (μόνο ο αριθμός) */
-  async function countOf(table) {
-    const { count, error } = await sb.from(table).select('path', { count: 'exact', head: true });
+  /* πόσες γραμμές βλέπω σε έναν πίνακα (μόνο ο αριθμός)· more(q) = φίλτρα */
+  async function countOf(table, more) {
+    const { count, error } = await (more || ((q) => q))(sb.from(table).select('path', { count: 'exact', head: true }));
     if (error) throw error;
     return count || 0;
   }
@@ -77,12 +77,14 @@
     (me.role === 'director' || me.admin || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
 
   /* ---------- Τα δεδομένα, όπως τα κρατά η μνήμη της συσκευής (lab/supa/cache.js) ----------
-     S = { v, since, sinceShared, profiles, teams, shared: {path: έγγραφο}, docs: {uuid χρήστη: {path: έγγραφο | null}} }
+     S = { v, since, sinceShared, profiles, teams, shared: {path: έγγραφο}, docs: {uuid χρήστη: {path: έγγραφο | null}}, team }
+     team = φορτώθηκαν και τα δεδομένα των πωλητών που βλέπω (υπεύθυνος, διευθυντής, διαχειριστής): την πρώτη φορά έρχονται μετά
+     το άνοιγμα, όχι πριν (απόφαση 18/11, Α4)· μετά, όπως όλα, μόνο οι αλλαγές.
      docs = οι γραμμές της βάσης όπως είναι (null = σβησμένο, κρύβει το κοινό). since = η πιο πρόσφατη ώρα αλλαγής που έχουμε
      δει (ώρα της βάσης): την επόμενη φορά ζητάμε μόνο ό,τι άλλαξε μετά. */
   const V = 1, STORE = window.PL_SUPA_STORE || { get: async () => null, set: async () => false, del: async () => false };
   const KEY = me ? { state: NS + ':' + me.uuid + ':state', out: NS + ':' + me.uuid + ':out' } : null;
-  const blank = () => ({ v: V, since: '', sinceShared: '', profiles: [], teams: [], shared: {}, docs: {} });
+  const blank = () => ({ v: V, since: '', sinceShared: '', profiles: [], teams: [], shared: {}, docs: {}, team: false });
   let S = blank();
   const docsOf = (uuid) => S.docs[uuid] || (S.docs[uuid] = {});
   /* τα έγγραφα ενός χρήστη όπως τα βλέπει η εφαρμογή: τα κοινά, και από πάνω τα δικά του */
@@ -352,17 +354,22 @@
   const OVERLAP = 120e3;   // ξαναρωτάμε και τα 2 τελευταία λεπτά: αλλαγή που γράφτηκε τη στιγμή του προηγούμενου ερωτήματος δεν χάνεται
   const after = (t) => (t ? new Date(Date.parse(t) - OVERLAP).toISOString() : '');
   const since = (q, t) => (t ? q.gt('updated_at', after(t)) : q);
+  /* βλέπω και άλλους πωλητές εκτός από μένα; (αλλιώς δεν υπάρχει τίποτα να φορτωθεί μετά) */
+  const others = () => visible().some((x) => x.id !== me.id);
+  let teamDone; const teamReady = new Promise((res) => { teamDone = res; });
   const latest = (list, t) => list.reduce((m, r) => (r.updated_at && r.updated_at > m ? r.updated_at : m), t || '');
   const total = () => Object.values(S.docs).reduce((n, o) => n + Object.keys(o).length, 0);
-  async function pull() {
+  /* withTeam: να φορτωθούν και οι πωλητές, αν δεν έχουν φορτωθεί (όχι στο πρώτο άνοιγμα, που περιμένει ο χρήστης) */
+  async function pull(withTeam) {
     const first = !S.since && !total();
+    const scope = (q) => (S.team ? q : q.eq('uid', me.uuid));   // πριν φορτωθούν οι πωλητές: μόνο τα δικά μου
     const [prof, teams, shared, nShared, docs, nDocs] = await Promise.all([
       rows('profiles', '*', (q) => q.order('demo_id')),
       rows('teams', 'id,name', (q) => q.order('id')),
       rows('shared_docs', 'path,data,updated_at', (q) => since(q, S.sinceShared).order('path')),
       countOf('shared_docs'),
-      rows('docs', 'uid,path,data,updated_at', (q) => since(q, S.since).order('updated_at').order('uid').order('path')),
-      countOf('docs'),
+      rows('docs', 'uid,path,data,updated_at', (q) => since(scope(q), S.since).order('updated_at').order('uid').order('path')),
+      countOf('docs', scope),
     ]);
     /* εγώ: ανενεργός → έξω· άλλαξε ο ρόλος ή η ομάδα μου → ξανανοίγει η εφαρμογή με τα νέα (άλλες οθόνες, άλλοι πωλητές) */
     const mine = prof.find((p) => p.id === me.uuid);
@@ -388,7 +395,7 @@
     });
     S.since = latest(docs, S.since);
     if (!first && total() !== nDocs) {
-      const all = await rows('docs', 'uid,path,data,updated_at', (q) => q.order('uid').order('path'));
+      const all = await rows('docs', 'uid,path,data,updated_at', (q) => scope(q).order('uid').order('path'));
       S.docs = {}; S.since = latest(all, '');
       all.forEach((r) => { docsOf(r.uid)[r.path] = r.data; bump(r.uid); });
       Object.entries(OUT).forEach(([p, j]) => { docsOf(me.uuid)[p] = j.data; });
@@ -396,7 +403,17 @@
     const nowMine = S.docs[me.uuid] || {};
     new Set(Object.keys(keepMine).concat(Object.keys(nowMine))).forEach((p) => { if (JSON.stringify(keepMine[p]) !== JSON.stringify(nowMine[p])) mineChanged.add(p); });
     if (!first) mineChanged.forEach(tell);
+    if (!S.team && !others()) S.team = true;
+    if (!S.team && withTeam) await loadTeam();
     await saveNow();
+    if (S.team) teamDone();
+  }
+  /* Τα δεδομένα των πωλητών που βλέπω, όλα μαζί (μία φορά σε κάθε συσκευή· μετά έρχονται μόνο οι αλλαγές με το pull).
+     Το since δεν προχωρά εδώ: το επόμενο pull ζητά από την ίδια ώρα για όλους, ώστε να μη χαθεί καμία δική μου αλλαγή. */
+  async function loadTeam() {
+    const L = await rows('docs', 'uid,path,data,updated_at', (q) => q.neq('uid', me.uuid).order('uid').order('path'));
+    L.forEach((r) => { docsOf(r.uid)[r.path] = r.data; bump(r.uid); });
+    S.team = true;
   }
 
   /* ένας συγχρονισμός τη φορά· όποιος ζητηθεί στο μεταξύ γίνεται αμέσως μετά. live: μόνο αφού η βάση επιβεβαιώσει τη συνεδρία */
@@ -405,7 +422,7 @@
     if (!live) return Promise.resolve();
     if (syncing) { again = true; return syncing; }
     syncing = (async () => {
-      try { if (await flush()) { await pull(); lastSync = Date.now(); } else retry(); }
+      try { if (await flush()) { await pull(true); lastSync = Date.now(); } else retry(); }
       catch (e) { if (!later(e)) console.error(e); retry(); }
       finally { syncing = null; if (again) { again = false; sync(); } }
     })();
@@ -462,6 +479,8 @@
   }
   function use(st) {
     S = st; PROFILES = S.profiles; TEAMS = S.teams;
+    if (S.team === undefined) S.team = true;   // μνήμη από πριν τις 18/11: είχε φορτώσει όλους
+    if (S.team || !others()) teamDone();
     Object.entries(OUT).forEach(([p, j]) => { docsOf(me.uuid)[p] = j.data; });   // όσα δεν είχαν σταλεί
     const mine = PROFILES.find((p) => p.id === me.uuid); if (mine) Object.assign(me, toUser(mine));
     place();
@@ -482,7 +501,10 @@
       try { S = blank(); await pull(); break; } catch (e) { if (!offline(e)) throw e; await online(Math.min(15000, 2000 * i)); }
     }
     use(S); confirmed(); startLive();
-    if (Object.keys(OUT).length) sync();
+    if (Object.keys(OUT).length || !S.team) sync();   // οι πωλητές (αν βλέπω) έρχονται τώρα, με την εφαρμογή ανοιχτή
   })();
-  org.ready = ready;   // για όσα θέλουν τα στοιχεία από τη βάση (π.χ. me.mustChange)
+  org.ready = ready;
+  /* τα δεδομένα των πωλητών (οθόνες ομάδας, Διαχείριση): teamLoaded() τώρα, teamReady όταν φτάσουν */
+  org.teamLoaded = () => !me || !!S.team || !others();
+  org.teamReady = teamReady;   // για όσα θέλουν τα στοιχεία από τη βάση (π.χ. me.mustChange)
 })();

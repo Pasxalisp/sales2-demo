@@ -219,83 +219,89 @@
     noTop: true,
     render(el) {
       if (!ROOM.matches) { el.innerHTML = '<h2>Διαχείριση</h2><p class="mu">Η Διαχείριση ανοίγει σε τάμπλετ και υπολογιστή.</p>'; return null; }
-      const D = load(), S = menu(D), open = new Set(), q = { s: '' };
-      let cur = null, hist = [];
-      PL.bar.hide('admin'); document.body.classList.add('admmode');
-      el.innerHTML = `<div class="adm"><aside class="admside"><div class="admbrand">${PL.about.logo()}<span><b>Sales <sup>2.0</sup></b><small>Διαχείριση</small></span></div>` +
-        `<div class="admclock" aria-hidden="true"><b id="admhm"></b><span id="admdate"></span></div><nav class="admnav" id="admnav" aria-label="Διαχείριση"></nav>` +
-        `<button class="admexit" id="admexit">${IC.exit}<span>Πίσω στις πωλήσεις</span></button></aside>` +
-        `<section class="admmain"><header class="admtop"><div class="admtl"><p class="admcrumb" id="admcrumb"></p><h1 id="admh1"></h1></div>` +
-        `<div class="admtools">${PL.fontPick ? PL.fontPick.control() : ''}<span class="admrole">${esc(ADMIN ? 'Διαχειριστής' : O.ROLES[me.role])}</span><span class="admav" title="${esc(me.name)}">${esc(initials(me.name))}</span></div></header>` +
-        `<div class="admbody" id="admbody"></div></section></div>`;
-      const $ = (s) => el.querySelector(s), body = $('#admbody');
-      const tick = () => { const d = new Date(); $('#admhm').textContent = u.pad(d.getHours()) + ':' + u.pad(d.getMinutes()); $('#admdate').textContent = d.toLocaleDateString('el-GR', { weekday: 'short', day: 'numeric', month: 'short' }); };
-      tick(); const clk = setInterval(tick, 20000);
-
-      /* πλευρικό μενού: ενότητες, επιλογές, υποκατηγορίες (ανοίγουν όταν πατηθούν ή όταν μέσα τους είναι η σελίδα που βλέπεις) */
-      const subOn = (it) => it.sub && it.sub.some((z) => z.k && cur && same(z, cur));
-      const item = (it) => `<button class="admi${cur && same(it, cur) && !subOn(it) ? ' on' : ''}${subOn(it) ? ' in' : ''}" data-k="${it.k}" ${it.p ? `data-p="${esc(JSON.stringify(it.p))}"` : ''}>${it.i}<span>${esc(it.t)}</span>${it.sub ? `<i class="admcar${open.has(it.k) ? ' op' : ''}">${IC.chev}</i>` : ''}</button>`;
-      const subItem = (z) => (z.h ? `<h5>${esc(z.h)}</h5>` : `<button class="admsi${cur && same(z, cur) ? ' on' : ''}${z.cls ? ' ' + z.cls : ''}${z.off ? ' off' : ''}" data-k="${z.k}" data-p="${esc(JSON.stringify(z.p))}" data-n="${esc(fold(z.full || z.t))}"${z.full ? ` title="${esc(z.full)}"` : ''}>` +
-        `${z.dot ? dot(z.dot) : ''}<span>${esc(z.t)}</span>${z.r ? `<em class="${z.c ? 'admpct ' + z.c : ''}">${esc(z.r)}</em>` : ''}</button>`);
-      const paintSide = () => {
-        $('#admnav').innerHTML = S.map((it) => (it.h ? `<h4>${esc(it.h)}</h4>` : `<div class="admg">${item(it)}${it.sub && open.has(it.k) ? `<div class="admsub">` +
-          (it.search ? `<label class="admsrch">${IC.search}<input type="search" data-q="${it.k}" placeholder="Αναζήτηση" value="${esc(q[it.k] || '')}" aria-label="Αναζήτηση στο ${esc(it.t)}"></label>` : '') +
-          it.sub.map(subItem).join('') + '</div>' : ''}</div>`)).join('');
-        Object.keys(q).forEach((k) => filter(k));
-      };
-      const filter = (k) => { const s = fold(q[k]), box = el.querySelector(`[data-q="${k}"]`); if (!box) return;
-        box.closest('.admsub').querySelectorAll('.admsi').forEach((b) => { b.hidden = !!s && !b.dataset.n.includes(s); }); };
-      const crumbs = () => {
-        const top = S.find((it) => it.k && (same(it, cur) || subOn(it))), sub = top && top.sub && top.sub.find((z) => z.k && same(z, cur));
-        const own = !top || (!sub && !same(top, cur)) ? (PL.pages[cur.id] || {}).title : '';
-        return ['Διαχείριση'].concat(top ? [top.t] : []).concat(sub ? [sub.t] : []).concat(own ? [own] : []);
-      };
-      const paintTop = () => {
-        const c = crumbs(); $('#admcrumb').textContent = c.join(' › ');
-        $('#admh1').textContent = c[c.length - 1];
-      };
-
-      function show(id, params) {
-        if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } }
-        const box = document.createElement('div'); box.className = 'admpage admv-' + id; body.replaceChildren(box); body.scrollTop = 0;
-        cur = { id, params: params || {}, off: null };
-        S.forEach((it) => { if (subOn(it)) open.add(it.k); });
-        const off = VIEWS[id] ? VIEWS[id](box, D, cur.params) : PL.pages[id] ? PL.pages[id].render(box, cur.params) : null;
-        cur.off = typeof off === 'function' ? off : null;
-        paintSide(); paintTop();
-      }
-      /* keep: άνοιξε από μέσα από σελίδα (το «Πίσω» της γυρνά εκεί)· αλλιώς από το μενού (νέα αρχή) */
-      const go = (id, params, keep) => { if (keep && cur) hist.push({ id: cur.id, params: cur.params }); else hist = []; show(id, params); };
-      swap = show;
-      /* όσο είναι ανοιχτή, οι σελίδες ομάδας/χρηστών που ανοίγουν η μία την άλλη μένουν μέσα της (core.js, PL.nav.host) */
-      PL.nav.host({ go: (id, params) => { if (!INNER.has(id)) return false; go(id, params, true); return true; },
-        back: () => { const h = hist.pop(); if (!h) return false; show(h.id, h.params); return true; } });
-
-      el.addEventListener('click', (ev) => {
-        if (ev.target.closest('#admexit')) { PL.nav.host(null); PL.nav.back(); return; }
-        if (ev.target.closest('[data-sort], input')) return;
-        const b = ev.target.closest('[data-k]'); if (!b || !el.contains(b)) return;
-        const k = b.dataset.k, p = b.dataset.p ? JSON.parse(b.dataset.p) : { id: b.dataset.id, team: b.dataset.team };
-        if (k === 'member' && !p.scope) p.scope = ALL ? '*' : me.team;
-        const it = S.find((z) => z.k === k && z.sub);
-        if (it && b.classList.contains('admi')) { if (cur && same(it, cur) && open.has(k)) { open.delete(k); paintSide(); return; } open.add(k); }
-        go(k, p, !b.closest('.admside'));
-      });
-      el.addEventListener('input', (ev) => { const k = ev.target.dataset && ev.target.dataset.q; if (k) { q[k] = ev.target.value; filter(k); } });
-
-      show(S.some((it) => it.k === 'overview') ? 'overview' : (S.find((it) => it.k) || { k: 'users' }).k, {});
-      return () => { PL.nav.host(null); swap = null; clearInterval(clk); if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } } PL.bar.unhide('admin'); document.body.classList.remove('admmode'); };
+      return TF.after(el, () => openAdmin(el));   // με βάση: μόλις φτάσουν τα δεδομένα των πωλητών
     },
   });
+  /* η Διαχείριση ανοιχτή: πάνελ αριστερά, σελίδα δεξιά */
+  function openAdmin(el) {
+    const D = load(), S = menu(D), open = new Set(), q = { s: '' };
+    let cur = null, hist = [];
+    PL.bar.hide('admin'); document.body.classList.add('admmode');
+    el.innerHTML = `<div class="adm"><aside class="admside"><div class="admbrand">${PL.about.logo()}<span><b>Sales <sup>2.0</sup></b><small>Διαχείριση</small></span></div>` +
+      `<div class="admclock" aria-hidden="true"><b id="admhm"></b><span id="admdate"></span></div><nav class="admnav" id="admnav" aria-label="Διαχείριση"></nav>` +
+      `<button class="admexit" id="admexit">${IC.exit}<span>Πίσω στις πωλήσεις</span></button></aside>` +
+      `<section class="admmain"><header class="admtop"><div class="admtl"><p class="admcrumb" id="admcrumb"></p><h1 id="admh1"></h1></div>` +
+      `<div class="admtools">${PL.fontPick ? PL.fontPick.control() : ''}<span class="admrole">${esc(ADMIN ? 'Διαχειριστής' : O.ROLES[me.role])}</span><span class="admav" title="${esc(me.name)}">${esc(initials(me.name))}</span></div></header>` +
+      `<div class="admbody" id="admbody"></div></section></div>`;
+    const $ = (s) => el.querySelector(s), body = $('#admbody');
+    const tick = () => { const d = new Date(); $('#admhm').textContent = u.pad(d.getHours()) + ':' + u.pad(d.getMinutes()); $('#admdate').textContent = d.toLocaleDateString('el-GR', { weekday: 'short', day: 'numeric', month: 'short' }); };
+    tick(); const clk = setInterval(tick, 20000);
+
+    /* πλευρικό μενού: ενότητες, επιλογές, υποκατηγορίες (ανοίγουν όταν πατηθούν ή όταν μέσα τους είναι η σελίδα που βλέπεις) */
+    const subOn = (it) => it.sub && it.sub.some((z) => z.k && cur && same(z, cur));
+    const item = (it) => `<button class="admi${cur && same(it, cur) && !subOn(it) ? ' on' : ''}${subOn(it) ? ' in' : ''}" data-k="${it.k}" ${it.p ? `data-p="${esc(JSON.stringify(it.p))}"` : ''}>${it.i}<span>${esc(it.t)}</span>${it.sub ? `<i class="admcar${open.has(it.k) ? ' op' : ''}">${IC.chev}</i>` : ''}</button>`;
+    const subItem = (z) => (z.h ? `<h5>${esc(z.h)}</h5>` : `<button class="admsi${cur && same(z, cur) ? ' on' : ''}${z.cls ? ' ' + z.cls : ''}${z.off ? ' off' : ''}" data-k="${z.k}" data-p="${esc(JSON.stringify(z.p))}" data-n="${esc(fold(z.full || z.t))}"${z.full ? ` title="${esc(z.full)}"` : ''}>` +
+      `${z.dot ? dot(z.dot) : ''}<span>${esc(z.t)}</span>${z.r ? `<em class="${z.c ? 'admpct ' + z.c : ''}">${esc(z.r)}</em>` : ''}</button>`);
+    const paintSide = () => {
+      $('#admnav').innerHTML = S.map((it) => (it.h ? `<h4>${esc(it.h)}</h4>` : `<div class="admg">${item(it)}${it.sub && open.has(it.k) ? `<div class="admsub">` +
+        (it.search ? `<label class="admsrch">${IC.search}<input type="search" data-q="${it.k}" placeholder="Αναζήτηση" value="${esc(q[it.k] || '')}" aria-label="Αναζήτηση στο ${esc(it.t)}"></label>` : '') +
+        it.sub.map(subItem).join('') + '</div>' : ''}</div>`)).join('');
+      Object.keys(q).forEach((k) => filter(k));
+    };
+    const filter = (k) => { const s = fold(q[k]), box = el.querySelector(`[data-q="${k}"]`); if (!box) return;
+      box.closest('.admsub').querySelectorAll('.admsi').forEach((b) => { b.hidden = !!s && !b.dataset.n.includes(s); }); };
+    const crumbs = () => {
+      const top = S.find((it) => it.k && (same(it, cur) || subOn(it))), sub = top && top.sub && top.sub.find((z) => z.k && same(z, cur));
+      const own = !top || (!sub && !same(top, cur)) ? (PL.pages[cur.id] || {}).title : '';
+      return ['Διαχείριση'].concat(top ? [top.t] : []).concat(sub ? [sub.t] : []).concat(own ? [own] : []);
+    };
+    const paintTop = () => {
+      const c = crumbs(); $('#admcrumb').textContent = c.join(' › ');
+      $('#admh1').textContent = c[c.length - 1];
+    };
+
+    function show(id, params) {
+      if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } }
+      const box = document.createElement('div'); box.className = 'admpage admv-' + id; body.replaceChildren(box); body.scrollTop = 0;
+      cur = { id, params: params || {}, off: null };
+      S.forEach((it) => { if (subOn(it)) open.add(it.k); });
+      const off = VIEWS[id] ? VIEWS[id](box, D, cur.params) : PL.pages[id] ? PL.pages[id].render(box, cur.params) : null;
+      cur.off = typeof off === 'function' ? off : null;
+      paintSide(); paintTop();
+    }
+    /* keep: άνοιξε από μέσα από σελίδα (το «Πίσω» της γυρνά εκεί)· αλλιώς από το μενού (νέα αρχή) */
+    const go = (id, params, keep) => { if (keep && cur) hist.push({ id: cur.id, params: cur.params }); else hist = []; show(id, params); };
+    swap = show;
+    /* όσο είναι ανοιχτή, οι σελίδες ομάδας/χρηστών που ανοίγουν η μία την άλλη μένουν μέσα της (core.js, PL.nav.host) */
+    PL.nav.host({ go: (id, params) => { if (!INNER.has(id)) return false; go(id, params, true); return true; },
+      back: () => { const h = hist.pop(); if (!h) return false; show(h.id, h.params); return true; } });
+
+    el.addEventListener('click', (ev) => {
+      if (ev.target.closest('#admexit')) { PL.nav.host(null); PL.nav.back(); return; }
+      if (ev.target.closest('[data-sort], input')) return;
+      const b = ev.target.closest('[data-k]'); if (!b || !el.contains(b)) return;
+      const k = b.dataset.k, p = b.dataset.p ? JSON.parse(b.dataset.p) : { id: b.dataset.id, team: b.dataset.team };
+      if (k === 'member' && !p.scope) p.scope = ALL ? '*' : me.team;
+      const it = S.find((z) => z.k === k && z.sub);
+      if (it && b.classList.contains('admi')) { if (cur && same(it, cur) && open.has(k)) { open.delete(k); paintSide(); return; } open.add(k); }
+      go(k, p, !b.closest('.admside'));
+    });
+    el.addEventListener('input', (ev) => { const k = ev.target.dataset && ev.target.dataset.q; if (k) { q[k] = ev.target.value; filter(k); } });
+
+    show(S.some((it) => it.k === 'overview') ? 'overview' : (S.find((it) => it.k) || { k: 'users' }).k, {});
+    return () => { PL.nav.host(null); swap = null; clearInterval(clk); if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } } PL.bar.unhide('admin'); document.body.classList.remove('admmode'); };
+  }
 
   /* ---------- Είσοδος από την Αρχική (μόνο τάμπλετ/υπολογιστής): ένα κουμπί «Διαχείριση» στη θέση των πλακιδίων ρόλου ---------- */
   (PL.labActs = PL.labActs || []).push({ page: 'home', mount(root) {
     if (!ROOM.matches) return null;
     const host = root.querySelector('#tmhome') || root.querySelector('.hh'); if (!host) return null;
-    const D = LEADS ? load() : { L: [] }, p = D.L.length ? groupPct(D.L) : null;
-    const sub = [LEADS && D.L.length ? `${D.L.length} πωλητές · στόχος ${p}%` : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : ''].filter(Boolean).join(' · ');
+    /* με βάση οι πωλητές έρχονται λίγο μετά το άνοιγμα: «φορτώνω…» και ξαναγράφεται μόλις φτάσουν */
+    const sub = () => { const D = LEADS && TF.ok() ? load() : { L: [] };
+      return [LEADS ? (TF.ok() ? (D.L.length ? `${D.L.length} πωλητές · στόχος ${groupPct(D.L)}%` : '') : 'φορτώνω…') : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : ''].filter(Boolean).join(' · '); };
     const b = document.createElement('button'); b.className = 'admentry'; b.type = 'button';
-    b.innerHTML = `<span class="admei">${IC.overview}</span><span class="admet"><b>Διαχείριση</b><small>${esc(sub)}</small></span><span class="admec">${IC.chev}</span>`;
+    b.innerHTML = `<span class="admei">${IC.overview}</span><span class="admet"><b>Διαχείριση</b><small>${esc(sub())}</small></span><span class="admec">${IC.chev}</span>`;
+    if (!TF.ok()) O.teamReady.then(() => { const sm = b.querySelector('small'); if (b.isConnected && sm) sm.textContent = sub(); });
     b.addEventListener('click', (ev) => { ev.stopPropagation(); PL.nav.push('admin'); });
     if (host.id === 'tmhome') host.appendChild(b); else host.parentNode.insertBefore(b, host.nextSibling);
     document.body.classList.add('admhome');

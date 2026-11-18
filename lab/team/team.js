@@ -68,10 +68,20 @@
       itemsDrop: items.filter((o) => o.qp > o.qc).sort((a, b) => (b.qp - b.qc) - (a.qp - a.qc)).slice(0, 8),
     };
   }
+  /* Με βάση (db.html) τα δεδομένα των πωλητών έρχονται λίγο μετά το άνοιγμα (O.teamLoaded / O.teamReady, απόφαση 18/11).
+     Μέχρι τότε η σελίδα γράφει «Φορτώνω…» και ζωγραφίζεται μόλις φτάσουν, αν είναι ακόμα ανοιχτή. Στο απλό demo είναι πάντα έτοιμα. */
+  const teamOk = () => !O.teamLoaded || O.teamLoaded();
+  function afterTeam(el, draw) {
+    if (teamOk()) return draw();
+    el.innerHTML = '<p class="mu tmwait">Φορτώνω τα στοιχεία των πωλητών…</p>';
+    let off = null, gone = false;
+    O.teamReady.then(() => { if (gone || !el.isConnected) return; el.innerHTML = ''; off = draw(); });
+    return () => { gone = true; if (typeof off === 'function') off(); };
+  }
   const modelOf = (uid) => { const src = O.data(uid); return src ? PL.model.over(src) : null; };
   const figOf = (uid) => { const M = modelOf(uid); return M ? figures(M) : null; };
   /* για τα τεστ: τα νούμερα του συνδεδεμένου από τα ΔΙΚΑ του δεδομένα (PL.store) — πρέπει να είναι ίδια με όσα βλέπει ο υπεύθυνος */
-  PL.teamFigures = { own: () => figures(PL.model), of: figOf };
+  PL.teamFigures = { own: () => figures(PL.model), of: figOf, ok: teamOk, after: afterTeam };
 
   /* ---------- γραφήματα (SVG, χρώματα από το CSS για ανοιχτό/σκούρο) ---------- */
   const donut = (p, size, sub) => { const r = size / 2 - 8, c = 2 * Math.PI * r, f = Math.max(0, Math.min(p, 100)) / 100 * c;
@@ -168,7 +178,7 @@
 
   PL.register('team', {
     title: 'Η ομάδα μου',
-    render(el, params) {
+    render: (el, params) => afterTeam(el, () => {
       const tid = (params && params.team) || me.team, t = O.team(tid); if (!t || !canTeam(tid)) return deny(el);
       const list = O.sellers(tid).map((x) => ({ x, f: figOf(x.id) })), med = ctxOf(list);
       const sorted = list.slice().sort((a, b) => LV[status(b.f, med).lvl] - LV[status(a.f, med).lvl] || fp(b.f) - fp(a.f));
@@ -184,7 +194,7 @@
         if (ev.target.closest('[data-det]')) { open = !open; paint(); return; }
         const b = ev.target.closest('[data-mem]'); if (b) PL.nav.push('member', { id: b.dataset.mem, scope: tid });
       });
-    },
+    }),
   });
 
   /* ---------- ένας πωλητής, σε όλη την οθόνη ---------- */
@@ -224,7 +234,7 @@
   }
   PL.register('member', {
     title: 'Πωλητής',
-    render(el, params) {
+    render: (el, params) => afterTeam(el, () => {
       const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id);
       if (!x || !M || !(ALL || me.role === 'lead')) return deny(el);
       const f = figures(M), t = O.team(x.team), ids = scopeIds(params.scope), k = ids.indexOf(x.id), prev = O.sellers().find((z) => z.id === ids[k - 1]), next = O.sellers().find((z) => z.id === ids[k + 1]);
@@ -243,13 +253,13 @@
         const m = ev.target.closest('[data-more]'); if (m) { open.add(m.dataset.more); paint(); return; }
         const c = ev.target.closest('[data-cat]'); if (c) PL.nav.push('memcat', { id: c.dataset.who, k: c.dataset.cat });
       });
-    },
+    }),
   });
 
   /* ---------- κατηγορία/μάρκα ενός πωλητή → πελάτες ---------- */
   PL.register('memcat', {
     title: 'Κατηγορία',
-    render(el, params) {
+    render: (el, params) => afterTeam(el, () => {
       const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id); if (!x || !M || !(ALL || me.role === 'lead')) return deny(el);
       const r = M.turnover(params.k), A = sum(r, (z) => z.a), B = sum(r, (z) => z.b), W = M.WORKED;
       const stop = r.filter((z) => z.a >= W && z.b <= 0).sort((a, b) => b.a - a.a), down = r.filter((z) => z.b > 0 && z.b < z.a).sort((a, b) => (a.b - a.a) - (b.b - b.a));
@@ -260,13 +270,13 @@
         `<div class="tmgrid"><section class="tmcard tmkp">${kp('Φέτος', m0(B), yoyCls(A, B), `<span class="${yoyCls(A, B)}">${yoyTxt(A, B)}</span> · πέρσι ${m0(A)}`)}${kp('Πελάτες φέτος', r.filter((z) => z.b > 0).length, '', 'πέρσι ' + r.filter((z) => z.a > 0).length)}${kp('Σταμάτησαν', stop.length, stop.length ? 'dn' : '', 'έπαιρναν ≥ ' + W + ' €')}${kp('Νέοι', nw.length, nw.length ? 'up' : '')}</section>` +
         card(`Σταμάτησαν (${stop.length})`, rows(stop, line, 'Κανένας.')) + card(`Πέφτουν (${down.length})`, rows(down, line, 'Κανένας.')) +
         card(`Ανεβαίνουν (${up.length})`, rows(up, line, 'Κανένας.')) + card(`Νέοι φέτος (${nw.length})`, rows(nw, line, 'Κανένας.')) + '</div>';
-    },
+    }),
   });
 
   /* ---------- Όλες οι ομάδες (διευθυντής) ---------- */
   PL.register('teams', {
     title: 'Όλες οι ομάδες',
-    render(el) {
+    render: (el) => afterTeam(el, () => {
       if (!ALL) return deny(el, 'Αυτή η οθόνη είναι για τον διευθυντή και τον διαχειριστή.');
       const all = O.teams().map((t) => { const list = O.sellers(t.id).map((x) => ({ x, f: figOf(x.id) })); return { t, list, med: ctxOf(list) }; });
       const every = [].concat(...all.map((a) => a.list)), med = ctxOf(every);
@@ -286,7 +296,7 @@
         const m = ev.target.closest('[data-mem]'); if (m) { PL.nav.push('member', { id: m.dataset.mem, scope: '*' }); return; }
         const t = ev.target.closest('[data-team]'); if (t) PL.nav.push('team', { team: t.dataset.team });
       });
-    },
+    }),
   });
 
   /* ---------- Χρήστες και ρόλοι (διαχειριστής) ---------- */
@@ -393,17 +403,24 @@
   PL.labActs.push({ page: 'home', mount(root) {
     if (!me) return null;
     const t = O.team(me.team), box = document.createElement('div'); box.id = 'tmhome';
-    let tiles = '';
-    if (me.role === 'lead') { const U = O.sellers(me.team), L = U.map((x) => figOf(x.id)); tiles += tile('team', '', ICON.team, 'Η ομάδα μου', `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }
-    if (me.role === 'director') {
-      const U = O.sellers(), S = U.map((x) => figOf(x.id));
-      tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${ppl(U)} · FLASH ${teamPct(S)}%`, 'dir');
-      tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = U.map((x) => figOf(x.id)); return tile('team', tt.id, ICON.team, esc(tt.name), `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }).join('');
-    }
-    if (me.admin && me.role !== 'director') { const U = O.sellers(), S = U.map((x) => figOf(x.id)); tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${ppl(U)} · FLASH ${teamPct(S)}%`, 'dir'); }
-    if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
-      tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', usedToday(), 'adm');
-    box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;
+    /* FLASH ομάδας: με βάση οι πωλητές έρχονται λίγο μετά το άνοιγμα («φορτώνω…» και ξαναζωγραφίζεται μόλις φτάσουν) */
+    const figs = (U) => (teamOk() ? U.map((x) => figOf(x.id)) : null);
+    const flashOf = (U, L) => ppl(U) + (L ? ' · FLASH ' + teamPct(L) + '%' : ' · φορτώνω…');
+    const paint = () => {
+      let tiles = '';
+      if (me.role === 'lead') { const U = O.sellers(me.team), L = figs(U); tiles += tile('team', '', ICON.team, 'Η ομάδα μου', flashOf(U, L), 'lead'); }
+      if (me.role === 'director') {
+        const U = O.sellers(), S = figs(U);
+        tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', flashOf(U, S), 'dir');
+        tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = figs(U); return tile('team', tt.id, ICON.team, esc(tt.name), flashOf(U, L), 'lead'); }).join('');
+      }
+      if (me.admin && me.role !== 'director') { const U = O.sellers(), S = figs(U); tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', flashOf(U, S), 'dir'); }
+      if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
+        tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', usedToday(), 'adm');
+      box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;
+    };
+    paint();
+    if (!teamOk()) O.teamReady.then(() => { if (box.isConnected) paint(); });
     const hh = root.querySelector('.hh'); hh.parentNode.insertBefore(box, hh.nextSibling);
     document.body.classList.toggle('tmdir', me.role === 'director');
     box.addEventListener('click', (ev) => {
