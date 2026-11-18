@@ -1,4 +1,4 @@
-/* ΔΕΙΓΜΑ «Διαχείριση» (πρόταση Πασχάλη 17/11/2026· μόνο στη σελίδα diaxeirisi.html του demo, τάμπλετ και υπολογιστής).
+/* «Διαχείριση» (πρόταση Πασχάλη 17/11/2026, εγκρίθηκε 18/11· στο demo και στο db.html, τάμπλετ και υπολογιστής).
    Η Διαχείριση ανοίγει σαν άλλο πρόγραμμα: αριστερά πάνελ με όλες τις επιλογές και υποκατηγορίες (ομάδες, πωλητές,
    χρήστες), δεξιά μία σελίδα κάθε φορά. Η κάτω μπάρα των πωλήσεων κρύβεται· «‹ Πίσω στις πωλήσεις» γυρνά στην εφαρμογή.
    - Επιλογές ανά ρόλο: Υπεύθυνος → Επισκόπηση ομάδας, Η ομάδα μου, Πωλητές της ομάδας. Διευθυντής → Επισκόπηση, Ομάδες,
@@ -7,7 +7,7 @@
    - «Επισκόπηση» είναι νέα (κάρτες με τα κύρια νούμερα, γράφημα μηνών, «Χρειάζεται προσοχή», πίνακας πωλητών).
      Οι άλλες σελίδες είναι οι υπάρχουσες του lab/team και lab/usage (PL.pages), ζωγραφισμένες στο δεξί μέρος.
      Νούμερα και χρώματα: ΜΟΝΟ από το PL.teamFigures (ίδιοι κανόνες με «Η ομάδα μου»).
-   - Όσο είναι ανοιχτή, οι σελίδες της ομάδας/χρηστών που ανοίγουν η μία την άλλη (PL.nav.push/back) μένουν μέσα της.
+   - Όσο είναι ανοιχτή, οι σελίδες της ομάδας/χρηστών που ανοίγουν η μία την άλλη μένουν μέσα της (core.js, PL.nav.host).
    - Στο κινητό δεν μπαίνει (απόφαση: «άσε το κινητό προς το παρόν»). Εμφάνιση: lab/admin/admin.css. */
 (function () {
   const PL = window.PL, O = PL && PL.adapter && PL.adapter.org, me = O && O.me; if (!me) return;
@@ -178,7 +178,7 @@
     box.addEventListener('click', (ev) => {
       const tb = ev.target.closest('[data-tab]'); if (tb) { tabState.seller = tb.dataset.tab; paint(); return; }
       const m = ev.target.closest('[data-more]'); if (m) { open.add(m.dataset.more); paint(); return; }
-      const g = ev.target.closest('[data-go]'); if (g) { A.swap('member', { id: g.dataset.go, scope: params.scope }); return; }   // άλλος πωλητής χωρίς να γεμίζει το «Πίσω»
+      const g = ev.target.closest('[data-go]'); if (g) { swap('member', { id: g.dataset.go, scope: params.scope }); return; }   // άλλος πωλητής χωρίς να γεμίζει το «Πίσω»
       const c = ev.target.closest('[data-cat]'); if (c) PL.nav.push('memcat', { id: c.dataset.who, k: c.dataset.cat });
     });
     return null;
@@ -212,10 +212,7 @@
   /* ---------- Το πρόγραμμα ---------- */
   const VIEWS = { overview, sellers: sellersView, teams: teamsView, member: sellerView, useredit: userView };
   const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'overview', 'sellers']);
-  let A = null;   // ανοιχτή Διαχείριση: { go(id, params, keep), back() → αν έκανε κάτι }
-  const push0 = PL.nav.push, back0 = PL.nav.back;
-  PL.nav.push = function (id, params) { if (A && INNER.has(id)) return A.go(id, params || {}, true); return push0.apply(this, arguments); };
-  PL.nav.back = function () { if (A && A.back()) return undefined; return back0.apply(this, arguments); };
+  let swap = null;   // ανοιχτή Διαχείριση: άλλη σελίδα στη θέση της τωρινής, χωρίς να γεμίσει το «Πίσω» (προηγούμενος / επόμενος πωλητής)
 
   PL.register('admin', {
     title: 'Διαχείριση',
@@ -269,10 +266,13 @@
       }
       /* keep: άνοιξε από μέσα από σελίδα (το «Πίσω» της γυρνά εκεί)· αλλιώς από το μενού (νέα αρχή) */
       const go = (id, params, keep) => { if (keep && cur) hist.push({ id: cur.id, params: cur.params }); else hist = []; show(id, params); };
-      A = { go, back: () => { const h = hist.pop(); if (!h) return false; show(h.id, h.params); return true; }, swap: show };
+      swap = show;
+      /* όσο είναι ανοιχτή, οι σελίδες ομάδας/χρηστών που ανοίγουν η μία την άλλη μένουν μέσα της (core.js, PL.nav.host) */
+      PL.nav.host({ go: (id, params) => { if (!INNER.has(id)) return false; go(id, params, true); return true; },
+        back: () => { const h = hist.pop(); if (!h) return false; show(h.id, h.params); return true; } });
 
       el.addEventListener('click', (ev) => {
-        if (ev.target.closest('#admexit')) { back0.call(PL.nav); return; }
+        if (ev.target.closest('#admexit')) { PL.nav.host(null); PL.nav.back(); return; }
         if (ev.target.closest('[data-sort], input')) return;
         const b = ev.target.closest('[data-k]'); if (!b || !el.contains(b)) return;
         const k = b.dataset.k, p = b.dataset.p ? JSON.parse(b.dataset.p) : { id: b.dataset.id, team: b.dataset.team };
@@ -284,7 +284,7 @@
       el.addEventListener('input', (ev) => { const k = ev.target.dataset && ev.target.dataset.q; if (k) { q[k] = ev.target.value; filter(k); } });
 
       show(S.some((it) => it.k === 'overview') ? 'overview' : (S.find((it) => it.k) || { k: 'users' }).k, {});
-      return () => { A = null; clearInterval(clk); if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } } PL.bar.unhide('admin'); document.body.classList.remove('admmode'); };
+      return () => { PL.nav.host(null); swap = null; clearInterval(clk); if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } } PL.bar.unhide('admin'); document.body.classList.remove('admmode'); };
     },
   });
 
@@ -296,7 +296,7 @@
     const sub = [LEADS && D.L.length ? `${D.L.length} πωλητές · στόχος ${p}%` : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : ''].filter(Boolean).join(' · ');
     const b = document.createElement('button'); b.className = 'admentry'; b.type = 'button';
     b.innerHTML = `<span class="admei">${IC.overview}</span><span class="admet"><b>Διαχείριση</b><small>${esc(sub)}</small></span><span class="admec">${IC.chev}</span>`;
-    b.addEventListener('click', (ev) => { ev.stopPropagation(); push0.call(PL.nav, 'admin'); });
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); PL.nav.push('admin'); });
     if (host.id === 'tmhome') host.appendChild(b); else host.parentNode.insertBefore(b, host.nextSibling);
     document.body.classList.add('admhome');
     return () => { b.remove(); document.body.classList.remove('admhome'); };

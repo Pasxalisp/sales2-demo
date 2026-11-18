@@ -130,8 +130,13 @@
   }));
   PL.need = (id) => (pages[id] || !LAZY[id] ? Promise.resolve() : Promise.all(LAZY[id].map(load)));
 
+  /* Σελίδα που ανοίγει δικές της σελίδες μέσα της (π.χ. η Διαχείριση στο τάμπλετ): όσο είναι ανοιχτή, κάθε push και «Πίσω»
+     πάει πρώτα σε αυτήν (host.go / host.back: true = το χειρίστηκε). Τη δηλώνει η ίδια με PL.nav.host(h) και τη σβήνει με PL.nav.host(null). */
+  let host = null;
   PL.nav = {
+    host(h) { host = h || null; },
     push(id, params) {
+      if (host && host.go(id, params || {})) return;
       if (!pages[id] && LAZY[id]) {
         /* «Φορτώνει…» μόνο αν αργήσει (με αδύναμο σήμα)· μετά ανοίγει κανονικά */
         const tm = setTimeout(() => PL.dlg.toast('Φορτώνει…'), 300);
@@ -144,7 +149,7 @@
       show('push');
     },
     /* o.swiped: γύρισε με σύρσιμο από την άκρη (gestures.js), η σελίδα έχει ήδη φύγει· αλλιώς κίνηση «Πίσω» (js/slide.js) */
-    back(o) { if (stack.length > 1) { stack.pop(); show(o && o.swiped ? '' : 'back'); } },
+    back(o) { if (host && host.back()) return; if (stack.length > 1) { stack.pop(); show(o && o.swiped ? '' : 'back'); } },
     /* «‹ Πίσω» πάνω αριστερά μιας σελίδας: γυρνά στη σελίδα κάτω από αυτήν (στο τάμπλετ η λίστα αριστερά κλείνει και τη λεπτομέρεια δεξιά) */
     backFrom(e) {
       const i = stack.indexOf(e); if (i < 1) return;

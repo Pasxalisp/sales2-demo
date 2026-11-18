@@ -82,6 +82,7 @@ PL.lazy({ charts: ['css/charts.css', 'js/pages/charts.js'], flash: ['css/charts.
 <link rel="stylesheet" href="lab/map/map.css"><script src="lab/map/map.js"></script>
 <link rel="stylesheet" href="lab/team/team.css"><script src="lab/team/team.js"></script><script src="lab/team/accounts.js"></script>
 <link rel="stylesheet" href="lab/usage/usage.css"><script src="lab/usage/usage.js"></script>
+<link rel="stylesheet" href="lab/admin/admin.css"><script src="lab/admin/admin.js"></script>
 <script>/* με βάση: ξεκινά όταν φορτώσουν τα δεδομένα του συνδεδεμένου (lab/supa/session.js) */
 (window.PL_BOOT || Promise.resolve()).then(() => { document.getElementById('app').textContent = ''; PL.start(); PL.model.boot(); }, () => {
   document.getElementById('app').innerHTML = '<p style="padding:24px">Δεν συνδέθηκα με τη βάση. Έλεγξε το ίντερνετ και ξαναδοκίμασε.</p><p style="padding:0 24px"><button onclick="location.reload()">Ξαναδοκίμασε</button></p>';
