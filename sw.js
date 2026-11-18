@@ -1,0 +1,41 @@
+/* Η ΕΦΑΡΜΟΓΗ ΧΩΡΙΣ ΙΝΤΕΡΝΕΤ (απόφαση Πασχάλη 18/11/2026) — «service worker» της δοκιμαστικής σελίδας (GitHub Pages).
+   Κρατά στη συσκευή τα αρχεία της εφαρμογής (σελίδες, css, js) ώστε να ανοίγει αμέσως και χωρίς ίντερνετ.
+   Τα ΔΕΔΟΜΕΝΑ τα κρατά χωριστά το lab/supa/cache.js· εδώ μόνο ο κώδικας.
+   Το παράγει το demo/build_site.mjs από αυτό το αρχείο: βάζει τη λίστα των αρχείων (FILES) και την έκδοση (VERSION = αποτύπωμα
+   των περιεχομένων τους). Κάθε δημοσίευση με αλλαγμένα αρχεία = νέα έκδοση: κατεβαίνει ολόκληρη στο παρασκήνιο και μπαίνει
+   την επόμενη φορά που ανοίγει η εφαρμογή (lab/offline/offline.js). Ποτέ μισή: αν λείπει έστω ένα αρχείο, μένει η προηγούμενη.
+   Ό,τι δεν είναι στη λίστα (η βάση, οι γραμματοσειρές του Google…) περνά κανονικά στο ίντερνετ. */
+const VERSION = "35be07a08161";
+const FILES = ["css/balances.css","css/base.css","css/card.css","css/charts.css","css/client.css","css/clients.css","css/deals.css","css/dictate.css","css/home.css","css/motion.css","css/plans.css","css/products.css","css/tech.css","db.html","diaxeirisi.html","icon.png","index.html","js/about.js","js/adapter.js","js/alarm.js","js/background.js","js/call.js","js/core.js","js/dataio.js","js/demo-seed.js","js/dialogs.js","js/dictation/find.js","js/dictation/rules.js","js/dictation/tools.js","js/drafts.js","js/gestures.js","js/lib/qr.js","js/model.js","js/motion.js","js/namedays-data.js","js/namedays.js","js/notes.js","js/nvo.js","js/orders/catalog.js","js/pages/actions.js","js/pages/balances.js","js/pages/buyer.js","js/pages/card.js","js/pages/charts.js","js/pages/client.js","js/pages/clients.js","js/pages/data.js","js/pages/dayplan.js","js/pages/deal.js","js/pages/deals.js","js/pages/debt.js","js/pages/dictate.js","js/pages/flash.js","js/pages/free.js","js/pages/home.js","js/pages/month.js","js/pages/myplans.js","js/pages/order.js","js/pages/orders.js","js/pages/plan.js","js/pages/planview.js","js/pages/products.js","js/pages/sales.js","js/pages/task.js","js/pages/taskedit.js","js/pages/tasks.js","js/pages/tech.js","js/pages/techreq.js","js/pages/visit.js","js/pages/whobought.js","js/picker.js","js/plans/ai.js","js/plans/area.js","js/plans/drag.js","js/plans/engine.js","js/plans/export.js","js/plans/monthplan.js","js/plans/rules.js","js/prospects.js","js/sheet.js","js/slide.js","js/store.js","js/util.js","kinisi.html","lab/admin/admin.css","lab/admin/admin.js","lab/fontpick/fontpick.css","lab/fontpick/fontpick.js","lab/map/leaflet/images/layers-2x.png","lab/map/leaflet/images/layers.png","lab/map/leaflet/images/marker-icon-2x.png","lab/map/leaflet/images/marker-icon.png","lab/map/leaflet/images/marker-shadow.png","lab/map/leaflet/leaflet.css","lab/map/leaflet/leaflet.js","lab/map/map.css","lab/map/map.js","lab/offline/offline.js","lab/supa/api.js","lab/supa/cache.js","lab/supa/config.js","lab/supa/session.js","lab/team/accounts.js","lab/team/session.js","lab/team/team.css","lab/team/team.js","lab/usage/usage.css","lab/usage/usage.js"];   // διαδρομές μέσα στον φάκελο της εφαρμογής
+const CDN = ["https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"];       // βιβλιοθήκες από άλλο site (με σταθερή έκδοση στη διεύθυνση)
+const CACHE = 'sales2-app-' + VERSION;
+const ROOT = new URL('./', self.location).pathname;
+const KNOWN = new Set(FILES);
+
+self.addEventListener('install', (ev) => ev.waitUntil((async () => {
+  const c = await caches.open(CACHE);
+  await c.addAll(FILES.map((f) => new Request(f, { cache: 'reload' })));   // όλα ή τίποτα (φρέσκα, όχι από την προσωρινή μνήμη του browser)
+  /* οι βιβλιοθήκες: αν δεν κατέβει μία (π.χ. μπλοκαρισμένο site), η εφαρμογή απλώς τη ζητά από το ίντερνετ */
+  await Promise.all(CDN.map((u) => c.add(new Request(u, { mode: 'cors' })).catch(() => {})));
+})()));
+
+self.addEventListener('activate', (ev) => ev.waitUntil((async () => {
+  for (const k of await caches.keys()) if (k.startsWith('sales2-app-') && k !== CACHE) await caches.delete(k);
+  await self.clients.claim();
+})()));
+
+/* η σελίδα λέει «μπες τώρα» μόνο τη στιγμή που ανοίγει (πριν δουλέψει ο χρήστης), βλ. lab/offline/offline.js */
+self.addEventListener('message', (ev) => { if (ev.data === 'pl-skip') self.skipWaiting(); });
+
+self.addEventListener('fetch', (ev) => {
+  const r = ev.request;
+  if (r.method !== 'GET') return;
+  const u = new URL(r.url);
+  let key = null;
+  if (u.origin === self.location.origin && u.pathname.startsWith(ROOT)) {
+    const p = u.pathname.slice(ROOT.length) || 'index.html';
+    if (KNOWN.has(p)) key = p;
+  } else if (CDN.includes(r.url)) key = r.url;
+  if (!key) return;
+  ev.respondWith(caches.open(CACHE).then((c) => c.match(key)).then((hit) => hit || fetch(r)));
+});

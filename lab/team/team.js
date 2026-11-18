@@ -367,6 +367,7 @@
   };
   const tile = (go, team, icon, title, sub, cls) => `<button class="duec tmtile ${cls || ''}" data-tmgo="${esc(go)}" data-tmp="${esc(team || '')}"><span class="dc">${icon}</span><span class="dt"><span class="dl">${title}</span><span class="dm">${sub}</span></span></button>`;
   const teamPct = (list) => pct(sum(list, (f) => f && f.fl && f.fl.now.sales), sum(list, (f) => f && f.fl && f.fl.now.target));
+  const usedToday = () => new Set(O.usage.all().filter((x) => x.d === u.today()).map((x) => x.u)).size + ' μπήκαν σήμερα · ποιες οθόνες δουλεύονται';
   PL.labActs = PL.labActs || [];
   PL.labActs.push({ page: 'home', mount(root) {
     if (!me) return null;
@@ -379,7 +380,7 @@
       tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = U.map((x) => figOf(x.id)); return tile('team', tt.id, ICON.team, esc(tt.name), `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }).join('');
     }
     if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
-      tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', new Set(O.usage.all().filter((x) => x.d === u.today()).map((x) => x.u)).size + ' μπήκαν σήμερα · ποιες οθόνες δουλεύονται', 'adm');
+      tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', usedToday(), 'adm');
     box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;
     const hh = root.querySelector('.hh'); hh.parentNode.insertBefore(box, hh.nextSibling);
     document.body.classList.toggle('tmdir', me.role === 'director');
@@ -388,7 +389,9 @@
       const b = ev.target.closest('[data-tmgo]'); if (!b) return;
       ev.stopPropagation(); PL.nav.push(b.dataset.tmgo, b.dataset.tmp ? { team: b.dataset.tmp } : {});
     });
-    return () => { document.body.classList.remove('tmdir'); };
+    /* η χρήση φτάνει από τη βάση λίγο μετά το άνοιγμα (lab/supa/session.js): ο αριθμός ενημερώνεται μόνος του */
+    const off = me.admin && O.usage.onChange ? O.usage.onChange(() => { const d = box.querySelector('[data-tmgo="usage"] .dm'); if (d) d.textContent = usedToday(); }) : null;
+    return () => { if (off) off(); document.body.classList.remove('tmdir'); };
   } });
 
   /* ---------- Οθόνη εισόδου ---------- */

@@ -2,9 +2,11 @@
    ίδια «org» (χρήστες, ομάδες, ποιος βλέπει ποιον, χρήση) και ίδια μορφή δεδομένων για τον adapter, μόνο που
    - η είσοδος γίνεται με τον λογαριασμό του χρήστη στο Supabase (email + κωδικός),
    - τα δεδομένα έρχονται από τη βάση και κάθε αλλαγή γράφεται εκεί (PL_LOCAL.remote), με ζωντανή ενημέρωση από άλλη συσκευή,
+   - η συσκευή κρατά αντίγραφο (lab/supa/cache.js, απόφαση 18/11/2026): ανοίγει αμέσως από αυτό, και χωρίς ίντερνετ, και μετά
+     φέρνει από τη βάση μόνο ό,τι άλλαξε· οι αλλαγές χωρίς ίντερνετ φυλάγονται και στέλνονται μόλις έρθει σύνδεση,
    - το ποιος βλέπει τι το αποφασίζουν οι κανόνες της βάσης (RLS)· εδώ απλώς ζητάμε ό,τι μας δίνει.
    Πίνακες: profiles (χρήστες), teams, shared_docs (κοινά, μόνο ανάγνωση), docs (έγγραφα κάθε χρήστη· data null = σβησμένο), usage.
-   Η εφαρμογή ξεκινά όταν φορτώσουν τα δεδομένα (window.PL_BOOT, βλ. db.html).
+   Η εφαρμογή ξεκινά όταν φορτώσουν τα δεδομένα (window.PL_BOOT, βλ. db.html): από τη συσκευή αμέσως, ή από τη βάση την πρώτη φορά.
    Λογαριασμοί (εργασίες του server, lab/supa/api.js): η είσοδος περνά από το login (κλείδωμα μετά από 5 λάθος κωδικούς),
    ο χρήστης βάζει δικό του κωδικό με το setPassword (me.mustChange = πρέπει να βάλει πριν δουλέψει) και ο διαχειριστής
    έχει τα org.accounts (κατάσταση, ξεκλείδωμα, προσωρινός κωδικός, νέος χρήστης). Κωδικούς δεν βλέπει κανείς. */
@@ -41,14 +43,23 @@
   const col = (p) => p.slice(0, p.lastIndexOf('/')), idOf = (p) => p.slice(p.lastIndexOf('/') + 1);
   /* γραμμή profiles → χρήστης της εφαρμογής (id = το id του demo, π.χ. u7· uuid = ο λογαριασμός στη βάση) */
   const toUser = (p) => ({ id: p.demo_id, uuid: p.id, name: p.name, email: p.email, role: p.role, team: p.team || '', code: p.code || '', admin: !!p.admin, active: p.active !== false });
-  /* όλες οι γραμμές ενός ερωτήματος, ανά 1000 */
-  async function rows(make) {
-    const out = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await make().range(from, from + 999);
-      if (error) throw error;
-      out.push(...data); if (data.length < 1000) return out;
-    }
+  /* Όλες οι γραμμές ενός ερωτήματος. Η βάση δίνει έως 1000 τη φορά: η πρώτη σελίδα λέει και πόσες είναι συνολικά,
+     οι υπόλοιπες ζητιούνται μαζί (όχι η μία μετά την άλλη). more(q) = φίλτρα και σειρά. */
+  const PAGE = 1000;
+  async function rows(table, cols, more) {
+    const ask = (o) => more(sb.from(table).select(cols, o));
+    const first = await ask({ count: 'exact' }).range(0, PAGE - 1);
+    if (first.error) throw first.error;
+    const n = first.count == null ? 0 : first.count, from = [];
+    for (let f = PAGE; f < n && first.data.length === PAGE; f += PAGE) from.push(f);
+    const rest = await Promise.all(from.map((f) => ask().range(f, f + PAGE - 1).then((r) => { if (r.error) throw r.error; return r.data; })));
+    return first.data.concat(...rest);
+  }
+  /* πόσες γραμμές βλέπω σε έναν πίνακα (μόνο ο αριθμός) */
+  async function countOf(table) {
+    const { count, error } = await sb.from(table).select('path', { count: 'exact', head: true });
+    if (error) throw error;
+    return count || 0;
   }
 
   let PROFILES = [], TEAMS = [], USAGE = [], COUNTS = {};
@@ -62,9 +73,45 @@
   /* ποιους πωλητές δείχνουμε (ίδιος κανόνας με τη βάση· η βάση ούτως ή άλλως δεν δίνει δεδομένα για άλλους) */
   const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' &&
     (me.role === 'director' || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
-  const source = (docs) => { const m = {}; Object.entries(docs).forEach(([p, d]) => { (m[col(p)] = m[col(p)] || {})[idOf(p)] = d; });
-    return { all: (c) => m[c] || {}, get: (c, id) => (m[c] || {})[id], loaded: () => true }; };
-  const layer = (base, list) => { const o = Object.assign({}, base); list.forEach((r) => { if (r.data === null) delete o[r.path]; else o[r.path] = r.data; }); return o; };
+
+  /* ---------- Τα δεδομένα, όπως τα κρατά η μνήμη της συσκευής (lab/supa/cache.js) ----------
+     S = { v, since, sinceShared, profiles, teams, shared: {path: έγγραφο}, docs: {uuid χρήστη: {path: έγγραφο | null}} }
+     docs = οι γραμμές της βάσης όπως είναι (null = σβησμένο, κρύβει το κοινό). since = η πιο πρόσφατη ώρα αλλαγής που έχουμε
+     δει (ώρα της βάσης): την επόμενη φορά ζητάμε μόνο ό,τι άλλαξε μετά. */
+  const V = 1, STORE = window.PL_SUPA_STORE || { get: async () => null, set: async () => false, del: async () => false };
+  const KEY = me ? { state: NS + ':' + me.uuid + ':state', out: NS + ':' + me.uuid + ':out' } : null;
+  const blank = () => ({ v: V, since: '', sinceShared: '', profiles: [], teams: [], shared: {}, docs: {} });
+  let S = blank();
+  const docsOf = (uuid) => S.docs[uuid] || (S.docs[uuid] = {});
+  /* τα έγγραφα ενός χρήστη όπως τα βλέπει η εφαρμογή: τα κοινά, και από πάνω τα δικά του */
+  function merged(uuid) {
+    const o = Object.assign({}, S.shared);
+    Object.entries(S.docs[uuid] || {}).forEach(([p, d]) => { if (d === null) delete o[p]; else o[p] = d; });
+    return o;
+  }
+  /* ένα έγγραφο του συνδεδεμένου όπως το βλέπει η εφαρμογή (null = δεν υπάρχει) */
+  function eff(path) {
+    const o = S.docs[me.uuid] || {};
+    return path in o ? o[path] : path in S.shared ? S.shared[path] : null;
+  }
+  /* Τα δεδομένα ενός πωλητή για τον υπεύθυνο/διευθυντή (org.data): πάντα τα τωρινά — ξαναχτίζονται μόνο όταν άλλαξε κάτι
+     (VER: μετρητής αλλαγών ανά χρήστη και για τα κοινά). */
+  const VER = { shared: 0 };
+  const bump = (uuid) => { VER[uuid] = (VER[uuid] || 0) + 1; };
+  function sourceOf(uuid) {
+    let at = '', m = {};
+    const map = () => {
+      const now = (VER[uuid] || 0) + ':' + VER.shared;
+      if (now !== at) { at = now; m = {}; Object.entries(merged(uuid)).forEach(([p, d]) => { (m[col(p)] = m[col(p)] || {})[idOf(p)] = d; }); }
+      return m;
+    };
+    return { all: (c) => map()[c] || {}, get: (c, id) => (map()[c] || {})[id], loaded: () => true };
+  }
+  /* μετά από νέους χρήστες/ομάδες: ποιων τα δεδομένα δείχνουμε */
+  function place() {
+    Object.keys(SRC).forEach((k) => delete SRC[k]);
+    visible().concat(users().filter((x) => me && x.id === me.id)).forEach((x) => { SRC[x.id] = SRC[x.id] || sourceOf(x.uuid); });
+  }
 
   /* Εργαλεία διαχειριστή για λογαριασμούς. Λάθος → Error με μήνυμα για τον χρήστη. */
   async function admin(action, extra) {
@@ -141,82 +188,249 @@
     },
     get accounts() { return me && me.admin ? accounts : null; },
     login: () => location.reload(),
-    /* έξοδος μόνο από αυτή τη συσκευή (οι άλλες συσκευές μένουν συνδεδεμένες) */
-    async logout() { try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ } ls.del(NS + ':me'); location.reload(); },
+    /* Έξοδος μόνο από αυτή τη συσκευή (οι άλλες συσκευές μένουν συνδεδεμένες). Σβήνει τα δεδομένα από τη μνήμη της συσκευής·
+       μένουν μόνο όσες αλλαγές δεν πρόλαβαν να σταλούν (χωρίς ίντερνετ), για να σταλούν την επόμενη φορά που θα μπει ο ίδιος. */
+    async logout() {
+      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ }
+      keeping = false; clearTimeout(saveT);
+      ls.del(NS + ':me'); if (KEY) await STORE.del(KEY.state); location.reload();
+    },
   };
 
-  /* για τον adapter: κάθε αλλαγή γράφεται στη βάση· αλλαγές από άλλη συσκευή έρχονται στο listen */
+  /* ---------- Φύλαξη στη συσκευή ---------- */
+  let saveT = 0, keeping = true;   // keeping = false μετά την «Έξοδο»: τίποτα δεν ξαναγράφεται στη συσκευή
+  const saveNow = () => { clearTimeout(saveT); saveT = 0; if (!keeping) return Promise.resolve(false); S.profiles = PROFILES; S.teams = TEAMS; return STORE.set(KEY.state, S); };
+  const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(saveNow, 800); };
+  addEventListener('pagehide', () => { if (saveT) saveNow(); });
+  /* OUT: αλλαγές μου που δεν έφτασαν ακόμη στη βάση (χωρίς ίντερνετ). path → { data, at: ώρα της αλλαγής }.
+     Φυλάγεται αμέσως σε κάθε αλλαγή (όχι αργότερα): αν κλείσει η εφαρμογή, δεν χάνεται τίποτα. */
+  let OUT = {};
+  const saveOut = () => STORE.set(KEY.out, OUT);
+
+  /* αλλαγή σε έγγραφό μου που ήρθε από τη βάση → η μνήμη της εφαρμογής (adapter) */
+  const early = [];
+  const tell = (path) => { const d = eff(path); if (listeners.size) listeners.forEach((f) => f(path, d)); else early.push(path); };
+  const setMine = (path, d) => { docsOf(me.uuid)[path] = d; bump(me.uuid); };
+
+  /* μήνυμα στον χρήστη (όταν η εφαρμογή έχει ξεκινήσει) */
+  const say = (t) => { if (PL.dlg && PL.dlg.toast) PL.dlg.toast(t); };
+  const plural = (n, one, many) => (n === 1 ? one : n + ' ' + many);
+  /* λάθος δικτύου (όχι «η βάση δεν το δέχτηκε») */
+  const offline = (e) => !navigator.onLine || (!!e && !e.code && /fetch|network|load failed/i.test(String(e.message || '')));
+  /* το κλειδί της συνεδρίας έληξε και δεν έχει ανανεωθεί ακόμη (π.χ. μόλις ήρθε ίντερνετ): ξαναδοκιμάζουμε, δεν είναι απόρριψη */
+  const stale = (e) => !!e && (/^PGRST30/.test(String(e.code || '')) || /jwt/i.test(String(e.message || '')));
+  const later = (e) => offline(e) || stale(e);
+  let toldOff = false;
+  const offNotice = () => { if (toldOff) return; toldOff = true; say('Χωρίς ίντερνετ: οι αλλαγές φυλάγονται στη συσκευή και στέλνονται μόλις έρθει σύνδεση.'); };
+
+  /* για τον adapter: κάθε αλλαγή γράφεται στη συσκευή αμέσως και στη βάση μόλις γίνεται· αλλαγές από άλλη συσκευή έρχονται στο listen.
+     Χωρίς ίντερνετ η αλλαγή μένει (OUT) και στέλνεται αργότερα. Λάθος → μόνο αν η βάση την απέρριψε (τότε ο adapter τη γυρνά πίσω).
+     Οι αλλαγές του ίδιου εγγράφου στέλνονται με τη σειρά που έγιναν (lane). */
+  const lane = {};
+  const send = (path, data) => sb.from('docs').upsert({ uid: me.uuid, path, data }).then((r) => r.error || null, (e) => e || { message: 'fetch' });
   const remote = {
-    async put(path, data) {
-      const { error } = await sb.from('docs').upsert({ uid: me.uuid, path, data: data === undefined ? null : data, updated_at: new Date().toISOString() });
-      if (error) throw error;
+    put(path, data) {
+      const v = data === undefined ? null : data, before = (S.docs[me.uuid] || {})[path], had = path in (S.docs[me.uuid] || {});
+      const job = { data: v, at: new Date().toISOString() };
+      OUT[path] = job; saveOut(); setMine(path, v); saveSoon();
+      const go = async () => {
+        if (OUT[path] !== job) return;   // ήρθε νεότερη αλλαγή του ίδιου εγγράφου: στέλνεται εκείνη
+        if (!navigator.onLine) { offNotice(); retry(); return; }
+        const error = await send(path, v);
+        if (!error) { if (OUT[path] === job) { delete OUT[path]; saveOut(); } if (Object.keys(OUT).length) sync(); return; }
+        if (later(error)) { if (offline(error)) offNotice(); retry(); return; }
+        if (OUT[path] === job) { delete OUT[path]; saveOut(); if (had) setMine(path, before); else { delete docsOf(me.uuid)[path]; bump(me.uuid); } saveSoon(); }
+        throw error;
+      };
+      return (lane[path] = (lane[path] || Promise.resolve()).catch(() => {}).then(go));
     },
-    listen: (cb) => { listeners.add(cb); return () => listeners.delete(cb); },
+    listen: (cb) => { listeners.add(cb); early.splice(0).forEach((p) => cb(p, eff(p))); return () => listeners.delete(cb); },
   };
   window.PL_LOCAL = { key: NS + ':' + (me ? me.id : 'none'), seed: {}, org, remote: me ? remote : null };
   if (me) me.mustChange = false;
 
   /* Λάθος δικτύου (όχι «η συνεδρία δεν ισχύει»): π.χ. το κινητό μόλις ξύπνησε και δεν έχει ακόμη ίντερνετ. */
   const netError = (e) => !!e && ((window.supabase.isAuthRetryableFetchError && window.supabase.isAuthRetryableFetchError(e)) || e.name === 'AuthRetryableFetchError' || e.status === 0 || !navigator.onLine);
-  /* Η συνεδρία μου. Μένεις συνδεδεμένος μέχρι να πατήσεις «Έξοδος» (απόφαση Πασχάλη 15/11): χωρίς ίντερνετ τη στιγμή
-     που ανοίγει η εφαρμογή ΔΕΝ σε βγάζει έξω, περιμένει τη σύνδεση και ξαναδοκιμάζει. Έξω μόνο αν η βάση πει ότι η συνεδρία δεν ισχύει. */
-  async function mySession() {
+  const online = (ms) => new Promise((res) => { const done = () => { clearTimeout(t); removeEventListener('online', done); res(); }; const t = setTimeout(done, ms); addEventListener('online', done); });
+  /* Η συνεδρία μου. Μένεις συνδεδεμένος μέχρι να πατήσεις «Έξοδος» (απόφαση Πασχάλη 15/11): χωρίς ίντερνετ ΔΕΝ σε βγάζει έξω,
+     περιμένει τη σύνδεση και ξαναδοκιμάζει (wait: τι δείχνει στο μεταξύ). Έξω μόνο αν η βάση πει ότι η συνεδρία δεν ισχύει. */
+  async function mySession(wait) {
     for (let i = 1; ; i++) {
       const { data, error } = await sb.auth.getSession();
       if (data && data.session) return data.session;
       if (!netError(error)) return null;
-      const app = document.getElementById('app'); if (app) app.textContent = 'Δεν υπάρχει ίντερνετ. Μόλις έρθει σύνδεση, η εφαρμογή ανοίγει μόνη της…';
-      await new Promise((res) => { const done = () => { clearTimeout(t); removeEventListener('online', done); res(); }; const t = setTimeout(done, Math.min(15000, 2000 * i)); addEventListener('online', done); });
+      if (wait) wait();
+      await online(Math.min(15000, 2000 * i));
     }
   }
+  /* η βάση είπε ότι δεν είσαι πια μέσα (συνεδρία που έληξε/σβήστηκε, ανενεργός): έξοδος */
+  const out = async () => { await org.logout(); return new Promise(() => {}); };
 
-  window.PL_BOOT = (async () => {
-    if (!me) return;
-    const session = await mySession();
-    if (!session || session.user.id !== me.uuid) { ls.del(NS + ':me'); location.reload(); return new Promise(() => {}); }
-    const [prof, teams, shared, own] = await Promise.all([
-      rows(() => sb.from('profiles').select('*').order('demo_id')),
-      rows(() => sb.from('teams').select('id,name').order('id')),
-      rows(() => sb.from('shared_docs').select('path,data').order('path')),
-      rows(() => sb.from('docs').select('path,data').eq('uid', me.uuid).order('path')),
+  /* ---------- Συγχρονισμός με τη βάση ---------- */
+  /* Στέλνει όσα έμειναν χωρίς ίντερνετ. Αν στο μεταξύ το ίδιο έγγραφο άλλαξε από άλλη συσκευή πιο πρόσφατα,
+     κρατάμε το πιο πρόσφατο (εκείνο) και το λέμε. false = δεν υπάρχει ακόμη ίντερνετ. */
+  async function flush() {
+    const jobs = Object.entries(OUT); if (!jobs.length) return true;
+    const now = {};
+    for (let i = 0; i < jobs.length; i += 50) {
+      const r = await sb.from('docs').select('path,data,updated_at').eq('uid', me.uuid).in('path', jobs.slice(i, i + 50).map(([p]) => p)).order('path');
+      if (r.error) { if (later(r.error)) return false; throw r.error; }
+      r.data.forEach((x) => { now[x.path] = x; });
+    }
+    let sent = 0, newer = 0, refused = 0;
+    for (const [path, job] of jobs) {
+      if (OUT[path] !== job) continue;   // άλλαξε ξανά όσο στέλναμε: θα σταλεί η νεότερη
+      const there = now[path];
+      if (there && Date.parse(there.updated_at) > Date.parse(job.at)) {
+        newer++; delete OUT[path]; setMine(path, there.data); tell(path); continue;
+      }
+      const error = await send(path, job.data);
+      if (error && later(error)) { saveOut(); return false; }
+      if (OUT[path] === job) delete OUT[path];
+      if (error) { refused++; if (there) setMine(path, there.data); else { delete docsOf(me.uuid)[path]; bump(me.uuid); } tell(path); } else sent++;
+    }
+    saveOut(); saveSoon(); toldOff = false;
+    if (sent) say(sent === 1 ? 'Στάλθηκε η αλλαγή που έκανες χωρίς ίντερνετ.' : 'Στάλθηκαν ' + sent + ' αλλαγές που έκανες χωρίς ίντερνετ.');
+    if (newer) say(plural(newer, 'Μία αλλαγή σου', 'αλλαγές σου') + ' χωρίς ίντερνετ δεν στάλθηκε: στο μεταξύ το ίδιο άλλαξε πιο πρόσφατα από άλλη συσκευή.');
+    if (refused) say('Η βάση δεν δέχτηκε ' + plural(refused, 'μία αλλαγή', 'αλλαγές') + ' που έκανες χωρίς ίντερνετ.');
+    return true;
+  }
+
+  /* Φέρνει από τη βάση ό,τι άλλαξε μετά το since (όλα, την πρώτη φορά) και το περνά στη μνήμη.
+     Έλεγχος: αν ο αριθμός των εγγράφων δεν συμφωνεί με τη βάση (κάτι σβήστηκε εντελώς, νέος πωλητής στην ομάδα…),
+     ξαναφέρνει όλα όσα αφορά. Οι αλλαγές στα δικά μου έγγραφα φτάνουν στην εφαρμογή (tell). */
+  const OVERLAP = 120e3;   // ξαναρωτάμε και τα 2 τελευταία λεπτά: αλλαγή που γράφτηκε τη στιγμή του προηγούμενου ερωτήματος δεν χάνεται
+  const after = (t) => (t ? new Date(Date.parse(t) - OVERLAP).toISOString() : '');
+  const since = (q, t) => (t ? q.gt('updated_at', after(t)) : q);
+  const latest = (list, t) => list.reduce((m, r) => (r.updated_at && r.updated_at > m ? r.updated_at : m), t || '');
+  const total = () => Object.values(S.docs).reduce((n, o) => n + Object.keys(o).length, 0);
+  async function pull() {
+    const first = !S.since && !total();
+    const [prof, teams, shared, nShared, docs, nDocs] = await Promise.all([
+      rows('profiles', '*', (q) => q.order('demo_id')),
+      rows('teams', 'id,name', (q) => q.order('id')),
+      rows('shared_docs', 'path,data,updated_at', (q) => since(q, S.sinceShared).order('path')),
+      countOf('shared_docs'),
+      rows('docs', 'uid,path,data,updated_at', (q) => since(q, S.since).order('updated_at').order('uid').order('path')),
+      countOf('docs'),
     ]);
+    /* εγώ: ανενεργός → έξω· άλλαξε ο ρόλος ή η ομάδα μου → ξανανοίγει η εφαρμογή με τα νέα (άλλες οθόνες, άλλοι πωλητές) */
+    const mine = prof.find((p) => p.id === me.uuid);
+    if (!mine || !mine.active) return out();
+    const was = PROFILES.find((p) => p.id === me.uuid);
     PROFILES = prof; TEAMS = teams;
-    const mine = PROFILES.find((p) => p.id === me.uuid);
-    if (!mine || !mine.active) { await org.logout(); return new Promise(() => {}); }
     Object.assign(me, toUser(mine)); ls.set(NS + ':me', mine);
-    me.mustChange = !!(session.user.app_metadata && session.user.app_metadata.must_change);
-    const base = {}; shared.forEach((r) => { base[r.path] = r.data; });
-    const seed = layer(base, own);
-    window.PL_LOCAL.seed = seed;
-    SRC[me.id] = source(seed);
-    /* υπεύθυνος / διευθυντής: τα δεδομένα των πωλητών που δικαιούται (η βάση δίνει μόνο αυτά) */
-    const others = visible().filter((x) => x.id !== me.id);
-    if (others.length) {
-      const all = await rows(() => sb.from('docs').select('uid,path,data').in('uid', others.map((x) => x.uuid)).order('uid').order('path'));
-      others.forEach((x) => { SRC[x.id] = source(layer(base, all.filter((r) => r.uid === x.uuid))); });
+    if (was && ['role', 'team', 'admin'].some((k) => (was[k] || null) !== (mine[k] || null))) { await saveNow(); location.reload(); return new Promise(() => {}); }
+    place();
+    const mineChanged = new Set();
+    /* κοινά */
+    const keepShared = Object.assign({}, S.shared);
+    if (S.sinceShared && Object.keys(S.shared).length + shared.filter((r) => !(r.path in S.shared)).length !== nShared) {
+      S.shared = {}; S.sinceShared = '';
+      (await rows('shared_docs', 'path,data,updated_at', (q) => q.order('path'))).forEach((r) => { S.shared[r.path] = r.data; S.sinceShared = latest([r], S.sinceShared); });
+    } else { shared.forEach((r) => { S.shared[r.path] = r.data; }); S.sinceShared = latest(shared, S.sinceShared); }
+    new Set(Object.keys(keepShared).concat(Object.keys(S.shared))).forEach((p) => { if (JSON.stringify(keepShared[p]) !== JSON.stringify(S.shared[p])) { VER.shared++; mineChanged.add(p); } });
+    /* έγγραφα (δικά μου και όσων πωλητών βλέπω) */
+    const keepMine = Object.assign({}, S.docs[me.uuid] || {});
+    docs.forEach((r) => {
+      if (r.uid === me.uuid && OUT[r.path]) return;   // δική μου αλλαγή που περιμένει να σταλεί: την κρίνει το flush
+      docsOf(r.uid)[r.path] = r.data; bump(r.uid);
+    });
+    S.since = latest(docs, S.since);
+    if (!first && total() !== nDocs) {
+      const all = await rows('docs', 'uid,path,data,updated_at', (q) => q.order('uid').order('path'));
+      S.docs = {}; S.since = latest(all, '');
+      all.forEach((r) => { docsOf(r.uid)[r.path] = r.data; bump(r.uid); });
+      Object.entries(OUT).forEach(([p, j]) => { docsOf(me.uuid)[p] = j.data; });
     }
-    if (me.admin) {
-      USAGE = (await rows(() => sb.from('usage').select('uid,d,data').order('d'))).map(toUse);
-      /* ζωντανά: κάθε αλλαγή στη χρήση ενός χρήστη (κάθε λεπτό όσο έχει την εφαρμογή ανοιχτή) */
-      sb.channel('usage-admin')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'usage' }, (ev) => {
-          const r = ev.new; if (!r || !r.uid) return;
-          const x = toUse(r), i = USAGE.findIndex((z) => z.u === x.u && z.d === x.d);
-          if (i >= 0) USAGE[i] = x; else USAGE.push(x);
-          usageListeners.forEach((f) => { try { f(x); } catch (e) { console.error(e); } });
-        })
-        .subscribe();
-      const { data: cc } = await sb.rpc('client_counts'); (cc || []).forEach((r) => { COUNTS[r.owner] = +r.n; });
-      await accounts.refresh().catch(() => {});   // χωρίς κατάσταση λογαριασμών η εφαρμογή δουλεύει κανονικά
-    }
-    /* ζωντανές αλλαγές των δικών μου εγγράφων (π.χ. από το τάμπλετ) */
+    const nowMine = S.docs[me.uuid] || {};
+    new Set(Object.keys(keepMine).concat(Object.keys(nowMine))).forEach((p) => { if (JSON.stringify(keepMine[p]) !== JSON.stringify(nowMine[p])) mineChanged.add(p); });
+    if (!first) mineChanged.forEach(tell);
+    await saveNow();
+  }
+
+  /* ένας συγχρονισμός τη φορά· όποιος ζητηθεί στο μεταξύ γίνεται αμέσως μετά. live: μόνο αφού η βάση επιβεβαιώσει τη συνεδρία */
+  let live = false, syncing = null, again = false, lastSync = 0, retryT = 0;
+  function sync() {
+    if (!live) return Promise.resolve();
+    if (syncing) { again = true; return syncing; }
+    syncing = (async () => {
+      try { if (await flush()) { await pull(); lastSync = Date.now(); } else retry(); }
+      catch (e) { if (!later(e)) console.error(e); retry(); }
+      finally { syncing = null; if (again) { again = false; sync(); } }
+    })();
+    return syncing;
+  }
+  /* χωρίς ίντερνετ: ξαναδοκιμάζει μόλις έρθει σύνδεση (ή σε 30″, αν ο browser δεν το πει) */
+  function retry() { if (retryT) return; retryT = setTimeout(() => { retryT = 0; sync(); }, 30000); }
+  addEventListener('online', () => { clearTimeout(retryT); retryT = 0; sync(); });
+  /* η εφαρμογή ξαναφαίνεται (π.χ. ξεκλείδωσε το κινητό): ό,τι άλλαξε στο μεταξύ, αν πέρασε μισό λεπτό */
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastSync > 30000) sync(); });
+
+  /* ---------- Ζωντανά, όσο είναι ανοιχτή ---------- */
+  function startLive() {
+    live = true;
+    /* οι δικές μου αλλαγές από άλλη συσκευή (π.χ. το τάμπλετ), αμέσως */
     sb.channel('docs-' + me.uuid)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'docs', filter: 'uid=eq.' + me.uuid }, (ev) => {
-        const r = ev.eventType === 'DELETE' ? ev.old : ev.new; if (!r || !r.path) return;
-        const d = ev.eventType === 'DELETE' ? (base[r.path] === undefined ? null : base[r.path]) : r.data === null ? null : r.data;
-        listeners.forEach((f) => f(r.path, d));
+        const r = ev.eventType === 'DELETE' ? ev.old : ev.new; if (!r || !r.path || OUT[r.path]) return;
+        if (ev.eventType === 'DELETE') { delete docsOf(me.uuid)[r.path]; bump(me.uuid); } else setMine(r.path, r.data === undefined ? null : r.data);
+        saveSoon(); tell(r.path);
       })
       .subscribe();
+    if (me.admin) adminData();
+  }
+  /* διαχειριστής: χρήση, πελάτες ανά πωλητή, κατάσταση λογαριασμών — μετά το άνοιγμα, όχι πριν. Οι οθόνες τους
+     ενημερώνονται μόλις φτάσουν (usage.onChange). */
+  const changed = (x) => usageListeners.forEach((f) => { try { f(x || null); } catch (e) { console.error(e); } });
+  function adminData() {
+    rows('usage', 'uid,d,data', (q) => q.order('d').order('uid')).then((L) => { USAGE = L.map(toUse); changed(); }, () => {});
+    /* ζωντανά: κάθε αλλαγή στη χρήση ενός χρήστη (κάθε λεπτό όσο έχει την εφαρμογή ανοιχτή) */
+    sb.channel('usage-admin')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'usage' }, (ev) => {
+        const r = ev.new; if (!r || !r.uid) return;
+        const x = toUse(r), i = USAGE.findIndex((z) => z.u === x.u && z.d === x.d);
+        if (i >= 0) USAGE[i] = x; else USAGE.push(x);
+        changed(x);
+      })
+      .subscribe();
+    sb.rpc('client_counts').then(({ data }) => { (data || []).forEach((r) => { COUNTS[r.owner] = +r.n; }); changed(); }, () => {});
+    accounts.refresh().then(() => changed(), () => {});   // χωρίς κατάσταση λογαριασμών η εφαρμογή δουλεύει κανονικά
+  }
+
+  /* ---------- Άνοιγμα ---------- */
+  /* Με μνήμη στη συσκευή: η εφαρμογή ανοίγει αμέσως από αυτήν (και χωρίς ίντερνετ)· μετά, στο παρασκήνιο, ελέγχει τη συνεδρία,
+     στέλνει ό,τι έμεινε και φέρνει μόνο τις αλλαγές. Πρώτη φορά σε αυτή τη συσκευή: φέρνει όλα όσα αφορούν τον χρήστη από τη βάση.
+     Η εφαρμογή ξεκινά όταν τελειώσει το PL_BOOT (db.html)· το org.ready όταν η βάση επιβεβαιώσει τη συνεδρία (π.χ. me.mustChange). */
+  let confirmed; const ready = new Promise((res) => { confirmed = res; });
+  async function check(wait) {
+    const session = await mySession(wait);
+    if (!session || session.user.id !== me.uuid) return out();
+    me.mustChange = !!(session.user.app_metadata && session.user.app_metadata.must_change);
+    return session;
+  }
+  function use(st) {
+    S = st; PROFILES = S.profiles; TEAMS = S.teams;
+    Object.entries(OUT).forEach(([p, j]) => { docsOf(me.uuid)[p] = j.data; });   // όσα δεν είχαν σταλεί
+    const mine = PROFILES.find((p) => p.id === me.uuid); if (mine) Object.assign(me, toUser(mine));
+    place();
+    window.PL_LOCAL.seed = merged(me.uuid);
+  }
+  window.PL_BOOT = (async () => {
+    if (!me) return;
+    const [st, kept] = await Promise.all([STORE.get(KEY.state), STORE.get(KEY.out)]);
+    OUT = kept || {};
+    if (st && st.v === V && st.profiles && st.profiles.some((p) => p.id === me.uuid)) {
+      use(st);
+      check().then(() => { confirmed(); startLive(); sync(); });
+      return;
+    }
+    await check(() => { const app = document.getElementById('app'); if (app) app.textContent = 'Δεν υπάρχει ίντερνετ. Μόλις έρθει σύνδεση, η εφαρμογή ανοίγει μόνη της…'; });
+    for (let i = 1; ; i++) {   // πρώτη φορά: χωρίς τα δεδομένα δεν ανοίγει, οπότε περιμένει το ίντερνετ
+      try { S = blank(); await pull(); break; } catch (e) { if (!offline(e)) throw e; await online(Math.min(15000, 2000 * i)); }
+    }
+    use(S); confirmed(); startLive();
+    if (Object.keys(OUT).length) sync();
   })();
-  org.ready = window.PL_BOOT;   // για όσα θέλουν τα στοιχεία από τη βάση (π.χ. me.mustChange)
+  org.ready = ready;   // για όσα θέλουν τα στοιχεία από τη βάση (π.χ. me.mustChange)
 })();
