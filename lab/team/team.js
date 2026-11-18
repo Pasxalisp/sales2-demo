@@ -418,6 +418,7 @@
       if (me.admin && me.role !== 'director') { const U = O.sellers(), S = figs(U); tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', flashOf(U, S), 'dir'); }
       if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
         tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', usedToday(), 'adm') +
+        (O.history ? tile('history', '', ICON.usage, 'Ιστορικό αλλαγών', 'ποιος άλλαξε τι και πότε', 'adm') : '') +
         (O.errors ? tile('errors', '', ICON.alert, 'Σφάλματα', 'ό,τι «έσκασε» στις συσκευές', 'adm') : '');
       box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;
     };

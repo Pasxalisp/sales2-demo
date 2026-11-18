@@ -144,6 +144,7 @@
       S.push({ k: 'users', t: 'Χρήστες και ρόλοι', i: IC.users, search: true,
         sub: [{ k: 'useredit', p: { id: '' }, t: '+ Νέος χρήστης', cls: 'admnew' }].concat(U.map((x) => ({ k: 'useredit', p: { id: x.id }, t: x.name, r: x.admin ? 'διαχ.' : { director: 'διευθ.', lead: 'υπεύθ.', sales: '' }[x.role] || '', off: !x.active }))) });
       S.push({ k: 'usage', t: 'Χρήση εφαρμογής', i: IC.usage });
+      if (O.history) S.push({ k: 'history', t: 'Ιστορικό αλλαγών', i: IC.clock });   // μόνο με βάση (lab/history)
       if (O.errors) S.push({ k: 'errors', t: 'Σφάλματα', i: IC.alert });   // μόνο με βάση (lab/errors)
     }
     return S;
@@ -213,7 +214,7 @@
 
   /* ---------- Το πρόγραμμα ---------- */
   const VIEWS = { overview, sellers: sellersView, teams: teamsView, member: sellerView, useredit: userView };
-  const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'errors', 'overview', 'sellers']);
+  const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'errors', 'history', 'overview', 'sellers']);
   let swap = null;   // ανοιχτή Διαχείριση: άλλη σελίδα στη θέση της τωρινής, χωρίς να γεμίσει το «Πίσω» (προηγούμενος / επόμενος πωλητής)
 
   PL.register('admin', {

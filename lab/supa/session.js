@@ -494,6 +494,19 @@
     },
   };
 
+  /* Ιστορικό αλλαγών (απόφαση 18/11, Β9): κάθε αλλαγή εγγράφου τη γράφει η ίδια η βάση (doc_history). Διαχειριστής: οι πιο
+     πρόσφατες (έως 400), με τα ονόματα (ποιανού το έγγραφο, ποιος το άλλαξε)· χωρίς το «πριν», για να έρχονται γρήγορα. */
+  org.history = {
+    async list() {
+      if (!me || !me.admin) return [];
+      const { data, error } = await sb.from('doc_history').select('id,at,uid,by,path,op').order('at', { ascending: false }).limit(400);
+      if (error) throw new Error(netError(error) ? MSG.net : MSG.server);
+      const P = (id) => PROFILES.find((z) => z.id === id);
+      return (data || []).map((r) => { const o = P(r.uid), b = P(r.by);
+        return Object.assign({}, r, { who: o ? o.name : '—', user: o ? o.demo_id : '', byName: b ? b.name : r.by ? '—' : 'σύστημα' }); });
+    },
+  };
+
   /* ---------- Άνοιγμα ---------- */
   /* Με μνήμη στη συσκευή: η εφαρμογή ανοίγει αμέσως από αυτήν (και χωρίς ίντερνετ)· μετά, στο παρασκήνιο, ελέγχει τη συνεδρία,
      στέλνει ό,τι έμεινε και φέρνει μόνο τις αλλαγές. Πρώτη φορά σε αυτή τη συσκευή: φέρνει όλα όσα αφορούν τον χρήστη από τη βάση.

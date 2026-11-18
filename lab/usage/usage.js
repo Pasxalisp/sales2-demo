@@ -48,7 +48,7 @@
     const off = O.usage.onChange ? O.usage.onChange(() => { if (el.isConnected) draw(); }) : null, id = PL.tick.add(() => { if (el.isConnected) draw(); }, 30);
     return () => { if (off) off(); PL.tick.remove(id); };
   };
-  PL.usage = { flush, seen, live };
+  PL.usage = { flush, seen, live, ACT };   // ACT: ονόματα συλλογών (και για το «Ιστορικό αλλαγών», lab/history)
 
   if (!me.admin) return;
 
