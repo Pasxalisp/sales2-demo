@@ -1,0 +1,36 @@
+/* «Νέα έκδοση της εφαρμογής · Ανανέωση» (lab/offline/offline.js, απόφαση 18/11, Β8): πάνω στην οθόνη, στη μέση
+   (κάτω είναι η μπάρα, τα μηνύματα και το «Ανοιχτό πρόγραμμα»). */
+#plupd {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 300;   /* πάνω και από την οθόνη εισόδου και το «Βάλε δικό σου κωδικό» (200) */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 8px 8px 16px;
+  border-radius: 16px;
+  background: var(--tx);
+  color: var(--bg);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  font-size: calc(14 * var(--u, 1px));
+}
+#plupd span {
+  min-width: 0;
+}
+#plupd button {
+  flex: none;
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 11px;
+}
+#plupd #plupdx {
+  padding: 7px 9px;
+  border: 0;
+  background: transparent;
+  color: var(--bg);
+  opacity: .7;
+}
