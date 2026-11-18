@@ -1779,6 +1779,24 @@ html.big .sha > :last-child:nth-child(odd) {
   }
 }
 
+/* ---- Εμφάνιση κουτιών στο τάμπλετ (js/enter.js, απόφαση 18/11): τα κουτιά της νέας σελίδας ανεβαίνουν λίγο και
+   φανερώνονται ένα ένα. Το js βάζει .pgbox και τη σειρά --pgi (35ms ανάμεσα στα κουτιά). ---- */
+@keyframes pg-up {
+  from {
+    opacity: 0;
+    transform: translateY(calc(14 * var(--u)));
+  }
+}
+.page.pgnew .pgbox {
+  animation: pg-up .34s cubic-bezier(.2,.75,.3,1) both;
+  animation-delay: calc(var(--pgi, 0) * 35ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .page.pgnew .pgbox {
+    animation: none;
+  }
+}
+
 /* ---- Κινήσεις ---- */
 @keyframes pbi { 0%{left:-35%}100%{left:100%} }
 @keyframes celC { to{transform:scale(1)} }

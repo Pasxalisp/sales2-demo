@@ -52,5 +52,6 @@
     page.addEventListener('animationend', onEnd);
     setTimeout(end, 700);   // ασφάλεια: αν η κίνηση δεν έτρεξε καθόλου (π.χ. εφαρμογή στο παρασκήνιο)
   }
-  PL.slide = { shot, play };
+  const moves = (how) => !!KIND[how] && active();   // παίζει κίνηση με αυτόν τον τρόπο; (για να μη γίνεται «φωτογραφία» άσκοπα)
+  PL.slide = { moves, shot, play };
 })();

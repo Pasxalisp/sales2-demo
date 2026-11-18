@@ -154,9 +154,9 @@
     },
     /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο): ρωτάει πρώτα τον φύλακα της σελίδας, μετά γυρνά */
     up(o) { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(o); },
-    home() { stack.length = 0; stack.push({ id: 'home', params: {} }); show(); },
+    home() { stack.length = 0; stack.push({ id: 'home', params: {} }); show('tab'); },
     /* ενότητα της κάτω μπάρας: Αρχική → ενότητα */
-    tab(id) { stack.length = 0; stack.push({ id: 'home', params: {} }, { id, params: {} }); show(); },
+    tab(id) { stack.length = 0; stack.push({ id: 'home', params: {} }, { id, params: {} }); show('tab'); },
     current: () => stack[stack.length - 1],
     depth: () => stack.length,
     trail: () => stack.map((s) => s.id),
@@ -228,19 +228,22 @@
   const keepDrafts = () => ['L', 'R'].forEach((k) => { if (slot[k].dr) slot[k].dr.keep(); });
   addEventListener('pagehide', keepDrafts);
   document.addEventListener('visibilitychange', () => { if (document.hidden) keepDrafts(); });
-  /* how: 'push' (πιο μέσα), 'back' («Πίσω»), '' (ενότητα, Αρχική, σύρσιμο, στροφή οθόνης) — για την κίνηση στο κινητό (js/slide.js) */
+  /* how: 'push' (πιο μέσα), 'back' («Πίσω»), 'tab' (ενότητα της κάτω μπάρας, Αρχική), '' (σύρσιμο, στροφή οθόνης).
+     Για τις κινήσεις: η σελίδα από δεξιά στο κινητό (js/slide.js) και η εμφάνιση της νέας σελίδας (js/enter.js). */
+  const enter = (el, how) => { if (PL.enter) PL.enter.play(el, how); };
   function show(how) {
     const cur = stack[stack.length - 1], m = masterOf(), root = $('#app');
     root.classList.toggle('split', !!m);
     if (!m) {
-      const snap = how && PL.slide ? PL.slide.shot(slot.L.el) : null;   // η σελίδα που φεύγει, πριν βγει
+      const slide = PL.slide && PL.slide.moves(how), snap = slide ? PL.slide.shot(slot.L.el) : null;   // η σελίδα που φεύγει, πριν βγει
       unmount('R'); mount('L', cur); window.scrollTo(0, 0);
-      if (how && PL.slide) PL.slide.play(how, snap, slot.L.el);
+      if (slide) PL.slide.play(how, snap, slot.L.el);
+      enter(slot.L.el, how);
     }
     else {
       const newL = slot.L.e !== m, d = m === cur ? null : cur;
-      if (newL) mount('L', m, 'paneL');
-      if (newL || !slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR', m); slot.R.el.scrollTop = 0; }
+      if (newL) { mount('L', m, 'paneL'); enter(slot.L.el, how); }
+      if (newL || !slot.R.el || slot.R.e !== d) { mount('R', d, 'paneR', m); slot.R.el.scrollTop = 0; enter(slot.R.el, how); }
       markSel();
     }
     placeDiv();

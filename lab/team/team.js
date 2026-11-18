@@ -162,7 +162,9 @@
       list.map(({ x, f }) => `<tr data-mem="${esc(x.id)}"><th>${esc(x.name.split(' ')[0])}</th>${[{ a: f.gold.a, b: f.gold.b }].concat(ks.map((k) => f.cats.find((c) => c.k === k) || { a: 0, b: 0 })).map((c) => { const p = c.a >= W ? yo(c.a, c.b) : null, nw = c.a < W && c.b >= W;
         return `<td class="${p == null ? (nw ? 'hu' : '') : p >= 5 ? 'hu' : p <= -5 ? 'hd' : 'hm'}">${p == null ? (nw ? 'νέο' : '—') : (p > 0 ? '+' : '') + p + '%'}</td>`; }).join('')}</tr>`).join('') + '</tbody></table></div>';
   }
-  const canTeam = (tid) => me && (me.role === 'director' || (me.role === 'lead' && me.team === tid));
+  /* όλες τις ομάδες τις βλέπουν ο διευθυντής και ο διαχειριστής (απόφαση 18/11)· ο υπεύθυνος μόνο τη δική του */
+  const ALL = !!me && (me.role === 'director' || !!me.admin);
+  const canTeam = (tid) => ALL || (!!me && me.role === 'lead' && me.team === tid);
 
   PL.register('team', {
     title: 'Η ομάδα μου',
@@ -195,7 +197,7 @@
     title: 'Πωλητής',
     render(el, params) {
       const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id);
-      if (!x || !M || (me.role === 'sales')) return deny(el);
+      if (!x || !M || !(ALL || me.role === 'lead')) return deny(el);
       const f = figures(M), t = O.team(x.team), ids = scopeIds(params.scope), k = ids.indexOf(x.id), prev = O.sellers().find((z) => z.id === ids[k - 1]), next = O.sellers().find((z) => z.id === ids[k + 1]);
       const p = fp(f), open = new Set(), st = status(f, ctxOf(O.sellers(x.team).map((z) => ({ f: z.id === x.id ? f : figOf(z.id) })).filter((z) => z.f)));
       el.classList.add('tmpage');
@@ -238,7 +240,7 @@
   PL.register('memcat', {
     title: 'Κατηγορία',
     render(el, params) {
-      const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id); if (!x || !M || me.role === 'sales') return deny(el);
+      const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id); if (!x || !M || !(ALL || me.role === 'lead')) return deny(el);
       const r = M.turnover(params.k), A = sum(r, (z) => z.a), B = sum(r, (z) => z.b), W = M.WORKED;
       const stop = r.filter((z) => z.a >= W && z.b <= 0).sort((a, b) => b.a - a.a), down = r.filter((z) => z.b > 0 && z.b < z.a).sort((a, b) => (a.b - a.a) - (b.b - b.a));
       const up = r.filter((z) => z.a > 0 && z.b >= z.a).sort((a, b) => (b.b - b.a) - (a.b - a.a)), nw = r.filter((z) => z.a <= 0 && z.b > 0).sort((a, b) => b.b - a.b);
@@ -255,7 +257,7 @@
   PL.register('teams', {
     title: 'Όλες οι ομάδες',
     render(el) {
-      if (!me || me.role !== 'director') return deny(el, 'Αυτή η οθόνη είναι για τον διευθυντή.');
+      if (!ALL) return deny(el, 'Αυτή η οθόνη είναι για τον διευθυντή και τον διαχειριστή.');
       const all = O.teams().map((t) => { const list = O.sellers(t.id).map((x) => ({ x, f: figOf(x.id) })); return { t, list, med: ctxOf(list) }; });
       const every = [].concat(...all.map((a) => a.list)), med = ctxOf(every);
       let open = false;
@@ -387,6 +389,7 @@
       tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${ppl(U)} · FLASH ${teamPct(S)}%`, 'dir');
       tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = U.map((x) => figOf(x.id)); return tile('team', tt.id, ICON.team, esc(tt.name), `${ppl(U)} · FLASH ${teamPct(L)}%`, 'lead'); }).join('');
     }
+    if (me.admin && me.role !== 'director') { const U = O.sellers(), S = U.map((x) => figOf(x.id)); tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', `${ppl(U)} · FLASH ${teamPct(S)}%`, 'dir'); }
     if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
       tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', usedToday(), 'adm');
     box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;

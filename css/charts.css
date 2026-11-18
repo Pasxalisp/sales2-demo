@@ -363,3 +363,41 @@
   border-top: 2px solid var(--bd);
   border-bottom: none;
 }
+
+/* ---- Μπάρες που μεγαλώνουν όταν ανοίγει η σελίδα (js/enter.js βάζει .pgnew στη σελίδα· απόφαση 18/11) ---- */
+@keyframes gv-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes gv-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+.gv.pgnew .gb,
+.gv.pgnew .prog > div,
+.gv.pgnew .flbar i,
+.gv.pgnew .flbar b,
+.gv.pgnew .dvr .dvb {
+  transform-origin: left center;
+  animation: gv-grow-x .6s cubic-bezier(.2,.75,.3,1) .12s both;
+}
+.gv.pgnew .dvl .dvb {
+  transform-origin: right center;
+  animation: gv-grow-x .6s cubic-bezier(.2,.75,.3,1) .12s both;
+}
+.gv.pgnew .flc i {
+  transform-origin: center bottom;
+  animation: gv-grow-y .6s cubic-bezier(.2,.75,.3,1) .12s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gv.pgnew .gb,
+  .gv.pgnew .prog > div,
+  .gv.pgnew .flbar i,
+  .gv.pgnew .flbar b,
+  .gv.pgnew .dvb,
+  .gv.pgnew .flc i {
+    animation: none;
+  }
+}

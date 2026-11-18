@@ -70,9 +70,9 @@
   const SRC = {}, listeners = new Set();
   const cached = ls.get(NS + ':me'), me = cached && cached.active ? toUser(cached) : null;
   const users = () => PROFILES.map(toUser);
-  /* ποιους πωλητές δείχνουμε (ίδιος κανόνας με τη βάση· η βάση ούτως ή άλλως δεν δίνει δεδομένα για άλλους) */
+  /* ποιους πωλητές δείχνουμε: διευθυντής και διαχειριστής όλους, υπεύθυνος την ομάδα του (ίδιος κανόνας με τη βάση· η βάση ούτως ή άλλως δεν δίνει δεδομένα για άλλους) */
   const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' &&
-    (me.role === 'director' || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
+    (me.role === 'director' || me.admin || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
 
   /* ---------- Τα δεδομένα, όπως τα κρατά η μνήμη της συσκευής (lab/supa/cache.js) ----------
      S = { v, since, sinceShared, profiles, teams, shared: {path: έγγραφο}, docs: {uuid χρήστη: {path: έγγραφο | null}} }

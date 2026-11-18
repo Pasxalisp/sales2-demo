@@ -13,7 +13,7 @@
   const PL = window.PL, O = PL && PL.adapter && PL.adapter.org, me = O && O.me; if (!me) return;
   const u = PL.u, esc = u.esc, TF = PL.teamFigures;
   const ROOM = matchMedia('(min-width: 760px)');   // τάμπλετ (όρθιο ή πλάγιο) και υπολογιστής
-  const LEADS = me.role === 'lead' || me.role === 'director', ADMIN = !!me.admin;
+  const ADMIN = !!me.admin, ALL = me.role === 'director' || ADMIN, LEADS = me.role === 'lead' || ALL;   // ALL: όλες οι ομάδες (διευθυντής, διαχειριστής)
   if (!LEADS && !ADMIN) return;
   const m0 = (n) => Math.round(+n || 0).toLocaleString('el-GR') + ' €';
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
@@ -107,7 +107,7 @@
       `<b class="admpct ${TF.pc(p)}">${p}%</b><span class="admbar"><i class="${TF.pc(p)}" style="width:${Math.min(100, p)}%"></i></span><span class="mu">${g.L.length} πωλητές${red ? ` · <b class="dn">${red} χρειάζονται βοήθεια</b>` : ''}</span></button>`; }).join('')}</div>`;
 
   function overview(box, D) {
-    const L = D.L, T = tot(L), p = pct(T.sales, T.target), fl = (L.find((r) => r.f.fl) || { f: {} }).f.fl, dir = me.role === 'director';
+    const L = D.L, T = tot(L), p = pct(T.sales, T.target), fl = (L.find((r) => r.f.fl) || { f: {} }).f.fl, dir = ALL;
     box.innerHTML = `<div class="admkpis">` +
       kpi(IC.money, 'k1', 'Πωλήσεις ' + (fl ? fl.month : ''), m0(T.sales), 'από ' + m0(T.target) + ' στόχο') +
       kpi(IC.target, 'k2', 'Στόχος μήνα', p + '%', fl ? 'έπρεπε ~' + fl.exp + '% σήμερα' : '', 'admpct ' + TF.pc(p)) +
@@ -121,7 +121,7 @@
   }
   function sellersView(box, D) {
     box.innerHTML = `<section class="admcard"><h3>${D.L.length} πωλητές <span class="mu">· πάτα στήλη για ταξινόμηση, γραμμή για την καρτέλα</span></h3><div data-table></div></section>`;
-    sortable(box, D.L, me.role === 'director', { k: 'name', dir: 1 });
+    sortable(box, D.L, ALL, { k: 'name', dir: 1 });
   }
   function teamsView(box, D) { box.innerHTML = `<section class="admcard"><h3>Ομάδες</h3>${teamCards(D.teams)}</section>`; }
 
@@ -131,10 +131,10 @@
     if (LEADS && D.L.length) {
       S.push({ h: 'Παρακολούθηση' });
       S.push({ k: 'overview', t: 'Επισκόπηση', i: IC.overview });
-      if (me.role === 'director') S.push({ k: 'teams', t: 'Ομάδες', i: IC.team, sub: D.teams.map((g) => { const p = groupPct(g.L); return { k: 'team', p: { team: g.t.id }, t: g.t.name, r: p + '%', c: TF.pc(p) }; }) });
+      if (ALL) S.push({ k: 'teams', t: 'Ομάδες', i: IC.team, sub: D.teams.map((g) => { const p = groupPct(g.L); return { k: 'team', p: { team: g.t.id }, t: g.t.name, r: p + '%', c: TF.pc(p) }; }) });
       else S.push({ k: 'team', p: { team: me.team }, t: 'Η ομάδα μου', i: IC.team });
-      const sub = []; D.teams.forEach((g) => { if (me.role === 'director') sub.push({ h: g.t.name });
-        g.L.forEach((r) => sub.push({ k: 'member', p: { id: r.x.id, scope: me.role === 'director' ? '*' : g.t.id }, t: short(r.x.name), full: r.x.name, r: r.f.fl ? r.p + '%' : '—', c: r.st.lvl, dot: r.st.lvl })); });
+      const sub = []; D.teams.forEach((g) => { if (ALL) sub.push({ h: g.t.name });
+        g.L.forEach((r) => sub.push({ k: 'member', p: { id: r.x.id, scope: ALL ? '*' : g.t.id }, t: short(r.x.name), full: r.x.name, r: r.f.fl ? r.p + '%' : '—', c: r.st.lvl, dot: r.st.lvl })); });
       S.push({ k: 'sellers', t: 'Πωλητές', i: IC.seller, sub, search: true });
     }
     if (ADMIN) {
@@ -215,7 +215,7 @@
         if (ev.target.closest('[data-sort], input')) return;
         const b = ev.target.closest('[data-k]'); if (!b || !el.contains(b)) return;
         const k = b.dataset.k, p = b.dataset.p ? JSON.parse(b.dataset.p) : { id: b.dataset.id, team: b.dataset.team };
-        if (k === 'member' && !p.scope) p.scope = me.role === 'director' ? '*' : me.team;
+        if (k === 'member' && !p.scope) p.scope = ALL ? '*' : me.team;
         const it = S.find((z) => z.k === k && z.sub);
         if (it && b.classList.contains('admi')) { if (cur && same(it, cur) && open.has(k)) { open.delete(k); paintSide(); return; } open.add(k); }
         go(k, p, !b.closest('.admside'));

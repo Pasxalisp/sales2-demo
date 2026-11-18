@@ -69,9 +69,9 @@
   }
 
   const sid = ls.get(NS + ':session'), me = sid && user(sid) && user(sid).active ? user(sid) : null;
-  /* ποιους πωλητές βλέπει ο συνδεδεμένος (ο κανόνας του server) */
+  /* ποιους πωλητές βλέπει ο συνδεδεμένος (ο κανόνας του server): διευθυντής και διαχειριστής όλους, υπεύθυνος την ομάδα του */
   const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' &&
-    (me.role === 'director' || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
+    (me.role === 'director' || me.admin || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
 
   /* ---- χρήση εφαρμογής: ένα έγγραφο ανά χρήστη και μέρα {u, d, p: {σελίδα: [φορές, δευτερόλεπτα]}, a: {ενέργεια: φορές}, last}.
      Ο server τα κρατά USAGE_DAYS μέρες· μόνο ο διαχειριστής τα διαβάζει. Εδώ: σπόρος + ό,τι μετρήθηκε σε αυτή τη συσκευή. */
