@@ -121,7 +121,7 @@
     return { lvl, pace, why };
   }
   /* οι ίδιοι κανόνες και για άλλες οθόνες (π.χ. δείγμα «Διαχείριση», lab/admin/): κατάσταση, ποσοστό στόχου, χρώμα ποσοστού */
-  Object.assign(PL.teamFigures, { status, ctxOf, fp, pc });
+  Object.assign(PL.teamFigures, { status, ctxOf, fp, pc, sections });   // sections: τα κομμάτια της σελίδας ενός πωλητή (για τη Διαχείριση)
   const first = (n) => esc(String(n || '').split(' ')[0]);
   /* «Χρειάζεται προσοχή»: όσοι είναι στο κόκκινο (αλλιώς στο κίτρινο), με λόγια */
   function attention(list, med, scope) {
@@ -193,39 +193,49 @@
     `<p class="tmatt"><b>${esc(st.pace)}</b>${f.fl ? ` — ${fp(f)}% του στόχου, έπρεπε ~${f.fl.exp}% σήμερα` : ''}.</p>` +
     (st.why.length ? '<ul class="tmwhyl ' + st.lvl + '">' + st.why.map((w) => `<li>${esc(w.t)}${w.k ? ` <button class="shlink" data-cat="${esc(w.k)}" data-who="${esc(x.id)}">πελάτες ›</button>` : ''}</li>`).join('') + '</ul>' : '') + '</section>';
   const scopeIds = (scope) => O.sellers(scope && scope !== '*' ? scope : '').map((x) => x.id);
+  /* Τα κομμάτια της σελίδας ενός πωλητή, χωριστά (ένα σημείο): η σελίδα «Πωλητής» τα δείχνει όλα με τη σειρά MEMBER·
+     η Διαχείριση (lab/admin) τα μοιράζει σε καρτέλες. open: λίστες που άνοιξαν με «+ N ακόμα» (data-more). */
+  const MEMBER = ['talk', 'flash', 'kpis', 'months', 'coll', 'weeks', 'cats', 'brands', 'drop', 'top', 'due', 'notes', 'cold', 'deals', 'debt'];
+  const memFoot = (f) => `<p class="mu tmfoot">Στοιχεία orders${f.fl ? ' · FLASH ' + esc(u.fd(f.fl.d)) : ''}.</p>`;
+  function sections(f, st, x, open) {
+    const p = fp(f);
+    return {
+      talk: talk(f, st, x),
+      flash: f.fl ? `<section class="tmcard tmsum">${donut(p, 120, 'του στόχου')}<div class="tmsumb"><h3>FLASH ${esc(f.fl.month)}</h3><div class="tmbig"><b>${m0(f.fl.now.sales)}</b> <span class="mu">από ${m0(f.fl.now.target)}</span></div>` +
+        `<div class="tmmini"><span>${f.fl.now.target > f.fl.now.sales ? 'Λείπουν <b class="dn">' + m0(f.fl.now.target - f.fl.now.sales) + '</b>' : '<b class="up">Πάνω από τον στόχο</b>'}</span><span>Προς εκτέλεση ${m0(f.fl.now.pend)}</span><span>Εισπράξεις ${m0(f.fl.now.coll)}</span>${f.fl.rank ? `<span>${f.fl.rank}ος από ${f.fl.of} στην εταιρεία</span>` : ''}</div></div></section>` : '',
+      kpis: `<section class="tmcard tmkp tmwide2">${kp('Γενικός τζίρος φέτος', m0(f.all.b), '', `<span class="${yoyCls(f.all.a, f.all.b)}">${yoyTxt(f.all.a, f.all.b)}</span> · πέρσι ${m0(f.all.a)}`)}` +
+        kp('Goldwell φέτος', m0(f.gold.b), '', `<span class="${yoyCls(f.gold.a, f.gold.b)}">${yoyTxt(f.gold.a, f.gold.b)}</span> · πέρσι ${m0(f.gold.a)}`) +
+        kp('Πελάτες Goldwell', f.buyTy, '', 'φέτος · πέρσι ' + f.buyLy) + kp('Νέοι / χάθηκαν', `<span class="up">+${f.newc}</span> / <span class="dn">${f.lost}</span>`, '', 'φέτος σε σχέση με πέρσι') +
+        kp('Επισκέψεις 30 ημ.', f.v30, '', 'σε ' + f.vc30 + ' πελάτες') + kp('Συμφωνίες', f.deals.length ? pct(f.dt, f.dg) + '%' : '—', f.deals.length ? pc(pct(f.dt, f.dg)) : '', f.deals.length + ' πελάτες') +
+        kp('Υπόλοιπα', m0(f.debt), f.debt ? 'dn' : '', f.over ? 'υπερβάσεις ' + m0(f.over) : '') + kp('Εκκρεμότητες σήμερα', f.due.length, f.due.length ? 'dn' : '') + '</section>',
+      months: f.fl ? card('FLASH ανά μήνα · πωλήσεις και στόχος (γραμμή)', monthly(f.fl.months) + (f.fl.year ? `<div class="tmmini"><span>Ως τώρα φέτος: <b>${m0(sum(f.fl.months, (m) => m.sales))}</b> από ${m0(sum(f.fl.months, (m) => m.target))}</span><span>Στόχος έτους ${m0(f.fl.year.target)}</span></div>` : '')) : '',
+      coll: f.fl ? card('Εισπράξεις ανά μήνα', simpleBars(f.fl.months.map((m) => Math.round(m.coll)), MN, f.fl.months.length - 1)) : '',
+      weeks: card('Επισκέψεις ανά εβδομάδα · τελευταίες 8', simpleBars(f.weeks, ['', '', '', '', '', '', '', 'αυτή'], 7)),
+      cats: card('Τζίρος ανά κατηγορία Goldwell · πάτα για πελάτες', pairs(f.cats, x.id)),
+      brands: f.brands.length ? card('Άλλες μάρκες · πάτα για πελάτες', pairs(f.brands, x.id)) : '',
+      drop: card('Είδη: μεγαλύτερη πτώση (τεμ. πέρσι → φέτος)', rows(f.itemsDrop, (o) => `<div class="shr"><span>${esc(o.n)}<small class="mu"> · ${o.cp.size} → ${o.cc.size} πελ.</small></span><b class="dn" style="white-space:nowrap">${o.qp} → ${o.qc}</b></div>`, 'Καμία πτώση.')),
+      top: card('Είδη: κορυφαία φέτος', rows(f.itemsTop, (o) => `<div class="shr"><span>${esc(o.n)}<small class="mu"> · ${o.cc.size} πελ.</small></span><b style="white-space:nowrap">${m0(o.tc)}</b></div>`, '—')),
+      due: card(`Εκκρεμότητες σήμερα (${f.due.length})`, more(f.due, open.has('due') ? 99 : 6, (e) => `<div class="shr"><span><b>${esc(e.name)}</b><div class="mu">${esc(e.t)}</div></span><span class="dn" style="white-space:nowrap">${esc(u.fd(e.d))}</span></div>`, 'Καμία.', 'due')),
+      notes: card('Τελευταίες σημειώσεις', more(f.notes, open.has('notes') ? 30 : 6, (e) => `<div class="tmn"><div class="mu">${esc(u.fd(e.d))} · <b>${esc(e.name)}</b>${e.city ? ' · ' + esc(e.city) : ''}</div><div>${esc(e.text)}${e.products ? ` <span class="mu">(${esc(e.products)})</span>` : ''}${e.todo ? `<div class="mu">Να πει: ${esc(e.todo)}</div>` : ''}</div></div>`, 'Καμία σημείωση ακόμα.', 'notes')),
+      cold: card(`Καλοί πελάτες χωρίς επίσκεψη 60+ ημέρες (${f.cold.length})`, more(f.cold, open.has('cold') ? 99 : 6, (c) => `<div class="shr"><span><b>${esc(c.name)}</b><div class="mu">${esc(c.city)} · ${c.last ? 'τελευταία ' + esc(u.fd(c.last)) : 'καμία επίσκεψη'}</div></span><span style="white-space:nowrap">πέρσι ${m0(c.ly)}</span></div>`, 'Κανένας.', 'cold')),
+      deals: f.deals.length ? card('Συμφωνίες', more(f.deals, open.has('deals') ? 99 : 6, (d) => `<div class="tmdl"><span>${esc(d.name)}</span>${bar(d.pct)}<small>${m0(d.ty)} / ${m0(d.goal)} · <b class="${pc(d.pct)}">${Math.round(d.pct)}%</b></small></div>`, '', 'deals')) : '',
+      debt: f.debtors.length ? card('Μεγαλύτερα υπόλοιπα', more(f.debtors, open.has('debt') ? 99 : 6, (d) => `<div class="shr"><span>${esc(d.name)}${d.o > 0 ? `<div class="mu dn">υπέρβαση ${money(d.o)}</div>` : ''}</span><b class="dn">${money(d.a)}</b></div>`, '', 'debt')) : '',
+    };
+  }
   PL.register('member', {
     title: 'Πωλητής',
     render(el, params) {
       const x = O.sellers().find((z) => z.id === params.id), M = x && modelOf(x.id);
       if (!x || !M || !(ALL || me.role === 'lead')) return deny(el);
       const f = figures(M), t = O.team(x.team), ids = scopeIds(params.scope), k = ids.indexOf(x.id), prev = O.sellers().find((z) => z.id === ids[k - 1]), next = O.sellers().find((z) => z.id === ids[k + 1]);
-      const p = fp(f), open = new Set(), st = status(f, ctxOf(O.sellers(x.team).map((z) => ({ f: z.id === x.id ? f : figOf(z.id) })).filter((z) => z.f)));
+      const open = new Set(), st = status(f, ctxOf(O.sellers(x.team).map((z) => ({ f: z.id === x.id ? f : figOf(z.id) })).filter((z) => z.f)));
       el.classList.add('tmpage');
       const paint = () => {
+        const S = sections(f, st, x, open);
         /* «‹ Πίσω» το βάζει η πάνω γραμμή της εφαρμογής (core.js)· εδώ μόνο προηγούμενος / επόμενος πωλητής */
         el.innerHTML = (prev || next ? `<div class="tmtop"><span class="tmpn">${prev ? `<button data-go="${esc(prev.id)}">‹ ${esc(prev.name.split(' ')[0])}</button>` : ''}${next ? `<button data-go="${esc(next.id)}">${esc(next.name.split(' ')[0])} ›</button>` : ''}</span></div>` : '') +
           `<div class="tmwho"><span class="tmav big${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span><div><h2>${esc(x.name)}</h2><div class="mu">${esc(O.ROLES[x.role])}${t ? ' · ' + esc(t.name) : ''} · ${f.n} πελάτες</div><div style="margin-top:4px">${RO}</div></div></div>` +
-          '<div class="tmgrid">' + talk(f, st, x) +
-          (f.fl ? `<section class="tmcard tmsum">${donut(p, 120, 'του στόχου')}<div class="tmsumb"><h3>FLASH ${esc(f.fl.month)}</h3><div class="tmbig"><b>${m0(f.fl.now.sales)}</b> <span class="mu">από ${m0(f.fl.now.target)}</span></div>` +
-            `<div class="tmmini"><span>${f.fl.now.target > f.fl.now.sales ? 'Λείπουν <b class="dn">' + m0(f.fl.now.target - f.fl.now.sales) + '</b>' : '<b class="up">Πάνω από τον στόχο</b>'}</span><span>Προς εκτέλεση ${m0(f.fl.now.pend)}</span><span>Εισπράξεις ${m0(f.fl.now.coll)}</span>${f.fl.rank ? `<span>${f.fl.rank}ος από ${f.fl.of} στην εταιρεία</span>` : ''}</div></div></section>` : '') +
-          `<section class="tmcard tmkp tmwide2">${kp('Γενικός τζίρος φέτος', m0(f.all.b), '', `<span class="${yoyCls(f.all.a, f.all.b)}">${yoyTxt(f.all.a, f.all.b)}</span> · πέρσι ${m0(f.all.a)}`)}` +
-            kp('Goldwell φέτος', m0(f.gold.b), '', `<span class="${yoyCls(f.gold.a, f.gold.b)}">${yoyTxt(f.gold.a, f.gold.b)}</span> · πέρσι ${m0(f.gold.a)}`) +
-            kp('Πελάτες Goldwell', f.buyTy, '', 'φέτος · πέρσι ' + f.buyLy) + kp('Νέοι / χάθηκαν', `<span class="up">+${f.newc}</span> / <span class="dn">${f.lost}</span>`, '', 'φέτος σε σχέση με πέρσι') +
-            kp('Επισκέψεις 30 ημ.', f.v30, '', 'σε ' + f.vc30 + ' πελάτες') + kp('Συμφωνίες', f.deals.length ? pct(f.dt, f.dg) + '%' : '—', f.deals.length ? pc(pct(f.dt, f.dg)) : '', f.deals.length + ' πελάτες') +
-            kp('Υπόλοιπα', m0(f.debt), f.debt ? 'dn' : '', f.over ? 'υπερβάσεις ' + m0(f.over) : '') + kp('Εκκρεμότητες σήμερα', f.due.length, f.due.length ? 'dn' : '') + '</section>' +
-          (f.fl ? card('FLASH ανά μήνα · πωλήσεις και στόχος (γραμμή)', monthly(f.fl.months) + (f.fl.year ? `<div class="tmmini"><span>Ως τώρα φέτος: <b>${m0(sum(f.fl.months, (m) => m.sales))}</b> από ${m0(sum(f.fl.months, (m) => m.target))}</span><span>Στόχος έτους ${m0(f.fl.year.target)}</span></div>` : '')) +
-            card('Εισπράξεις ανά μήνα', simpleBars(f.fl.months.map((m) => Math.round(m.coll)), MN, f.fl.months.length - 1)) : '') +
-          card('Επισκέψεις ανά εβδομάδα · τελευταίες 8', simpleBars(f.weeks, ['', '', '', '', '', '', '', 'αυτή'], 7)) +
-          card('Τζίρος ανά κατηγορία Goldwell · πάτα για πελάτες', pairs(f.cats, x.id)) +
-          (f.brands.length ? card('Άλλες μάρκες · πάτα για πελάτες', pairs(f.brands, x.id)) : '') +
-          card('Είδη: μεγαλύτερη πτώση (τεμ. πέρσι → φέτος)', rows(f.itemsDrop, (o) => `<div class="shr"><span>${esc(o.n)}<small class="mu"> · ${o.cp.size} → ${o.cc.size} πελ.</small></span><b class="dn" style="white-space:nowrap">${o.qp} → ${o.qc}</b></div>`, 'Καμία πτώση.')) +
-          card('Είδη: κορυφαία φέτος', rows(f.itemsTop, (o) => `<div class="shr"><span>${esc(o.n)}<small class="mu"> · ${o.cc.size} πελ.</small></span><b style="white-space:nowrap">${m0(o.tc)}</b></div>`, '—')) +
-          card(`Εκκρεμότητες σήμερα (${f.due.length})`, more(f.due, open.has('due') ? 99 : 6, (e) => `<div class="shr"><span><b>${esc(e.name)}</b><div class="mu">${esc(e.t)}</div></span><span class="dn" style="white-space:nowrap">${esc(u.fd(e.d))}</span></div>`, 'Καμία.', 'due')) +
-          card('Τελευταίες σημειώσεις', more(f.notes, open.has('notes') ? 30 : 6, (e) => `<div class="tmn"><div class="mu">${esc(u.fd(e.d))} · <b>${esc(e.name)}</b>${e.city ? ' · ' + esc(e.city) : ''}</div><div>${esc(e.text)}${e.products ? ` <span class="mu">(${esc(e.products)})</span>` : ''}${e.todo ? `<div class="mu">Να πει: ${esc(e.todo)}</div>` : ''}</div></div>`, 'Καμία σημείωση ακόμα.', 'notes')) +
-          card(`Καλοί πελάτες χωρίς επίσκεψη 60+ ημέρες (${f.cold.length})`, more(f.cold, open.has('cold') ? 99 : 6, (c) => `<div class="shr"><span><b>${esc(c.name)}</b><div class="mu">${esc(c.city)} · ${c.last ? 'τελευταία ' + esc(u.fd(c.last)) : 'καμία επίσκεψη'}</div></span><span style="white-space:nowrap">πέρσι ${m0(c.ly)}</span></div>`, 'Κανένας.', 'cold')) +
-          (f.deals.length ? card('Συμφωνίες', more(f.deals, open.has('deals') ? 99 : 6, (d) => `<div class="tmdl"><span>${esc(d.name)}</span>${bar(d.pct)}<small>${m0(d.ty)} / ${m0(d.goal)} · <b class="${pc(d.pct)}">${Math.round(d.pct)}%</b></small></div>`, '', 'deals')) : '') +
-          (f.debtors.length ? card('Μεγαλύτερα υπόλοιπα', more(f.debtors, open.has('debt') ? 99 : 6, (d) => `<div class="shr"><span>${esc(d.name)}${d.o > 0 ? `<div class="mu dn">υπέρβαση ${money(d.o)}</div>` : ''}</span><b class="dn">${money(d.a)}</b></div>`, '', 'debt')) : '') +
-          '</div>' + `<p class="mu tmfoot">Στοιχεία orders${f.fl ? ' · FLASH ' + esc(u.fd(f.fl.d)) : ''}.</p>`;
+          '<div class="tmgrid">' + MEMBER.map((k) => S[k]).join('') + '</div>' + memFoot(f);
       };
       paint();
       el.addEventListener('click', (ev) => {
@@ -406,14 +416,15 @@
   } });
 
   /* ---------- Οθόνη εισόδου ---------- */
-  if (!me) {
+  if (!me && !O.busy) {
     const LBL = { director: ['🏢', 'Διευθυντής'], lead: ['👥', 'Υπεύθυνος ομάδας'], sales: ['🧑‍💼', 'Πωλητής'] };
     const o = document.createElement('div'); o.id = 'tmlogin'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Είσοδος');
     o.innerHTML = `<form class="tmlb" autocomplete="on"><div class="tmlogo"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2f6f5e"/><rect x="8" y="19" width="5" height="8" rx="1.5" fill="#fff"/><rect x="14.5" y="14" width="5" height="13" rx="1.5" fill="#fff"/><rect x="21" y="8" width="5" height="19" rx="1.5" fill="#8fe3c6"/></svg><span>Sales<small>2.0</small></span></div>` +
       `<p class="mu">Δοκιμαστική έκδοση · ψεύτικα δεδομένα</p>` +
       `<label>Email<input id="tme" type="email" autocomplete="username" placeholder="onoma@sales2.demo" required></label>` +
       `<label>Κωδικός<input id="tmpw" type="password" autocomplete="current-password" required></label>` +
-      `<button class="pri" id="tmgo" type="submit">Είσοδος</button><p id="tmerr" class="dn" aria-live="polite"></p>` +
+      `<button class="pri" id="tmgo" type="submit">Είσοδος</button><p id="tmerr" class="dn" aria-live="polite">${esc(O.notice || '')}</p>` +
+      (O.resetPassword ? '<button type="button" class="shlink" id="tmfg">Ξέχασα τον κωδικό</button>' : '') +
       (O.quick().length ? `<div class="tmq"><h3>Γρήγορη είσοδος</h3>${O.quick().map((x) => { const [i, r] = x.admin ? ['🛠', 'Διαχειριστής'] : LBL[x.role]; const t = O.team(x.team);
         return `<button type="button" data-quick="${esc(x.id)}"><span class="tmqi">${i}</span><span><b>${r}</b><small>${esc(x.name)}${t && !x.admin ? ' · ' + esc(t.name) : ''}</small></span></button>`; }).join('')}</div>` : '') +
       `<p class="mu tmhint">${O.hint}</p></form>`;
@@ -427,5 +438,15 @@
       if (x && x.id) O.login(x.id); else err.textContent = (x && x.error) || 'Λάθος email ή κωδικός.';   // με βάση: το μήνυμα του server (π.χ. κλειδωμένος)
     });
     o.addEventListener('click', (ev) => { const b = ev.target.closest('[data-quick]'); if (b) O.login(b.dataset.quick); });
+    /* «Ξέχασα τον κωδικό» (μόνο με βάση): σύνδεσμος στο email που γράφτηκε πάνω */
+    const fg = o.querySelector('#tmfg');
+    if (fg) fg.addEventListener('click', async () => {
+      const mail = o.querySelector('#tme'), err = o.querySelector('#tmerr');
+      if (!/^\S+@\S+\.\S+$/.test(mail.value.trim())) { err.textContent = 'Γράψε πρώτα το email σου και ξαναπάτα «Ξέχασα τον κωδικό».'; mail.focus(); return; }
+      fg.disabled = true; err.textContent = '';
+      const r = await O.resetPassword(mail.value);
+      fg.disabled = false;
+      err.textContent = r.error || 'Αν υπάρχει λογαριασμός με αυτό το email, θα σου έρθει μήνυμα με σύνδεσμο για νέο κωδικό. Άνοιξέ τον σε αυτή τη συσκευή.';
+    });
   }
 })();

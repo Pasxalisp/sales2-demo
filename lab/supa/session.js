@@ -30,6 +30,8 @@
     short: 'Ο κωδικός θέλει τουλάχιστον ' + PASSWORD_MIN + ' χαρακτήρες.',
     weak: 'Ο κωδικός είναι πολύ εύκολος. Διάλεξε άλλον.',
     auth: 'Η σύνδεση έληξε. Βγες και μπες ξανά.',
+    later: 'Ζητήθηκαν πολλοί σύνδεσμοι. Δοκίμασε ξανά σε λίγα λεπτά.',
+    link: 'Ο σύνδεσμος από το email έληξε ή χρησιμοποιήθηκε ήδη. Ζήτα νέο με «Ξέχασα τον κωδικό».',
     forbidden: 'Μόνο ο διαχειριστής.',
     exists: 'Υπάρχει ήδη λογαριασμός με αυτό το email.',
     fields: 'Λείπει το όνομα, σωστό email ή ο ρόλος.',
@@ -185,9 +187,20 @@
       let r; try { r = await api.setPassword(String(pw)); } catch (e) { return { error: MSG.net }; }
       if (r.error) return { error: msg(r.error) };
       await sb.auth.refreshSession().catch(() => {});   // νέο κλειδί συνεδρίας χωρίς το «πρέπει να αλλάξει»
-      if (me) me.mustChange = false;
+      if (me) { me.mustChange = false; me.mustReason = ''; }
+      ls.del(RECOVER);
       return { ok: true };
     },
+    /* «Ξέχασα τον κωδικό» (απόφαση 18/11): η βάση στέλνει στο email του χρήστη σύνδεσμο που ανοίγει αυτή τη σελίδα·
+       εκεί ο χρήστης βάζει νέο κωδικό (me.mustReason = 'reset'). Ίδια απάντηση είτε υπάρχει το email είτε όχι.
+       Θέλει αληθινά email και αποστολή email (SMTP) στη Supabase, και τη διεύθυνση της σελίδας στις επιτρεπτές της. */
+    async resetPassword(email) {
+      const to = location.href.split('#')[0].split('?')[0];
+      let r; try { r = await sb.auth.resetPasswordForEmail(String(email).trim().toLowerCase(), { redirectTo: to }); } catch (e) { return { error: MSG.net }; }
+      if (r && r.error) return { error: r.error.status === 429 ? MSG.later : netError(r.error) ? MSG.net : MSG.server };
+      return { ok: true };
+    },
+    notice: '',   // μήνυμα για την οθόνη εισόδου (π.χ. σύνδεσμος που έληξε)
     get accounts() { return me && me.admin ? accounts : null; },
     login: () => location.reload(),
     /* Έξοδος. Κανονικά μόνο από αυτή τη συσκευή (οι άλλες μένουν συνδεδεμένες)· everywhere: από ΟΛΕΣ τις συσκευές
@@ -202,7 +215,7 @@
         if (r && r.error) { leaving = false; return { error: MSG.net }; }
       } else try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ }
       keeping = false; clearTimeout(saveT);
-      ls.del(NS + ':me'); if (KEY) await STORE.del(KEY.state); location.reload();
+      ls.del(NS + ':me'); ls.del(RECOVER); if (KEY) await STORE.del(KEY.state); location.reload();
     },
   };
 
@@ -256,6 +269,7 @@
     listen: (cb) => { listeners.add(cb); early.splice(0).forEach((p) => cb(p, eff(p))); return () => listeners.delete(cb); },
   };
   window.PL_LOCAL = { key: NS + ':' + (me ? me.id : 'none'), seed: {}, org, remote: me ? remote : null };
+  const RECOVER = NS + ':recover';   // ήρθε από σύνδεσμο «Ξέχασα τον κωδικό»: πρώτα νέος κωδικός
   if (me) me.mustChange = false;
 
   /* Λάθος δικτύου (όχι «η συνεδρία δεν ισχύει»): π.χ. το κινητό μόλις ξύπνησε και δεν έχει ακόμη ίντερνετ. */
@@ -281,7 +295,26 @@
   let leaving = false;
   const out = async () => { if (!leaving) await org.logout(); return new Promise(() => {}); };
   /* όσο δουλεύει η εφαρμογή: αν η βάση δεν δεχτεί πια τη συνεδρία (σβήστηκε από αλλού), έξοδος */
-  sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && me && live && !leaving) out(); });
+  sb.auth.onAuthStateChange((ev, s) => {
+    if (ev === 'SIGNED_OUT' && me && live && !leaving) out();
+    if (ev === 'PASSWORD_RECOVERY' && s && s.user) recovered(s.user);
+  });
+
+  /* ---------- Σύνδεσμος «Ξέχασα τον κωδικό» από το email ----------
+     Η σελίδα ανοίγει με #…type=recovery: η βάση δίνει συνεδρία για αυτόν τον χρήστη (PASSWORD_RECOVERY). Γίνεται ο
+     συνδεδεμένος της συσκευής και η εφαρμογή ξανανοίγει ζητώντας νέο κωδικό πριν από οτιδήποτε άλλο.
+     Σύνδεσμος που έληξε (#error=…): μήνυμα στην οθόνη εισόδου. */
+  const HASH = new URLSearchParams(location.hash.slice(1));
+  const RECOVERING = HASH.get('type') === 'recovery' && !!HASH.get('access_token');
+  org.busy = RECOVERING;   // η οθόνη εισόδου δεν χρειάζεται: η σελίδα ξανανοίγει με τον χρήστη του συνδέσμου
+  if (HASH.get('error_code') || HASH.get('error')) { org.notice = MSG.link; history.replaceState(null, '', location.href.split('#')[0]); }
+  async function recovered(u) {
+    const { data: p } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
+    if (!p || !p.active) { await sb.auth.signOut({ scope: 'local' }); org.notice = MSG.inactive; location.replace(location.href.split('#')[0]); return; }
+    if (me && me.uuid !== p.id && KEY) await STORE.del(KEY.state);   // ήταν άλλος συνδεδεμένος σε αυτή τη συσκευή
+    ls.set(NS + ':me', p); ls.set(RECOVER, 1);
+    location.replace(location.href.split('#')[0]);   // χωρίς το κλειδί στη διεύθυνση
+  }
 
   /* ---------- Συγχρονισμός με τη βάση ---------- */
   /* Στέλνει όσα έμειναν χωρίς ίντερνετ. Αν στο μεταξύ το ίδιο έγγραφο άλλαξε από άλλη συσκευή πιο πρόσφατα,
@@ -423,7 +456,8 @@
   async function check(wait) {
     const session = await mySession(wait);
     if (!session || session.user.id !== me.uuid) return out();
-    me.mustChange = !!(session.user.app_metadata && session.user.app_metadata.must_change);
+    me.mustReason = ls.get(RECOVER) ? 'reset' : session.user.app_metadata && session.user.app_metadata.must_change ? 'temp' : '';
+    me.mustChange = !!me.mustReason;
     return session;
   }
   function use(st) {
@@ -434,6 +468,7 @@
     window.PL_LOCAL.seed = merged(me.uuid);
   }
   window.PL_BOOT = (async () => {
+    if (RECOVERING) { const app = document.getElementById('app'); if (app) app.textContent = 'Ανοίγω τον σύνδεσμο…'; return new Promise(() => {}); }   // ξανανοίγει μόνη της (recovered)
     if (!me) return;
     const [st, kept] = await Promise.all([STORE.get(KEY.state), STORE.get(KEY.out)]);
     OUT = kept || {};

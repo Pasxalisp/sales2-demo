@@ -20,15 +20,18 @@
   /* ---------- Δικός μου κωδικός ---------- */
   function changePassword(forced) {
     const min = O.passwordMin || 8;
-    const { o, close } = overlay('tmover', `<form class="tmlb" autocomplete="on"><h2>${forced ? 'Βάλε δικό σου κωδικό' : 'Αλλαγή κωδικού'}</h2>` +
-      `<p class="mu">${forced ? 'Μπήκες με προσωρινό κωδικό. Διάλεξε δικό σου για να συνεχίσεις.' : 'Από την επόμενη είσοδο μπαίνεις με τον νέο κωδικό.'} Τον ξέρεις μόνο εσύ· δεν τον βλέπει κανείς, ούτε ο διαχειριστής.</p>` +
+    const reset = forced && me.mustReason === 'reset';   // ήρθε από τον σύνδεσμο «Ξέχασα τον κωδικό»
+    const title = reset ? 'Νέος κωδικός' : forced ? 'Βάλε δικό σου κωδικό' : 'Αλλαγή κωδικού';
+    const why = reset ? 'Άνοιξες τον σύνδεσμο από το email. Διάλεξε νέο κωδικό για να συνεχίσεις.' : forced ? 'Μπήκες με προσωρινό κωδικό. Διάλεξε δικό σου για να συνεχίσεις.' : 'Από την επόμενη είσοδο μπαίνεις με τον νέο κωδικό.';
+    const { o, close } = overlay('tmover', `<form class="tmlb" autocomplete="on"><h2>${title}</h2>` +
+      `<p class="mu">${why} Τον ξέρεις μόνο εσύ· δεν τον βλέπει κανείς, ούτε ο διαχειριστής.</p>` +
       `<input type="email" autocomplete="username" value="${esc(me.email)}" hidden>` +
       `<label>Νέος κωδικός<input id="tmpn" type="password" autocomplete="new-password" required></label>` +
       `<label>Ξανά ο ίδιος<input id="tmpr" type="password" autocomplete="new-password" required></label>` +
       `<p class="mu tmhint">Τουλάχιστον ${min} χαρακτήρες. Μια φράση που θυμάσαι εύκολα είναι καλύτερη από έναν δύσκολο κωδικό.</p>` +
       `<button class="pri" id="tmps" type="submit">Αποθήκευση</button><p id="tmpe" class="dn" aria-live="polite"></p>` +
       `<button type="button" id="tmpx">${forced ? 'Έξοδος' : 'Άκυρο'}</button></form>`);
-    o.setAttribute('aria-label', forced ? 'Βάλε δικό σου κωδικό' : 'Αλλαγή κωδικού');
+    o.setAttribute('aria-label', title);
     const $ = (s) => o.querySelector(s), err = (t) => { $('#tmpe').textContent = t; };
     $('#tmpx').addEventListener('click', () => { if (forced) O.logout(); else close(); });
     $('form').addEventListener('submit', async (ev) => {
