@@ -367,6 +367,14 @@
   };
   const tile = (go, team, icon, title, sub, cls) => `<button class="duec tmtile ${cls || ''}" data-tmgo="${esc(go)}" data-tmp="${esc(team || '')}"><span class="dc">${icon}</span><span class="dt"><span class="dl">${title}</span><span class="dm">${sub}</span></span></button>`;
   const teamPct = (list) => pct(sum(list, (f) => f && f.fl && f.fl.now.sales), sum(list, (f) => f && f.fl && f.fl.now.target));
+  /* «Αλλαγή» (έξοδος). Με βάση: από αυτή τη συσκευή ή από όλες (απόφαση 18/11, π.χ. αν χάθηκε το κινητό) */
+  async function leave() {
+    if (!O.everywhere) { O.logout(); return; }
+    const k = await PL.dlg.choice('Έξοδος. «Από όλες τις συσκευές»: βγαίνεις και από το κινητό, το τάμπλετ και τον υπολογιστή· θα χρειαστεί ξανά ο κωδικός σε καθένα.',
+      ['Έξοδος από αυτή τη συσκευή', 'Έξοδος από όλες τις συσκευές', 'Άκυρο']);
+    if (k === 0) O.logout();
+    else if (k === 1) { const r = await O.logout(true); if (r && r.error) PL.dlg.toast(r.error); }
+  }
   const usedToday = () => new Set(O.usage.all().filter((x) => x.d === u.today()).map((x) => x.u)).size + ' μπήκαν σήμερα · ποιες οθόνες δουλεύονται';
   PL.labActs = PL.labActs || [];
   PL.labActs.push({ page: 'home', mount(root) {
@@ -385,7 +393,7 @@
     const hh = root.querySelector('.hh'); hh.parentNode.insertBefore(box, hh.nextSibling);
     document.body.classList.toggle('tmdir', me.role === 'director');
     box.addEventListener('click', (ev) => {
-      if (ev.target.closest('#tmout')) { ev.stopPropagation(); O.logout(); return; }
+      if (ev.target.closest('#tmout')) { ev.stopPropagation(); leave(); return; }
       const b = ev.target.closest('[data-tmgo]'); if (!b) return;
       ev.stopPropagation(); PL.nav.push(b.dataset.tmgo, b.dataset.tmp ? { team: b.dataset.tmp } : {});
     });

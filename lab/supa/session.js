@@ -125,6 +125,8 @@
     status: (id) => STATUS[id] || null,
     async refresh() { const r = await admin('status'); Object.keys(STATUS).forEach((k) => delete STATUS[k]); Object.assign(STATUS, r.status || {}); },
     async unlock(id) { await admin('unlock', { id }); await accounts.refresh().catch(() => {}); },
+    /* έξοδος ενός χρήστη από όλες τις συσκευές του (π.χ. χάθηκε το κινητό)· επιστρέφει από πόσες βγήκε */
+    async signout(id) { const r = await admin('signout', { id }); await accounts.refresh().catch(() => {}); return r.ended || 0; },
     /* νέος προσωρινός κωδικός (ξεκλειδώνει κιόλας)· τον βλέπει μόνο ο διαχειριστής, μία φορά, για να τον δώσει */
     async temp(id) { const r = await admin('temp', { id }); await accounts.refresh().catch(() => {}); return r.temp; },
     /* νέος χρήστης: λογαριασμός + προφίλ στον server· επιστρέφει { id, temp } */
@@ -188,10 +190,17 @@
     },
     get accounts() { return me && me.admin ? accounts : null; },
     login: () => location.reload(),
-    /* Έξοδος μόνο από αυτή τη συσκευή (οι άλλες συσκευές μένουν συνδεδεμένες). Σβήνει τα δεδομένα από τη μνήμη της συσκευής·
-       μένουν μόνο όσες αλλαγές δεν πρόλαβαν να σταλούν (χωρίς ίντερνετ), για να σταλούν την επόμενη φορά που θα μπει ο ίδιος. */
-    async logout() {
-      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ }
+    /* Έξοδος. Κανονικά μόνο από αυτή τη συσκευή (οι άλλες μένουν συνδεδεμένες)· everywhere: από ΟΛΕΣ τις συσκευές
+       (απόφαση 18/11, θέλει ίντερνετ — χωρίς αυτό επιστρέφει { error } και δεν βγαίνει από πουθενά).
+       Σβήνει τα δεδομένα από τη μνήμη της συσκευής· μένουν μόνο όσες αλλαγές δεν πρόλαβαν να σταλούν (χωρίς ίντερνετ),
+       για να σταλούν την επόμενη φορά που θα μπει ο ίδιος. */
+    everywhere: true,
+    async logout(everywhere) {
+      leaving = true;
+      if (everywhere) {
+        let r; try { r = await sb.auth.signOut({ scope: 'global' }); } catch (e) { r = { error: e }; }
+        if (r && r.error) { leaving = false; return { error: MSG.net }; }
+      } else try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ }
       keeping = false; clearTimeout(saveT);
       ls.del(NS + ':me'); if (KEY) await STORE.del(KEY.state); location.reload();
     },
@@ -257,14 +266,22 @@
   async function mySession(wait) {
     for (let i = 1; ; i++) {
       const { data, error } = await sb.auth.getSession();
-      if (data && data.session) return data.session;
-      if (!netError(error)) return null;
+      if (!(data && data.session) && !netError(error)) return null;
+      if (data && data.session) {
+        /* η βάση επιβεβαιώνει ότι η συνεδρία ισχύει ακόμα (π.χ. «Έξοδος από όλες τις συσκευές» από αλλού) */
+        const u = await sb.auth.getUser();
+        if (!u.error) return data.session;
+        if (!netError(u.error)) return null;
+      }
       if (wait) wait();
       await online(Math.min(15000, 2000 * i));
     }
   }
   /* η βάση είπε ότι δεν είσαι πια μέσα (συνεδρία που έληξε/σβήστηκε, ανενεργός): έξοδος */
-  const out = async () => { await org.logout(); return new Promise(() => {}); };
+  let leaving = false;
+  const out = async () => { if (!leaving) await org.logout(); return new Promise(() => {}); };
+  /* όσο δουλεύει η εφαρμογή: αν η βάση δεν δεχτεί πια τη συνεδρία (σβήστηκε από αλλού), έξοδος */
+  sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && me && live && !leaving) out(); });
 
   /* ---------- Συγχρονισμός με τη βάση ---------- */
   /* Στέλνει όσα έμειναν χωρίς ίντερνετ. Αν στο μεταξύ το ίδιο έγγραφο άλλαξε από άλλη συσκευή πιο πρόσφατα,

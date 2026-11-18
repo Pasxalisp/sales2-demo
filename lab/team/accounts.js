@@ -1,6 +1,6 @@
 /* ΔΟΚΙΜΑΣΤΙΚΟ «Λογαριασμοί» (lab/team/, μαζί με το team.js). Δουλεύει μόνο όταν ο server τα προσφέρει (db.html, βάση Supabase):
    - O.setPassword:  ο χρήστης βάζει δικό του κωδικό· αν μπήκε με προσωρινό (me.mustChange), δεν προχωρά πριν τον βάλει.
-   - O.accounts:     εργαλεία διαχειριστή (κατάσταση, ξεκλείδωμα, προσωρινός κωδικός, νέος χρήστης).
+   - O.accounts:     εργαλεία διαχειριστή (κατάσταση, ξεκλείδωμα, προσωρινός κωδικός, νέος χρήστης, έξοδος από όλες τις συσκευές).
    Στο απλό demo (ψεύτικα δεδομένα στη συσκευή) δεν υπάρχουν, οπότε εδώ δεν γίνεται τίποτα.
    Κωδικούς δεν δείχνει ποτέ, εκτός από τον προσωρινό, μία φορά, στον διαχειριστή που τον έβγαλε για να τον δώσει.
    Το team.js καλεί: PL.teamAcc.badges(χρήστης) στη λίστα, PL.teamAcc.panel(θέση, χρήστης) στην καρτέλα χρήστη,
@@ -73,10 +73,16 @@
   function panel(slot, x) {
     if (!slot) return;
     const self = x.id === me.id;
-    if (self) {   // ο ίδιος ο διαχειριστής: μόνο αλλαγή του δικού του κωδικού
+    if (self) {   // ο ίδιος ο διαχειριστής: ο δικός του κωδικός και έξοδος από όλες τις συσκευές του
       if (!O.setPassword) return;
-      slot.innerHTML = `<section class="tmacc"><h3>Ο λογαριασμός μου</h3><p><button type="button" data-acc="pw">Αλλαγή του κωδικού μου</button></p></section>`;
-      slot.onclick = (ev) => { if (ev.target.closest('[data-acc="pw"]')) changePassword(false); };
+      slot.innerHTML = `<section class="tmacc"><h3>Ο λογαριασμός μου</h3><p class="tmaccb"><button type="button" data-acc="pw">Αλλαγή του κωδικού μου</button>` +
+        `${O.everywhere ? '<button type="button" data-acc="out">Έξοδος από όλες τις συσκευές</button>' : ''}</p></section>`;
+      slot.onclick = async (ev) => {
+        if (ev.target.closest('[data-acc="pw"]')) changePassword(false);
+        else if (ev.target.closest('[data-acc="out"]') && await PL.dlg.confirm('Έξοδος από όλες τις συσκευές σου, και από αυτή; Θα χρειαστεί ξανά ο κωδικός σε καθεμία.', 'Ναι, έξοδος')) {
+          const r = await O.logout(true); if (r && r.error) PL.dlg.toast(r.error);
+        }
+      };
       return;
     }
     const A = O.accounts; if (!A) return;
@@ -86,9 +92,10 @@
         : st.locked ? `<b class="dn">🔒 Κλειδωμένος</b> από ${esc(when(st.locked_at))}, μετά από ${A.max} λάθος κωδικούς.${x.admin ? ` Ως διαχειριστής ξεκλειδώνει μόνος του σε ${A.adminLockMin} λεπτά.` : ''}`
           : st.must_change ? '<b>🔑 Περιμένει να βάλει δικό του κωδικό</b> (έχει προσωρινό).'
             : '<b class="up">✓ Κανονικός</b>' + (st.fails ? ` · ⚠️ ${st.fails} λάθος κωδικοί (κλειδώνει στους ${A.max})` : '');
-      const last = st ? (st.last ? 'Τελευταία είσοδος: ' + esc(when(st.last)) : 'Δεν έχει μπει ακόμη.') : '';
+      const last = st ? (st.last ? 'Τελευταία είσοδος: ' + esc(when(st.last)) : 'Δεν έχει μπει ακόμη.') +
+        (st.devices ? ' · συνδεδεμένος ' + (st.devices === 1 ? 'σε 1 συσκευή' : 'σε ' + st.devices + ' συσκευές') : '') : '';
       slot.innerHTML = `<section class="tmacc"><h3>Λογαριασμός</h3><p class="tmaccst">${line}</p>${last ? `<p class="mu">${last}</p>` : ''}` +
-        `<p class="tmaccb">${st && st.locked ? '<button type="button" class="pri" data-acc="unlock">Ξεκλείδωμα</button>' : ''}<button type="button" data-acc="temp">Νέος προσωρινός κωδικός</button></p>` +
+        `<p class="tmaccb">${st && st.locked ? '<button type="button" class="pri" data-acc="unlock">Ξεκλείδωμα</button>' : ''}<button type="button" data-acc="temp">Νέος προσωρινός κωδικός</button>${st && st.devices ? '<button type="button" data-acc="out">Έξοδος από όλες τις συσκευές</button>' : ''}</p>` +
         `<p class="mu">Τον κωδικό του δεν τον βλέπει κανείς, ούτε ο διαχειριστής. Αν τον ξεχάσει, του δίνεις νέο προσωρινό και στην είσοδο βάζει δικό του.</p></section>`;
     };
     paint();
@@ -97,6 +104,11 @@
       b.disabled = true;
       try {
         if (b.dataset.acc === 'unlock') { await A.unlock(x.id); PL.dlg.toast('Ο λογαριασμός ξεκλειδώθηκε'); }
+        else if (b.dataset.acc === 'out') {
+          if (await PL.dlg.confirm(`Έξοδος του χρήστη ${x.name} από όλες τις συσκευές του; Για να ξαναμπεί θα χρειαστεί τον κωδικό του.`, 'Ναι, έξοδος')) {
+            await A.signout(x.id); PL.dlg.toast('Βγήκε από όλες τις συσκευές');
+          }
+        }
         else if (await PL.dlg.confirm(`Νέος προσωρινός κωδικός για τον χρήστη ${x.name}; Ο τωρινός του κωδικός σταματά να δουλεύει.`, 'Ναι, νέος κωδικός')) await showTemp(x, await A.temp(x.id));
       } catch (e) { PL.dlg.toast(e.message); }
       b.disabled = false;
