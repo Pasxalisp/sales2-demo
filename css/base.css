@@ -1784,7 +1784,7 @@ html.big .sha > :last-child:nth-child(odd) {
 @keyframes pg-up {
   from {
     opacity: 0;
-    transform: translateY(calc(14 * var(--u)));
+    transform: translateY(calc(14 * var(--u, 1px)));   /* --u: μέγεθος γραμμάτων (όπου δεν υπάρχει, 1px) */
   }
 }
 .page.pgnew .pgbox {
