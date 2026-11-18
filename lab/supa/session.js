@@ -465,6 +465,35 @@
     accounts.refresh().then(() => changed(), () => {});   // χωρίς κατάσταση λογαριασμών η εφαρμογή δουλεύει κανονικά
   }
 
+  /* ---------- Σφάλματα (απόφαση 18/11, Β11) ----------
+     Ό,τι «σκάσει» στη συσκευή γράφεται στη βάση (πίνακας app_errors), για να το δει ο διαχειριστής χωρίς να περιμένει να του
+     το πει ο πωλητής. Μόνο τι και πού: μήνυμα, αρχείο/γραμμή, σελίδα, έκδοση, συσκευή — όχι στοιχεία πελατών. Έως 10 ανά
+     άνοιγμα, το ίδιο μία φορά· τα λάθη δικτύου (χωρίς ίντερνετ) δεν μετράνε. Η βάση δέχεται έως 30 την ώρα ανά χρήστη. */
+  const ERR = { seen: new Set(), max: 10, ver: '' };
+  const NET = /Failed to fetch|NetworkError|Load failed|network connection/i;
+  if (window.caches) caches.keys().then((k) => { const v = k.find((x) => x.startsWith('sales2-app-')); ERR.ver = v ? v.slice(11) : ''; }, () => {});
+  function report(msg, src, line) {
+    const m = String(msg || '').trim().replace(/^Uncaught (\w*Error: )?/, '').slice(0, 300);   // ίδιο κείμενο από όποιον browser
+    if (!me || !m || NET.test(m) || !navigator.onLine || ERR.seen.size >= ERR.max) return;
+    const where = String(src || '').replace(location.origin, '').split('?')[0].slice(0, 200), key = m + '|' + where + '|' + (line || '');
+    if (ERR.seen.has(key)) return; ERR.seen.add(key);
+    const cur = PL.nav && PL.nav.current ? PL.nav.current() : null;
+    sb.from('app_errors').insert({ page: String((cur && cur.id) || '').slice(0, 60), msg: m, src: where, line: +line || null, ver: ERR.ver, ua: navigator.userAgent.slice(0, 160) }).then(() => {}, () => {});
+  }
+  addEventListener('error', (e) => { if (e.message) report(e.message, e.filename, e.lineno); });
+  addEventListener('unhandledrejection', (e) => { const r = e.reason;
+    const at = r && r.stack ? (String(r.stack).split('\n').find((l) => /https?:\/\//.test(l)) || '') : '', m = at.match(/(https?:\/\/[^\s)]+?):(\d+):\d+/);
+    report(r && (r.message || String(r)), m ? m[1] : '', m ? m[2] : null); });
+  /* διαχειριστής: τα πιο πρόσφατα (έως 500), με το όνομα του χρήστη */
+  org.errors = {
+    async list() {
+      if (!me || !me.admin) return [];
+      const { data, error } = await sb.from('app_errors').select('id,at,uid,page,msg,src,line,ver,ua').order('at', { ascending: false }).limit(500);
+      if (error) throw new Error(netError(error) ? MSG.net : MSG.server);
+      return (data || []).map((r) => { const p = PROFILES.find((z) => z.id === r.uid); return Object.assign({}, r, { who: p ? p.name : '—', user: p ? p.demo_id : '' }); });
+    },
+  };
+
   /* ---------- Άνοιγμα ---------- */
   /* Με μνήμη στη συσκευή: η εφαρμογή ανοίγει αμέσως από αυτήν (και χωρίς ίντερνετ)· μετά, στο παρασκήνιο, ελέγχει τη συνεδρία,
      στέλνει ό,τι έμεινε και φέρνει μόνο τις αλλαγές. Πρώτη φορά σε αυτή τη συσκευή: φέρνει όλα όσα αφορούν τον χρήστη από τη βάση.

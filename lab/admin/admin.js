@@ -30,6 +30,7 @@
     seller: SV('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
     users: SV('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 9-5.2"/><circle cx="18" cy="17" r="2.5"/><path d="M18 13v1.5M18 19.5V21M14.5 17H16M20 17h1.5"/>'),
     usage: SV('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+    alert: SV('<path d="M12 3l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5v.01"/>'),
     exit: SV('<path d="M15 5l-7 7 7 7"/>'),
     money: SV('<path d="M17 7.5A5.5 5.5 0 1 0 17 16.5"/><path d="M5 10.5h8M5 13.5h8"/>'),
     target: SV('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>'),
@@ -143,6 +144,7 @@
       S.push({ k: 'users', t: 'Χρήστες και ρόλοι', i: IC.users, search: true,
         sub: [{ k: 'useredit', p: { id: '' }, t: '+ Νέος χρήστης', cls: 'admnew' }].concat(U.map((x) => ({ k: 'useredit', p: { id: x.id }, t: x.name, r: x.admin ? 'διαχ.' : { director: 'διευθ.', lead: 'υπεύθ.', sales: '' }[x.role] || '', off: !x.active }))) });
       S.push({ k: 'usage', t: 'Χρήση εφαρμογής', i: IC.usage });
+      if (O.errors) S.push({ k: 'errors', t: 'Σφάλματα', i: IC.alert });   // μόνο με βάση (lab/errors)
     }
     return S;
   }
@@ -211,7 +213,7 @@
 
   /* ---------- Το πρόγραμμα ---------- */
   const VIEWS = { overview, sellers: sellersView, teams: teamsView, member: sellerView, useredit: userView };
-  const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'overview', 'sellers']);
+  const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'errors', 'overview', 'sellers']);
   let swap = null;   // ανοιχτή Διαχείριση: άλλη σελίδα στη θέση της τωρινής, χωρίς να γεμίσει το «Πίσω» (προηγούμενος / επόμενος πωλητής)
 
   PL.register('admin', {
