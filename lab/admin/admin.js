@@ -148,8 +148,69 @@
   }
   const same = (a, b) => a.k === b.id && ['team', 'id'].every((q) => !a.p || a.p[q] == null || (b.params || {})[q] === a.p[q]);
 
+  /* ---------- Σελίδες σε καρτέλες (πρόταση Α12, 18/11): πωλητής και χρήστης ----------
+     Ίδια κομμάτια με τις σελίδες του lab/team (PL.teamFigures.sections, useredit, teamAcc, usageuser), μοιρασμένα σε καρτέλες
+     ώστε να μη χρειάζεται μακριά κύλιση. Η καρτέλα που διάλεξες μένει όταν πας σε άλλον πωλητή/χρήστη. */
+  const tabState = { seller: 'over', user: 'data' };
+  const tabBar = (L, on) => `<div class="admtabs" role="tablist">${L.map(([id, t]) => `<button role="tab" data-tab="${id}" aria-selected="${id === on}" class="${id === on ? 'on' : ''}">${esc(t)}</button>`).join('')}</div>`;
+  const SELLER_TABS = [
+    ['over', 'Επισκόπηση', ['talk', 'flash', 'kpis']],
+    ['sales', 'Πωλήσεις', ['months', 'coll', 'cats', 'brands', 'drop', 'top']],
+    ['clients', 'Πελάτες', ['cold', 'deals', 'debt']],
+    ['work', 'Δραστηριότητα', ['weeks', 'due', 'notes']],
+  ];
+  function sellerView(box, D, params) {
+    const r = D.L.find((z) => z.x.id === params.id);
+    if (!r) { box.innerHTML = '<p class="mu">Δεν βρέθηκε ο πωλητής.</p>'; return null; }
+    const x = r.x, t = O.team(x.team), open = new Set();
+    const L = params.scope && params.scope !== '*' ? D.L.filter((z) => z.x.team === params.scope) : D.L, k = L.indexOf(r), prev = L[k - 1], next = L[k + 1];
+    box.classList.add('tmpage', 'admtabbed');
+    const paint = () => {
+      const S = TF.sections(r.f, r.st, x, open), T = SELLER_TABS.find((z) => z[0] === tabState.seller) || SELLER_TABS[0];
+      box.innerHTML = `<div class="admwho"><span class="admav big${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span>` +
+        `<div class="admwn"><h2>${esc(x.name)}</h2><p class="mu">${esc(O.ROLES[x.role])}${t ? ' · ' + esc(t.name) : ''} · ${r.f.n} πελάτες · 🔒 μόνο ανάγνωση</p></div>` +
+        `<span class="admstat ${r.st.lvl}">${dot(r.st.lvl)}${esc(LVT[r.st.lvl])}${r.f.fl ? ` · <b>${r.p}%</b>` : ''}</span>` +
+        `<span class="admpn">${prev ? `<button data-go="${esc(prev.x.id)}" title="${esc(prev.x.name)}">‹ ${esc(short(prev.x.name))}</button>` : ''}${next ? `<button data-go="${esc(next.x.id)}" title="${esc(next.x.name)}">${esc(short(next.x.name))} ›</button>` : ''}</span></div>` +
+        tabBar(SELLER_TABS, T[0]) + `<div class="tmgrid admtb">${T[2].map((key) => S[key]).join('')}</div>` +
+        `<p class="mu tmfoot">Στοιχεία orders${r.f.fl ? ' · FLASH ' + esc(u.fd(r.f.fl.d)) : ''}.</p>`;
+    };
+    paint();
+    box.addEventListener('click', (ev) => {
+      const tb = ev.target.closest('[data-tab]'); if (tb) { tabState.seller = tb.dataset.tab; paint(); return; }
+      const m = ev.target.closest('[data-more]'); if (m) { open.add(m.dataset.more); paint(); return; }
+      const g = ev.target.closest('[data-go]'); if (g) { A.swap('member', { id: g.dataset.go, scope: params.scope }); return; }   // άλλος πωλητής χωρίς να γεμίζει το «Πίσω»
+      const c = ev.target.closest('[data-cat]'); if (c) PL.nav.push('memcat', { id: c.dataset.who, k: c.dataset.cat });
+    });
+    return null;
+  }
+  const USER_TABS = [['data', 'Στοιχεία'], ['acc', 'Λογαριασμός'], ['use', 'Χρήση']];
+  function userView(box, D, params) {
+    if (!params.id) return PL.pages.useredit.render(box, params);   // νέος χρήστης: μόνο η φόρμα
+    const x = O.users().find((z) => z.id === params.id);
+    if (!x) { box.innerHTML = '<p class="mu">Δεν βρέθηκε ο χρήστης.</p>'; return null; }
+    let off = null;
+    box.classList.add('tmpage', 'admtabbed');
+    const paint = () => {
+      if (off) { try { off(); } catch (e) { /* τίποτα */ } off = null; }
+      box.innerHTML = `<div class="admwho"><span class="admav big${x.role === 'lead' ? ' l' : ''}">${esc(initials(x.name))}</span>` +
+        `<div class="admwn"><h2>${esc(x.name)}</h2><p class="mu">${esc(x.admin ? 'Διαχειριστής · ' : '')}${esc(O.ROLES[x.role])}${O.team(x.team) ? ' · ' + esc(O.team(x.team).name) : ''} · ${esc(x.email)}</p></div>` +
+        `<span class="admstat ${x.active ? 'g' : 'r'}">${dot(x.active ? 'g' : 'r')}${x.active ? 'ενεργός' : 'ανενεργός'}</span>` +
+        `${PL.usage && PL.usage.status ? `<span class="admseen">${PL.usage.status(x.id)}</span>` : ''}</div>` +
+        tabBar(USER_TABS, tabState.user) + '<div class="admtb" id="admtb"></div>';
+      const tb = box.querySelector('#admtb');
+      if (tabState.user === 'data') off = PL.pages.useredit.render(tb, { id: x.id, bare: true }) || null;
+      else if (tabState.user === 'acc') {
+        if (O.accounts && PL.teamAcc) PL.teamAcc.panel(tb, x);
+        else tb.innerHTML = '<p class="mu admnote">Στην έκδοση με βάση εδώ φαίνονται: κατάσταση λογαριασμού (κλειδωμένος, λάθος κωδικοί), τελευταία είσοδος, σε πόσες συσκευές είναι μέσα, και τα κουμπιά Ξεκλείδωμα, Νέος προσωρινός κωδικός, Έξοδος από όλες τις συσκευές.</p>';
+      } else off = PL.pages.usageuser ? PL.pages.usageuser.render(tb, { id: x.id, bare: true }) || null : null;
+    };
+    paint();
+    box.addEventListener('click', (ev) => { const tb = ev.target.closest('[data-tab]'); if (tb && tb.closest('.admtabs')) { tabState.user = tb.dataset.tab; paint(); } });
+    return () => { if (off) off(); };
+  }
+
   /* ---------- Το πρόγραμμα ---------- */
-  const VIEWS = { overview, sellers: sellersView, teams: teamsView };
+  const VIEWS = { overview, sellers: sellersView, teams: teamsView, member: sellerView, useredit: userView };
   const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'overview', 'sellers']);
   let A = null;   // ανοιχτή Διαχείριση: { go(id, params, keep), back() → αν έκανε κάτι }
   const push0 = PL.nav.push, back0 = PL.nav.back;
@@ -208,7 +269,7 @@
       }
       /* keep: άνοιξε από μέσα από σελίδα (το «Πίσω» της γυρνά εκεί)· αλλιώς από το μενού (νέα αρχή) */
       const go = (id, params, keep) => { if (keep && cur) hist.push({ id: cur.id, params: cur.params }); else hist = []; show(id, params); };
-      A = { go, back: () => { const h = hist.pop(); if (!h) return false; show(h.id, h.params); return true; } };
+      A = { go, back: () => { const h = hist.pop(); if (!h) return false; show(h.id, h.params); return true; }, swap: show };
 
       el.addEventListener('click', (ev) => {
         if (ev.target.closest('#admexit')) { back0.call(PL.nav); return; }

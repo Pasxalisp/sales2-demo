@@ -329,8 +329,9 @@
       if (!x) { el.innerHTML = '<p class="mu">Δεν βρέθηκε ο χρήστης.</p>'; return; }
       const ACC = O.accounts && PL.teamAcc, mailFixed = ACC && !isNew;   // με βάση το email είναι ο λογαριασμός εισόδου: δεν αλλάζει από εδώ
       const self = x.id === me.id, opt = (v, t, on) => `<option value="${esc(v)}"${on ? ' selected' : ''}>${esc(t)}</option>`;
+      const bare = !!params.bare;   // μέσα σε καρτέλα της Διαχείρισης: χωρίς επικεφαλίδα και χωρίς «Λογαριασμός» (έχουν δική τους θέση)
       el.classList.add('tmpage');
-      el.innerHTML = `<div class="tmwho">${isNew ? '' : `<span class="tmav big">${esc(initials(x.name))}</span>`}<div><h2>${isNew ? 'Νέος χρήστης' : esc(x.name)}</h2><div class="mu">${isNew ? 'Συμπλήρωσε και πάτησε Αποθήκευση' : esc(O.ROLES[x.role])}</div></div></div>` +
+      el.innerHTML = (bare ? '' : `<div class="tmwho">${isNew ? '' : `<span class="tmav big">${esc(initials(x.name))}</span>`}<div><h2>${isNew ? 'Νέος χρήστης' : esc(x.name)}</h2><div class="mu">${isNew ? 'Συμπλήρωσε και πάτησε Αποθήκευση' : esc(O.ROLES[x.role])}</div></div></div>`) +
         `<div class="tmform"><label>Όνομα<input id="ufn" value="${esc(x.name)}" placeholder="π.χ. Δημήτρης Αλεξίου"></label>` +
         `<label>Email (για την είσοδο)<input id="ufe" type="email" value="${esc(x.email)}" placeholder="onoma@sales2.demo"${mailFixed ? ' readonly' : ''}>${mailFixed ? '<small class="mu">Είναι ο λογαριασμός εισόδου του· δεν αλλάζει από εδώ.</small>' : ''}</label>` +
         `<label>Ρόλος<select id="ufr">${Object.entries(O.ROLES).map(([k, t]) => opt(k, t, x.role === k)).join('')}</select></label>` +
@@ -341,8 +342,8 @@
         (ACC ? `<p class="mu">Οι πελάτες έρχονται από τον κωδικό πωλητή, όπως είναι στο orders. ${isNew ? 'Με την αποθήκευση βγαίνει προσωρινός κωδικός εισόδου για να του τον δώσεις· στην πρώτη είσοδο βάζει δικό του.' : ''}</p>`
           : '<p class="mu">Οι πελάτες έρχονται από τον κωδικό πωλητή, όπως είναι στο orders. Κωδικός εισόδου στη δοκιμαστική: <b>demo</b>· στην κανονική ο καθένας βάζει δικό του.</p>') +
         `<p><button class="pri" id="ufsave">Αποθήκευση</button> <span id="uferr" class="dn"></span></p></div>` +
-        (ACC && !isNew ? '<div id="ufacc"></div>' : '');
-      if (ACC && !isNew) PL.teamAcc.panel(el.querySelector('#ufacc'), x);
+        (ACC && !isNew && !bare ? '<div id="ufacc"></div>' : '');
+      if (ACC && !isNew && !bare) PL.teamAcc.panel(el.querySelector('#ufacc'), x);
       const $ = (s) => el.querySelector(s);
       const sync = () => { const dir = $('#ufr').value === 'director'; el.querySelectorAll('.ufs').forEach((z) => { z.style.display = dir ? 'none' : ''; }); const c = $('#ufc').value.trim(); $('#ufcn').textContent = c ? (n[c] || 0) + ' πελάτες με αυτόν τον κωδικό' : ''; };
       $('#ufr').addEventListener('change', sync); $('#ufc').addEventListener('input', sync); sync();

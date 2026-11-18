@@ -157,7 +157,8 @@
         const L = docs().filter((z) => z.u === x.id), S = screens(L), tot = S.reduce((a, q) => a + q.s, 0), nAct = acts(L).reduce((a, [, n]) => a + n, 0);
         const days = []; for (let k = st.per - 1; k >= 0; k--) days.push(ymd(Date.now() - k * 864e5));
         const per = days.map((dd) => { const z = L.find((q) => q.d === dd); return [dd, z ? secsOf(z) : 0]; }), mx = Math.max(60, ...per.map((q) => q[1])), act = per.filter((q) => q[1] > 0).length;
-        el.innerHTML = `<div class="tmhead"><h2>${esc(x.name)}</h2><p class="mu">${esc(x.admin ? 'Διαχειριστής' : O.ROLES[x.role] || '')} · ${status(x.id)}</p></div>` + chips() +
+        /* params.bare: μέσα σε καρτέλα της Διαχείρισης, χωρίς επικεφαλίδα (το όνομα είναι ήδη από πάνω) */
+        el.innerHTML = (params.bare ? '' : `<div class="tmhead"><h2>${esc(x.name)}</h2><p class="mu">${esc(x.admin ? 'Διαχειριστής' : O.ROLES[x.role] || '')} · ${status(x.id)}</p></div>`) + chips() +
           kpis([['Συνολικός χρόνος', dur(tot), ''], ['Ενεργές μέρες', `${act}<small>/${per.length}</small>`, ''], ['Μέσος χρόνος', act ? dur(tot / act) : '—', 'ανά ενεργή μέρα'],
             ['Σελίδες', S.length, ''], ['Αποθηκεύσεις', nAct, '']]) +
           `<div class="tmgrid">` +
