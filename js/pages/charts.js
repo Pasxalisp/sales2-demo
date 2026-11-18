@@ -77,7 +77,7 @@
           else if (t.dataset && t.dataset.xdel) {
             const id = t.dataset.xdel, x = S.get('extra', id); if (!x) return;
             if (!(await D.confirm('Να διαγραφεί η λιανική πώληση ' + eur(+x.amount || 0) + (x.cname ? ' (' + x.cname + ')' : '') + ';'))) return;
-            S.drop('extra', id); paint(); try { await db().remove('extra/' + id); } catch (e) { /* τίποτα */ }
+            try { await PL.trash.doc('extra/' + id, 'Λιανική πώληση · ' + eur(+x.amount || 0) + (x.cname ? ' · ' + x.cname : '')); } catch (e) { D.toast('Δεν διαγράφηκε. Έλεγξε τη σύνδεση.'); } paint();
           } else if (t.id === 'gxsave') {
             const v = parseFloat(String($('#gxa').value).replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'));
             if (!(v > 0)) { $('#gxst').textContent = 'Γράψε το ποσό, π.χ. 45 ή 45,50'; return; }

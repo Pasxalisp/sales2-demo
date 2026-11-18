@@ -36,7 +36,8 @@
     return '<h3>📝 Πρόχειρα (δεν αποθηκεύτηκαν)</h3>' + L.map(([id, x]) => `<div class="card" style="cursor:default;border-style:dashed"><div class="row"><span class="nm">${esc(E.planName(x))}</span><span class="mu">${(x.stops || []).length} πελάτες</span></div><div class="mu" style="font-size:calc(13*var(--u))">Τελευταία αλλαγή ${esc((() => { try { return new Date(x.ts).toLocaleString('el-GR', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } })())}</div><div style="display:flex;gap:6px;margin-top:8px"><button class="pri" data-pdo="${esc(id)}">▶ Συνέχεια</button><button data-pdx="${esc(id)}">🗑 Διαγραφή</button></div></div>`).join('');
   };
   PV.openDraft = (id) => { const x = S.get('pdrafts', id); if (!x) return; PV.openNew(Object.assign(clone(x), { id: null, saved: false, did: id })); };
-  PV.deleteDraft = async (id) => { try { await db().remove('pdrafts/' + id); } catch (e) { /* τίποτα */ } S.drop('pdrafts', id); };
+  /* ο χρήστης σβήνει πρόχειρο: στον κάδο, με «Αναίρεση» (js/trash.js) */
+  PV.deleteDraft = async (id) => { const x = S.get('pdrafts', id); try { await PL.trash.doc('pdrafts/' + id, 'Πρόχειρο προγράμματος · ' + (x ? E.planName(x) : '')); } catch (e) { D.toast('Δεν διαγράφηκε. Έλεγξε τη σύνδεση.'); } };
 
   /* ---------- Οθόνη ---------- */
   PL.register('planview', {
@@ -190,7 +191,7 @@
           else if (t.id === 'plxls') { t.disabled = true; const st = $('#plxst'); st.textContent = 'Ετοιμάζω το Excel…'; st.textContent = await E.exportXlsx(cur); t.disabled = false; }
           else if (t.id === 'pldel') { $('#plact').innerHTML = `<span>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(E.planName(cur))}»;</span><br><button class="pri" id="pldy" style="background:#d9382f;border-color:#d9382f;margin-top:8px">Ναι, διαγραφή</button> <button id="pldn" style="margin-top:8px">Άκυρο</button>`; }
           else if (t.id === 'pldn') renderPlan();
-          else if (t.id === 'pldy') { const id = cur.id; cur = null; try { await E.deletePlan(id); } catch (e) { /* τίποτα */ } PL.nav.back(); }
+          else if (t.id === 'pldy') { const id = cur.id, nm = E.planName(cur); try { await PL.trash.doc('plans/' + id, 'Πρόγραμμα · ' + nm); } catch (e) { D.toast('Δεν διαγράφηκε. Έλεγξε τη σύνδεση.'); return; } cur = null; PL.nav.back(); }
           else if (t.id === 'pladdb') {
             const id = PL.dclId($('#pladd').value), c = M.byId(id);
             if (!c) { D.toast('Διάλεξε πελάτη από τη λίστα'); return; }

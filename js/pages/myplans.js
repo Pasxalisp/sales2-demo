@@ -46,7 +46,7 @@
             const p = S.get('plans', t.dataset.pdel);
             t.closest('.card').innerHTML = `<div>Σίγουρα θες να διαγράψεις το πρόγραμμα «${esc(p ? E.planName(p) : '')}»;</div><p style="margin:8px 0 0"><button class="pri" data-pdy="${esc(t.dataset.pdel)}" style="background:#d9382f;border-color:#d9382f">Ναι, διαγραφή</button> <button data-pdn="1">Άκυρο</button></p>`;
           }
-          else if (t.dataset.pdy) { try { await E.deletePlan(t.dataset.pdy); } catch (e) { /* τίποτα */ } paint(); }
+          else if (t.dataset.pdy) { const p = S.get('plans', t.dataset.pdy); try { await PL.trash.doc('plans/' + t.dataset.pdy, 'Πρόγραμμα · ' + (p ? E.planName(p) : '')); } catch (e) { D.toast('Δεν διαγράφηκε. Έλεγξε τη σύνδεση.'); } paint(); }
           else if (t.dataset.pdn) paint();
           else if (t.dataset.pdo) PL.planview.openDraft(t.dataset.pdo);
           else if (t.dataset.pdx) {

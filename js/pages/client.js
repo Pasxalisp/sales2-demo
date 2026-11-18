@@ -207,7 +207,7 @@
           }
           else if (t.dataset.del !== undefined) {
             if (!await D.confirm('Να διαγραφεί αυτή η καταγραφή από το ιστορικό;')) return;
-            await PL.notes.remove(id, M.entries(id)[+t.dataset.del]);
+            await PL.trash.note(id, M.entries(id)[+t.dataset.del], 'Σημείωση · ' + ((M.byId(id) || {}).name || ''));   // στον κάδο, με «Αναίρεση»
           }
         } catch (e) { const m = $('#svmsg'); if (m) m.textContent = 'Δεν αποθηκεύτηκε: ' + ((e && e.message) || e); const b = $('#sv'); if (b) b.disabled = false; }
       });

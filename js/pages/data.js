@@ -1,4 +1,4 @@
-/* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): θέμα, μέγεθος γραμμάτων και έλεγχος (μέτρηση της βάσης).
+/* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): θέμα, μέγεθος γραμμάτων, κάδος (js/trash.js) και έλεγχος (μέτρηση της βάσης).
    Δεν γράφει τίποτα στη βάση. Τα δεδομένα του orders τα περνά το Claude απευθείας. */
 (function () {
   const PL = window.PL, D = () => PL.dataio;
@@ -16,11 +16,16 @@
              <label class="fsauto"><input type="checkbox" id="fsa"> Όπως το κινητό</label>
              <div class="fsbox" id="fsb"><span class="fsa" aria-hidden="true">A</span><input type="range" id="fsr" min="1" max="7" step="1" aria-label="Μέγεθος γραμμάτων"><span class="fsa big" aria-hidden="true">A</span>
                <div class="fsdots" aria-hidden="true">${'<i></i>'.repeat(7)}</div></div></div>
+           <div class="card" id="trgo" style="margin-bottom:10px"><div class="row"><b>🗑 Κάδος</b><span class="mu" id="trn"></span></div>
+             <p class="mu">Ό,τι διαγράφεις μένει εδώ ${PL.trash.DAYS} μέρες και επαναφέρεται με ένα πάτημα.</p></div>
            <div class="card" style="cursor:default;margin-bottom:10px"><b>Έλεγχος</b>
              <p class="mu">Μετράει τι υπάρχει τώρα στη βάση. Δεν αλλάζει τίποτα.</p>
              <button id="cnt">Μέτρηση</button><div id="res"></div></div>
          </div>`;
       const $ = (s) => el.querySelector(s);
+      /* Κάδος (js/trash.js): πόσα έχει, πάτημα → η λίστα με «Επαναφορά» */
+      $('#trgo').onclick = () => PL.nav.push('trash');
+      PL.store.use('trash').then(() => { const n = PL.trash.list().length; if (el.isConnected) $('#trn').textContent = n ? n + (n === 1 ? ' διαγραφή' : ' διαγραφές') : 'άδειος'; });
       $('#thm').onclick = (e) => { const b = e.target.closest('#thm [data-th]'); if (!b) return; PL.theme.set(b.dataset.th); el.querySelectorAll('#thm [data-th]').forEach((x) => x.classList.toggle('on', x === b)); };
       /* «Όπως το κινητό» ή ένα από τα 7 σκαλιά· το ρυθμιστικό δείχνει πάντα το σκαλί που ισχύει τώρα */
       const fsShow = () => { const auto = !PL.fontSize.get(); $('#fsa').checked = auto; $('#fsb').classList.toggle('auto', auto); $('#fsr').value = PL.fontSize.step(); };

@@ -1364,9 +1364,21 @@ main {
   padding: 10px 16px;
   border-radius: 14px;
   font-size: calc(14 * var(--u));
-  max-width: 86vw;
+  width: max-content;   /* σε μία γραμμή όσο χωράει, όχι στενό στη μέση */
+  max-width: min(86vw, 520px);
   box-shadow: 0 6px 18px rgba(0,0,0,.25);
   display: none;
+}
+/* κουμπί μέσα στο μήνυμα (π.χ. «Αναίρεση», js/trash.js) */
+#ntoast .tact {
+  margin: -4px -6px -4px 8px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 700;
+  font-size: calc(14 * var(--u));
 }
 
 /* ---- Φύλλα δεξιά (τάμπλετ): sheet.js και τα φύλλα visit, task, debt, deal, techreq, buyer, salesitem ---- */

@@ -40,7 +40,16 @@
         $('chmb').onclick = (ev) => { const b = ev.target.closest('[data-ch]'); if (!b) return; m.style.display = 'none'; $('chmb').onclick = null; res(+b.dataset.ch); };
       });
     },
-    toast(msg) { const t = $('ntoast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(tT); tT = setTimeout(() => { t.style.display = 'none'; }, 3200); },
+    /* act = { label, fn }: κουμπί μέσα στο μήνυμα (π.χ. «Αναίρεση» μετά από διαγραφή, js/trash.js)· τότε μένει 6″ αντί για 3,2″ */
+    toast(msg, act) {
+      const t = $('ntoast'); t.textContent = msg;
+      if (act) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'tact'; b.textContent = act.label;
+        b.onclick = () => { clearTimeout(tT); t.style.display = 'none'; act.fn(); };
+        t.append(' ', b);
+      }
+      t.style.display = 'block'; clearTimeout(tT); tT = setTimeout(() => { t.style.display = 'none'; }, act ? 6000 : 3200);
+    },
     /* Εφέ «Ολοκληρώθηκε» (πράσινο τικ, 3″) όταν τελειώνει ένα πρόγραμμα. */
     celebrate(p, onClose) {
       PL.dlg.celebrated.add(p && p.id);

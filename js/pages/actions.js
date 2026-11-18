@@ -160,8 +160,8 @@
           } else if (t.id === p + 'del') {
             if (!(await D.confirm('Να διαγραφεί ' + K.the + ' «' + x.title + '»; Οι πελάτες δεν επηρεάζονται.'))) return;
             gone = true;
-            try { await db().remove(K.col + '/' + id); } catch (e) { /* χωρίς σύνδεση */ }
-            S.drop(K.col, id); PL.nav.back();
+            try { await PL.trash.doc(K.col + '/' + id, K.one[0].toUpperCase() + K.one.slice(1) + ' · ' + (x.title || '')); } catch (e) { gone = false; D.toast('Δεν διαγράφηκε. Έλεγξε τη σύνδεση.'); return; }
+            PL.nav.back();
           }
         });
         return () => offs.forEach((f) => f());

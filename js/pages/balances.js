@@ -36,7 +36,8 @@
     else Q[id] = { v: Object.assign({}, note(id) || {}, { t: tx, pay, d: u.today(), name: (M.byId(id) || {}).name || '' }), st: 'saving' };
     qsave(); changed(); flush();
   };
-  const drop = async (id) => { delete Q[id]; qsave(); await db().remove('balnotes/' + id); S.drop('balnotes', id); changed(); };
+  /* ο χρήστης σβήνει την ενημέρωση: στον κάδο, με «Αναίρεση» (js/trash.js) */
+  const drop = async (id) => { delete Q[id]; qsave(); await PL.trash.doc('balnotes/' + id, 'Ενημέρωση υπολοίπου · ' + ((M.byId(id) || {}).name || '')); changed(); };
   /* κατάσταση αποθήκευσης για εμφάνιση: '' (αποθηκεύτηκε) | 'saving' | 'err' */
   const state = (id) => (Q[id] ? Q[id].st : '');
   PL.balnotes = { get: note, put, drop, state, on: (f) => { subs.add(f); return () => subs.delete(f); }, flush };
