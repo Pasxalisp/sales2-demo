@@ -1,4 +1,5 @@
-/* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): θέμα, μέγεθος γραμμάτων, κάδος (js/trash.js) και έλεγχος (μέτρηση της βάσης).
+/* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): θέμα, μέγεθος γραμμάτων, κάδος (js/trash.js), έλεγχος (μέτρηση της βάσης)
+   και ό,τι προσθέτουν τα δοκιμαστικά (lab/, π.χ. ειδοποιήσεις).
    Δεν γράφει τίποτα στη βάση. Τα δεδομένα του orders τα περνά το Claude απευθείας. */
 (function () {
   const PL = window.PL, D = () => PL.dataio;
@@ -18,6 +19,7 @@
                <div class="fsdots" aria-hidden="true">${'<i></i>'.repeat(7)}</div></div></div>
            <div class="card" id="trgo" style="margin-bottom:10px"><div class="row"><b>🗑 Κάδος</b><span class="mu" id="trn"></span></div>
              <p class="mu">Ό,τι διαγράφεις μένει εδώ ${PL.trash.DAYS} μέρες και επαναφέρεται με ένα πάτημα.</p></div>
+           <div id="dlabs"></div>
            <div class="card" style="cursor:default;margin-bottom:10px"><b>Έλεγχος</b>
              <p class="mu">Μετράει τι υπάρχει τώρα στη βάση. Δεν αλλάζει τίποτα.</p>
              <button id="cnt">Μέτρηση</button><div id="res"></div></div>
@@ -32,6 +34,8 @@
       $('#fsr').oninput = (e) => { PL.fontSize.set(e.target.value); fsShow(); };
       $('#fsa').onchange = (e) => { PL.fontSize.set(e.target.checked ? '' : String(PL.fontSize.step())); fsShow(); };
       fsShow();
+      /* δοκιμαστικά (φάκελος lab/): PL.labActs με page 'data' και mount(κουτί) → καθάρισμα (π.χ. ειδοποιήσεις, lab/push) */
+      const labs = (PL.labActs || []).filter((x) => x.page === 'data' && x.mount).map((x) => x.mount($('#dlabs')));
       $('#cnt').onclick = async () => {
         $('#res').textContent = 'Μετράω…';
         try {
@@ -41,6 +45,7 @@
             row('Πελάτες', c.clients) + row('Εγγραφές', c.docs) + row('Συλλογές με δεδομένα', c.collections) + `</table>`;
         } catch (e) { $('#res').textContent = 'Σφάλμα: ' + ((e && e.message) || e); }
       };
+      return () => labs.forEach((f) => f && f());
     },
   });
 })();

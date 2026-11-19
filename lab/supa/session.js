@@ -215,7 +215,11 @@
       if (everywhere) {
         let r; try { r = await sb.auth.signOut({ scope: 'global' }); } catch (e) { r = { error: e }; }
         if (r && r.error) { leaving = false; return { error: MSG.net }; }
-      } else try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ }
+        await org.push.forget();   // η συνδρομή καταργείται· τη γραμμή της τη σβήνει η βάση στην επόμενη αποστολή
+      } else {
+        await org.push.forget();   // πριν βγει: με τη σύνδεση σβήνει και τη γραμμή της συσκευής από τη βάση
+        try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* τίποτα */ }
+      }
       keeping = false; clearTimeout(saveT);
       ls.del(NS + ':me'); ls.del(RECOVER); if (KEY) await STORE.del(KEY.state); location.reload();
     },
@@ -504,6 +508,42 @@
       const P = (id) => PROFILES.find((z) => z.id === id);
       return (data || []).map((r) => { const o = P(r.uid), b = P(r.by);
         return Object.assign({}, r, { who: o ? o.name : '—', user: o ? o.demo_id : '', byName: b ? b.name : r.by ? '—' : 'σύστημα' }); });
+    },
+  };
+
+  /* Ειδοποιήσεις με κλειστή εφαρμογή (απόφαση 19/11, Β5). Η συσκευή γράφεται στο push_subs· η εφαρμογή στέλνει στη βάση τις
+     επόμενες υπενθυμίσεις του χρήστη (set_reminders) και τις στέλνει η ίδια η βάση την ώρα τους (εργασία push-send, κάθε λεπτό).
+     Η οθόνη και ο συγχρονισμός είναι στο lab/push/push.js· εδώ μόνο η μεταφορά. */
+  const fail = (error) => new Error(netError(error) ? MSG.net : MSG.server);
+  org.push = {
+    /* το δημόσιο κλειδί του server (null αν δεν έχει φτιαχτεί ακόμη: φτιάχνεται μόνο του μέσα σε ένα λεπτό) */
+    async publicKey() { const { data, error } = await sb.rpc('push_public_key'); if (error) throw fail(error); return data || null; },
+    /* η συσκευή (PushSubscription) στον χρήστη μου· false αν ανήκει ήδη σε άλλον χρήστη (τότε η σελίδα φτιάχνει νέα) */
+    async save(sub) {
+      const j = sub.toJSON(), row = { endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, ua: navigator.userAgent.slice(0, 160) };
+      const { error } = await sb.from('push_subs').upsert(row, { onConflict: 'endpoint' });
+      if (!error) return true;
+      if (netError(error)) throw fail(error);
+      return false;
+    },
+    async remove(endpoint) { const { error } = await sb.from('push_subs').delete().eq('endpoint', endpoint); if (error) throw fail(error); },
+    /* όλες οι επόμενες υπενθυμίσεις μου [{key, at (ISO), title, body, url}]· όσες λείπουν σβήνονται */
+    async setReminders(items) { const { error } = await sb.rpc('set_reminders', { items }); if (error) throw fail(error); },
+    /* δοκιμαστική ειδοποίηση τώρα· { sent } ή { error: μήνυμα } */
+    async test() {
+      let r; try { r = await api.pushTest(); } catch (e) { return { error: MSG.net }; }
+      if (r.error === 'nosub') return { error: 'Αυτή η συσκευή δεν έχει γραφτεί ακόμη για ειδοποιήσεις.' };
+      if (r.error) return { error: msg(r.error) };
+      return { sent: r.sent, failed: r.failed };
+    },
+    /* στην «Έξοδο»: η συσκευή παύει να δέχεται τις ειδοποιήσεις αυτού του χρήστη (ακόμη και χωρίς ίντερνετ: η διεύθυνσή της
+       καταργείται και η βάση τη σβήνει μόνη της στην επόμενη αποστολή) */
+    async forget() {
+      const reg = navigator.serviceWorker ? await navigator.serviceWorker.getRegistration().catch(() => null) : null;
+      const sub = reg && reg.pushManager ? await reg.pushManager.getSubscription().catch(() => null) : null;
+      if (!sub) return;
+      await sb.from('push_subs').delete().eq('endpoint', sub.endpoint).then(() => {}, () => {});
+      await sub.unsubscribe().catch(() => {});
     },
   };
 
