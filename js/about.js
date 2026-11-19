@@ -8,6 +8,7 @@
     name: 'Sales',
     sub: '2.0',
     version: 'Δοκιμαστική έκδοση',
+    build: '',   // πότε ενημερώθηκε η έκδοση που τρέχει· τη συμπληρώνει όποιος την ξέρει (στο demo το lab/offline, από το sw.js)
     owner: 'Πασχάλης Π.',
     year: 2026,
   };
@@ -17,7 +18,7 @@
   function open() {
     if (document.getElementById('about')) return;
     const o = document.createElement('div'); o.id = 'about'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-labelledby', 'abt');
-    o.innerHTML = `<div class="abb">${logo()}<h2 id="abt">${esc(APP.name)}<small>${esc(APP.sub)}</small></h2><p class="abv">${esc(APP.version)}</p>` +
+    o.innerHTML = `<div class="abb">${logo()}<h2 id="abt">${esc(APP.name)}<small>${esc(APP.sub)}</small></h2><p class="abv">${esc(APP.version)}</p>` + (APP.build ? `<p class="abv abd">${esc(APP.build)}</p>` : '') +
       `<div class="abl"></div><p class="abk">ΙΔΕΑ, ΣΧΕΔΙΑΣΜΟΣ ΚΑΙ ΑΝΑΠΤΥΞΗ</p><p class="abo">${esc(APP.owner)}</p><div class="abl"></div>` +
       `<p class="abc">© ${APP.year} · Με την επιφύλαξη παντός δικαιώματος</p><button type="button" class="abx">Κλείσιμο</button></div>`;
     const close = () => { o.classList.remove('on'); document.removeEventListener('keydown', key); setTimeout(() => o.remove(), 200); };

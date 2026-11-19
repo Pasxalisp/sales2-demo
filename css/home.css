@@ -649,6 +649,10 @@ html.big #home button.tl {
   font-size: calc(13 * var(--u));
   color: var(--mu);
 }
+#about .abv.abd {   /* πότε ενημερώθηκε (demo, από το lab/offline) */
+  margin-top: 2px;
+  font-size: calc(12 * var(--u));
+}
 #about .abl {
   height: 1px;
   margin: 18px 0;
