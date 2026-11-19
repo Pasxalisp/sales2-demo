@@ -963,26 +963,38 @@ main {
 }
 
 /* ---- Κάτω μπάρα, «Νέο», κουμπί ανοιχτού προγράμματος, μπάρα κύλισης ---- */
+/* Κάτω μπάρα (19/11, όπως το iOS 26): κάψουλα με τις 4 ενότητες και, δίπλα, στρογγυλό κουμπί Υπαγόρευσης. Και τα δύο από γυαλί. */
 #nav {
   position: fixed;
   left: 12px;
   right: 12px;
   bottom: var(--navb);
   z-index: 40;
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
+  display: flex;
   align-items: center;
-  padding: 7px 4px;
-  border-radius: 30px;
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto;
+  transition: transform .2s,opacity .2s;
+}
+#nav .ncap,
+#nav .nb.nmic {
   background: var(--glnav);
   -webkit-backdrop-filter: blur(var(--glblur)) saturate(var(--glsat));
   backdrop-filter: blur(var(--glblur)) saturate(var(--glsat));
   border: 1px solid var(--glb);
-  /* λάμψη στο πάνω χείλος, απαλό φως στο κάτω, σκιά που την κάνει να «επιπλέει» */
+  /* λάμψη στο πάνω χείλος, απαλό φως στο κάτω, σκιά που τα κάνει να «επιπλέουν» */
   box-shadow: var(--glsh), inset 0 1px .5px var(--gli), inset 0 -1px 1px rgba(255,255,255,.14);
-  max-width: 520px;
-  margin: 0 auto;
-  transition: transform .2s,opacity .2s;
+}
+#nav .ncap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  align-items: center;
+  padding: 7px 4px;
+  border-radius: 32px;
 }
 #nav.off {
   transform: translateY(140%);
@@ -1190,22 +1202,36 @@ main {
 #nav .nhome>svg {
   margin-top: -2px;
 }
-#nav .nmic {
+/* Υπαγόρευση: στρογγυλό γυάλινο κουμπί δεξιά από την κάψουλα, με το κόκκινο μικρόφωνο· η λέξη μόνο για τους αναγνώστες οθόνης */
+#nav .nb.nmic {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
   color: #b8463e;
+}
+#nav .nmic>span:not(.mc) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 #nav .nmic .mc {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 26px;
-  border-radius: 13px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
   background: rgba(217,56,47,.13);
   color: #c4453c;
 }
 #nav .nmic .mc svg {
-  width: 19px;
-  height: 19px;
+  width: 24px;
+  height: 24px;
 }
 @media (prefers-color-scheme:dark) {
   :root:not([data-theme="light"]) #nav .nmic {
@@ -1672,11 +1698,15 @@ html.big .sha > :last-child:nth-child(odd) {
     bottom: auto;
     transform: translateY(-50%);
     width: 72px;
+    flex-direction: column;
+    margin: 0;
+  }
+  #nav .ncap {
+    width: 100%;
     grid-template-columns: none;
     grid-auto-flow: row;
     gap: 6px;
     padding: 10px 4px;
-    margin: 0;
   }
   #nav.off {
     transform: translate(-140%,-50%);

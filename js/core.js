@@ -305,11 +305,14 @@
       const sec = [...stack].reverse().map((e) => e.id).find((id) => TABS.some((t) => t[0] === id)) || 'home', nav = $('#nav');
       /* τα κουμπιά φτιάχνονται μία φορά· σε κάθε αλλαγή σελίδας αλλάζει μόνο ποιο είναι πατημένο (και γλιστράει το πλαίσιο) */
       if (!nav.querySelector('.nb')) {
-        nav.innerHTML = '<i class="npill" aria-hidden="true"></i>' + TABS.map(([id, label, aria, icon]) => {
-          const ic = id === 'dictate' ? `<span class="mc">${SV(icon, 18)}</span>` : SV(icon, id === 'home' ? 25 : 22);
+        /* οι 4 ενότητες σε μια κάψουλα (με το πλαίσιο που γλιστράει)· η Υπαγόρευση χωριστά δεξιά, στρογγυλό κουμπί (19/11, όπως το iOS 26) */
+        const btn = ([id, label, aria, icon]) => {
+          const ic = id === 'dictate' ? `<span class="mc">${SV(icon, 24)}</span>` : SV(icon, id === 'home' ? 25 : 22);
           return `<button class="nb${id === 'home' ? ' nhome' : ''}${id === 'dictate' ? ' nmic' : ''}" data-a="${id}" aria-label="${aria}">${ic}<span>${label}</span>` +
             (id === 'tasks' ? `<i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i>` : '') + '</button>';
-        }).join('');
+        };
+        nav.innerHTML = '<div class="ncap"><i class="npill" aria-hidden="true"></i>' + TABS.filter((t) => t[0] !== 'dictate').map(btn).join('') + '</div>' +
+          TABS.filter((t) => t[0] === 'dictate').map(btn).join('');
         /* στροφή οθόνης (μπάρα κάτω ↔ στο πλάι): το πλαίσιο πάει στη θέση του χωρίς κίνηση. Μόνο όταν αλλάξει το πλάτος της
            μπάρας· το ύψος αλλάζει λίγο με κάθε πατημένο κουμπί και δεν πρέπει να κόβει την κίνηση. */
         let w0 = 0; if (window.ResizeObserver) new ResizeObserver(() => { if (nav.offsetWidth !== w0) { w0 = nav.offsetWidth; pill(true); } }).observe(nav);
@@ -320,7 +323,8 @@
     },
   };
   /* Το πλαίσιο της ενότητας όπου βρίσκεσαι (απόφαση Πασχάλη 17/11): ένα στοιχείο (.npill) που γλιστράει στο πατημένο κουμπί
-     αντί να πηδάει. Θέση από το offsetLeft/Top (όχι από το «πάτημα» του κουμπιού). Στην Υπαγόρευση δεν φαίνεται (έχει δικό της). */
+     αντί να πηδάει. Θέση από το offsetLeft/Top μέσα στην κάψουλα (όχι από το «πάτημα» του κουμπιού). Στην Υπαγόρευση δεν φαίνεται
+     (είναι χωριστό στρογγυλό κουμπί). */
   function pill(instant) {
     const nav = $('#nav'), p = nav.querySelector('.npill'), b = nav.querySelector('.nb.on:not(.nmic)'); if (!p) return;
     if (!b) { p.classList.remove('vis'); return; }
