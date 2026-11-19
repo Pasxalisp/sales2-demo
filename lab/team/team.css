@@ -26,30 +26,19 @@ body.tmlock { overflow: hidden; }
 .tmqi { font-size: calc(24 * var(--u)); width: 36px; text-align: center; flex: none; }
 .tmhint { font-size: calc(13 * var(--u)); text-align: center; }
 
-/* ---- αρχική: ποιος είναι μέσα + πλακίδια ρόλου ---- */
-#tmhome { display: flex; flex-direction: column; gap: clamp(8px, 1.5vh, 12px); flex: none; }
-#home .tmme { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 4px; border: 1px solid var(--hbd); border-radius: 999px; background: var(--hc1); }
-#home .tmme > div { flex: 1; min-width: 0; font-size: calc(14 * var(--u)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#home .tmme .mu { font-size: calc(13 * var(--u)); }
-#home .tmme .tmav { width: 30px; height: 30px; font-size: calc(12 * var(--u)); }
-#home .tmme button { flex: none; display: inline-block; font-size: calc(13 * var(--u)); font-weight: 600; padding: 5px 12px; border-radius: 999px; }
-#home button.duec.tmtile { padding-top: clamp(6px, 1vh, 12px); padding-bottom: clamp(6px, 1vh, 12px); border-radius: 18px; }
-#home button.duec.tmtile .dc { width: clamp(32px, 4.6vh, 42px); height: clamp(32px, 4.6vh, 42px); }
-#home button.duec.tmtile .dt { flex-direction: row; align-items: baseline; flex-wrap: wrap; column-gap: 10px; }
-#home button.duec.tmtile .dm { font-size: clamp(calc(13 * var(--u)), 1.8vh, calc(15 * var(--u))); font-weight: 600; opacity: .85; }
-#home button.duec.tmtile .dl { font-size: clamp(calc(16 * var(--u)), 2.2vh, calc(19 * var(--u))); font-weight: 800; opacity: 1; }
-#home button.duec.tmtile .dc svg { width: 24px; height: 24px; }
-#home button.duec.tmtile.lead { background: linear-gradient(115deg, #c9dcfb 0%, #8fb6f2 100%); color: #10284f; box-shadow: 0 8px 22px rgba(37, 99, 201, .18); }
-#home button.duec.tmtile.lead .dc { color: #10284f; }
-#home button.duec.tmtile.lead::after { background: #10284f; }
-#home button.duec.tmtile.dir { background: linear-gradient(115deg, #2f6f5e 0%, #1f4f43 100%); color: #fff; }
-#home button.duec.tmtile.dir .dc { color: #1f4f43; }
-#home button.duec.tmtile.dir::after { background: #fff; }
-#home button.duec.tmtile.adm { background: var(--hc1); border: 1px solid var(--hbd); color: var(--tx); box-shadow: none; }
-#home button.duec.tmtile.adm .dc { background: var(--hch); color: var(--hic); }
-#home button.duec.tmtile.adm::after { background: var(--mu); }
-/* ο διευθυντής δεν έχει δικούς του πελάτες: στην αρχική μόνο οι ομάδες */
-body.tmdir #home .hg, body.tmdir #home #hdue, body.tmdir #home #hmatch { display: none; }
+/* ---- αρχική: το όνομα, μικρό κουμπί κάτω από την ημερομηνία (απόφαση 19/11· πάτημα → μενού κωδικός / έξοδος) ---- */
+#home .hh:has(#tmchip) button#hlogo { grid-row: 1 / span 2; }
+#home button#tmchip {
+  grid-row: 2; grid-column: 2; justify-self: start; flex: none;
+  display: inline-flex; flex-direction: row; align-items: center; gap: 6px;
+  max-width: 100%; margin: 2px 0 0; padding: 3px 10px 3px 3px;
+  border: 1px solid var(--hbd); border-radius: 999px; background: var(--hc1); color: var(--tt);
+  font-size: calc(13 * var(--u)); font-weight: 600; line-height: 1.2;
+}
+#home #tmchip .tmav { width: 24px; height: 24px; font-size: calc(10 * var(--u)); letter-spacing: 0; }
+#home #tmchip .tmcn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#home #tmchip svg { flex: none; opacity: .55; }
+#home #tmchip:active { transform: scale(.96); }
 
 /* ---- κοινά ---- */
 .tmav { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #2f6f5e; color: #fff; font-weight: 700; font-size: calc(14 * var(--u)); flex: none; letter-spacing: .5px; }

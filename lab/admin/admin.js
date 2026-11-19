@@ -8,7 +8,11 @@
      Οι άλλες σελίδες είναι οι υπάρχουσες του lab/team και lab/usage (PL.pages), ζωγραφισμένες στο δεξί μέρος.
      Νούμερα και χρώματα: ΜΟΝΟ από το PL.teamFigures (ίδιοι κανόνες με «Η ομάδα μου»).
    - Όσο είναι ανοιχτή, οι σελίδες της ομάδας/χρηστών που ανοίγουν η μία την άλλη μένουν μέσα της (core.js, PL.nav.host).
-   - Στο κινητό δεν μπαίνει (απόφαση: «άσε το κινητό προς το παρόν»). Εμφάνιση: lab/admin/admin.css. */
+   - Κινητό (απόφαση 19/11: η Αρχική ίδια για όλους, πωλήσεις· η Διαχείριση ξεχωριστή): η σελίδα «Διαχείριση» είναι το μενού
+     (ίδιες επιλογές, menu()), κάθε επιλογή ανοίγει τη σελίδα της σε όλη την οθόνη με «‹ Διαχείριση» πάνω. Όσο είσαι μέσα,
+     η κάτω μπάρα των πωλήσεων κρύβεται· «Πίσω στις πωλήσεις» γυρνά στην Αρχική.
+   - Είσοδος: κουμπί «Διαχείριση» στην Αρχική, για υπεύθυνο, διευθυντή και διαχειριστή (σε κάθε οθόνη).
+   Εμφάνιση: lab/admin/admin.css. */
 (function () {
   const PL = window.PL, O = PL && PL.adapter && PL.adapter.org, me = O && O.me; if (!me) return;
   const u = PL.u, esc = u.esc, TF = PL.teamFigures;
@@ -221,8 +225,7 @@
     title: 'Διαχείριση',
     noTop: true,
     render(el) {
-      if (!ROOM.matches) { el.innerHTML = '<h2>Διαχείριση</h2><p class="mu">Η Διαχείριση ανοίγει σε τάμπλετ και υπολογιστή.</p>'; return null; }
-      return TF.after(el, () => openAdmin(el));   // με βάση: μόλις φτάσουν τα δεδομένα των πωλητών
+      return TF.after(el, () => (ROOM.matches ? openAdmin(el) : phoneAdmin(el)));   // με βάση: μόλις φτάσουν τα δεδομένα των πωλητών
     },
   });
   /* η Διαχείριση ανοιχτή: πάνελ αριστερά, σελίδα δεξιά */
@@ -295,19 +298,71 @@
     return () => { PL.nav.host(null); swap = null; clearInterval(clk); if (cur && cur.off) { try { cur.off(); } catch (e) { /* τίποτα */ } } PL.bar.unhide('admin'); document.body.classList.remove('admmode'); };
   }
 
-  /* ---------- Είσοδος από την Αρχική (μόνο τάμπλετ/υπολογιστής): ένα κουμπί «Διαχείριση» στη θέση των πλακιδίων ρόλου ---------- */
+  /* ---------- Κινητό: η Διαχείριση ως μενού, οι σελίδες σε όλη την οθόνη ---------- */
+  const phoneOpen = new Set(), phoneQ = {};   // ανοιχτές ομάδες επιλογών και αναζητήσεις: μένουν όταν γυρνάς από μια σελίδα
+  /* «Ομάδες» στο κινητό: πρώτα όλες μαζί (η σελίδα «Όλες οι ομάδες»), μετά μία-μία */
+  const phoneSub = (it) => (it.k === 'teams' ? [{ k: 'teams', p: {}, t: 'Όλες οι ομάδες μαζί' }].concat(it.sub) : it.sub);
+  /* επιλογή → σελίδα (οι σελίδες του lab/team, lab/usage κ.λπ.· η Επισκόπηση είναι δική της σελίδα, admoverview) */
+  const phoneGo = (k, p) => PL.nav.push(k === 'overview' ? 'admoverview' : k, p || {});
+  function phoneAdmin(el) {
+    const S = menu(load());
+    el.classList.add('admm');
+    const sub = (z) => (z.h ? `<h5>${esc(z.h)}</h5>` : `<button class="admmsi${z.cls ? ' ' + z.cls : ''}${z.off ? ' off' : ''}" data-k="${z.k}" data-p="${esc(JSON.stringify(z.p || {}))}" data-n="${esc(fold(z.full || z.t))}">` +
+      `${z.dot ? dot(z.dot) : ''}<span>${esc(z.full || z.t)}</span>${z.r ? `<em class="${z.c ? 'admpct ' + z.c : ''}">${esc(z.r)}</em>` : ''}${IC.chev}</button>`);
+    const row = (it) => `<div class="admmg"><button class="admmi" data-k="${it.k}" ${it.p ? `data-p="${esc(JSON.stringify(it.p))}"` : ''}${it.sub ? ` aria-expanded="${phoneOpen.has(it.k)}"` : ''}>` +
+      `<span class="admmic">${it.i}</span><span>${esc(it.t)}</span><i class="${it.sub ? 'admcar' + (phoneOpen.has(it.k) ? ' op' : '') : ''}">${IC.chev}</i></button>` +
+      (it.sub && phoneOpen.has(it.k) ? `<div class="admmsub">${it.search ? `<label class="admsrch">${IC.search}<input type="search" data-q="${it.k}" placeholder="Αναζήτηση" value="${esc(phoneQ[it.k] || '')}" aria-label="Αναζήτηση στο ${esc(it.t)}"></label>` : ''}` +
+        phoneSub(it).map(sub).join('') + '</div>' : '') + '</div>';
+    const filter = (k) => { const s0 = fold(phoneQ[k]), inp = el.querySelector(`[data-q="${k}"]`); if (!inp) return;
+      inp.closest('.admmsub').querySelectorAll('.admmsi').forEach((b) => { b.hidden = !!s0 && !b.dataset.n.includes(s0); }); };
+    const paint = () => {
+      const groups = []; S.forEach((it) => { if (it.h) groups.push({ h: it.h, L: [] }); else (groups[groups.length - 1] || (groups[0] = { h: '', L: [] })).L.push(it); });
+      el.innerHTML = `<header class="admmh">${PL.about.logo()}<span><b>Διαχείριση</b><small>${esc(me.name)} · ${esc(ADMIN ? 'Διαχειριστής' : O.ROLES[me.role])}</small></span></header>` +
+        groups.map((g) => (g.h ? `<h4 class="admmsec">${esc(g.h)}</h4>` : '') + `<div class="admmbox">${g.L.map(row).join('')}</div>`).join('') +
+        `<button class="admmx" id="admexit">${IC.exit}<span>Πίσω στις πωλήσεις</span></button>`;
+      Object.keys(phoneQ).forEach(filter);
+    };
+    paint();
+    el.addEventListener('click', (ev) => {
+      if (ev.target.closest('#admexit')) { PL.nav.home(); return; }
+      if (ev.target.closest('input')) return;
+      const b = ev.target.closest('[data-k]'); if (!b) return;
+      const k = b.dataset.k, it = b.classList.contains('admmi') && S.find((z) => z.k === k && z.sub);
+      if (it) { if (phoneOpen.has(k)) phoneOpen.delete(k); else phoneOpen.add(k); paint(); return; }
+      phoneGo(k, b.dataset.p ? JSON.parse(b.dataset.p) : {});
+    });
+    el.addEventListener('input', (ev) => { const k = ev.target.dataset && ev.target.dataset.q; if (k) { phoneQ[k] = ev.target.value; filter(k); } });
+    return null;
+  }
+  /* Επισκόπηση στο κινητό: ίδια με του τάμπλετ, σε όλη την οθόνη· πάτημα σε ομάδα/πωλητή → η σελίδα του */
+  PL.register('admoverview', {
+    title: 'Επισκόπηση',
+    render: (el) => TF.after(el, () => {
+      el.classList.add('admm', 'admpage', 'admv-overview');
+      overview(el, load());
+      el.addEventListener('click', (ev) => {
+        if (ev.target.closest('[data-sort]')) return;
+        const b = ev.target.closest('[data-k]'); if (!b) return;
+        PL.nav.push(b.dataset.k, b.dataset.k === 'member' ? { id: b.dataset.id, scope: ALL ? '*' : me.team } : { team: b.dataset.team });
+      });
+      return null;
+    }),
+  });
+  /* όσο είσαι μέσα στη Διαχείριση από το κινητό, η κάτω μπάρα των πωλήσεων κρύβεται (στο τάμπλετ το κάνει το openAdmin) */
+  PL.bus.on('page', () => { if (!ROOM.matches && PL.nav.trail().includes('admin')) PL.bar.hide('admphone'); else PL.bar.unhide('admphone'); });
+
+  /* ---------- Είσοδος από την Αρχική: κουμπί «Διαχείριση» κάτω από την πάνω γραμμή (υπεύθυνος, διευθυντής, διαχειριστής) ---------- */
   (PL.labActs = PL.labActs || []).push({ page: 'home', mount(root) {
-    if (!ROOM.matches) return null;
-    const host = root.querySelector('#tmhome') || root.querySelector('.hh'); if (!host) return null;
+    const host = root.querySelector('.hh'); if (!host) return null;
     /* με βάση οι πωλητές έρχονται λίγο μετά το άνοιγμα: «φορτώνω…» και ξαναγράφεται μόλις φτάσουν */
-    const sub = () => { const D = LEADS && TF.ok() ? load() : { L: [] };
-      return [LEADS ? (TF.ok() ? (D.L.length ? `${D.L.length} πωλητές · στόχος ${groupPct(D.L)}%` : '') : 'φορτώνω…') : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : ''].filter(Boolean).join(' · '); };
+    const sub = () => { const D = LEADS && TF.ok() ? load() : { L: [], teams: [] };
+      const who = ALL ? (D.teams.length > 1 ? D.teams.length + ' ομάδες · ' : '') : 'Η ομάδα μου · ';
+      return [LEADS ? (TF.ok() ? (D.L.length ? `${who}${D.L.length} πωλητές · στόχος ${groupPct(D.L)}%` : '') : 'φορτώνω…') : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : ''].filter(Boolean).join(' · '); };
     const b = document.createElement('button'); b.className = 'admentry'; b.type = 'button';
     b.innerHTML = `<span class="admei">${IC.overview}</span><span class="admet"><b>Διαχείριση</b><small>${esc(sub())}</small></span><span class="admec">${IC.chev}</span>`;
     if (!TF.ok()) O.teamReady.then(() => { const sm = b.querySelector('small'); if (b.isConnected && sm) sm.textContent = sub(); });
     b.addEventListener('click', (ev) => { ev.stopPropagation(); PL.nav.push('admin'); });
-    if (host.id === 'tmhome') host.appendChild(b); else host.parentNode.insertBefore(b, host.nextSibling);
-    document.body.classList.add('admhome');
-    return () => { b.remove(); document.body.classList.remove('admhome'); };
+    host.parentNode.insertBefore(b, host.nextSibling);
+    return () => b.remove();
   } });
 })();

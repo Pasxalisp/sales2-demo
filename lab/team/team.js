@@ -176,6 +176,12 @@
   const ALL = !!me && (me.role === 'director' || !!me.admin);
   const canTeam = (tid) => ALL || (!!me && me.role === 'lead' && me.team === tid);
 
+  /* εικονίδια των επικεφαλίδων (ομάδα, όλες οι ομάδες, χρήστες) */
+  const ICON = {
+    team: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    org: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-2.5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1V17"/></svg>',
+    users: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 9-5.2"/><circle cx="18" cy="17" r="2.5"/><path d="M18 13v1.5M18 19.5V21M14.5 17H16M20 17h1.5"/></svg>',
+  };
   PL.register('team', {
     title: 'Η ομάδα μου',
     render: (el, params) => afterTeam(el, () => {
@@ -346,7 +352,7 @@
         `<label>Email (για την είσοδο)<input id="ufe" type="email" value="${esc(x.email)}" placeholder="onoma@sales2.demo"${mailFixed ? ' readonly' : ''}>${mailFixed ? '<small class="mu">Είναι ο λογαριασμός εισόδου του· δεν αλλάζει από εδώ.</small>' : ''}</label>` +
         `<label>Ρόλος<select id="ufr">${Object.entries(O.ROLES).map(([k, t]) => opt(k, t, x.role === k)).join('')}</select></label>` +
         `<label class="ufs">Ομάδα<select id="uft">${O.teams().map((t) => opt(t.id, t.name, x.team === t.id)).join('')}</select></label>` +
-        `<label class="ufs">Κωδικός πωλητή στο orders<input id="ufc" value="${esc(x.code || '')}" placeholder="π.χ. 009" inputmode="numeric"><small class="mu" id="ufcn"></small></label>` +
+        `<label>Κωδικός πωλητή στο orders<input id="ufc" value="${esc(x.code || '')}" placeholder="π.χ. 009" inputmode="numeric"><small class="mu" id="ufcn"></small></label>` +
         `<label class="tmck"><input type="checkbox" id="ufadm"${x.admin ? ' checked' : ''}${self ? ' disabled' : ''}> Διαχειριστής εφαρμογής</label>` +
         `<label class="tmck"><input type="checkbox" id="ufon"${x.active ? ' checked' : ''}${self || (ACC && isNew) ? ' disabled' : ''}> Ενεργός (μπορεί να μπει)</label>` +
         (ACC ? `<p class="mu">Οι πελάτες έρχονται από τον κωδικό πωλητή, όπως είναι στο orders. ${isNew ? 'Με την αποθήκευση βγαίνει προσωρινός κωδικός εισόδου για να του τον δώσεις· στην πρώτη είσοδο βάζει δικό του.' : ''}</p>`
@@ -355,7 +361,9 @@
         (ACC && !isNew && !bare ? '<div id="ufacc"></div>' : '');
       if (ACC && !isNew && !bare) PL.teamAcc.panel(el.querySelector('#ufacc'), x);
       const $ = (s) => el.querySelector(s);
-      const sync = () => { const dir = $('#ufr').value === 'director'; el.querySelectorAll('.ufs').forEach((z) => { z.style.display = dir ? 'none' : ''; }); const c = $('#ufc').value.trim(); $('#ufcn').textContent = c ? (n[c] || 0) + ' πελάτες με αυτόν τον κωδικό' : ''; };
+      /* διευθυντής: χωρίς ομάδα· κωδικός πωλητή μόνο αν έχει και δικούς του πελάτες (απόφαση 19/11) */
+      const sync = () => { const dir = $('#ufr').value === 'director'; el.querySelectorAll('.ufs').forEach((z) => { z.style.display = dir ? 'none' : ''; }); const c = $('#ufc').value.trim();
+        $('#ufcn').textContent = c ? (n[c] || 0) + ' πελάτες με αυτόν τον κωδικό' : dir ? 'Μόνο αν έχει και δικούς του πελάτες.' : ''; };
       $('#ufr').addEventListener('change', sync); $('#ufc').addEventListener('input', sync); sync();
       el.addEventListener('click', async (ev) => {
         if (ev.target.id !== 'ufsave') return;
@@ -364,7 +372,7 @@
         if (!v.name) return err('Γράψε όνομα.');
         if (!/^\S+@\S+\.\S+$/.test(v.email)) return err('Το email δεν φαίνεται σωστό.');
         if (U.some((z) => z.id !== x.id && z.email.toLowerCase() === v.email)) return err('Υπάρχει ήδη χρήστης με αυτό το email.');
-        if (v.role === 'director') { v.team = ''; v.code = ''; }
+        if (v.role === 'director') v.team = '';
         if (v.role !== 'director' && !v.code) return err('Ο πωλητής χρειάζεται κωδικό πωλητή.');
         if (v.code && U.some((z) => z.id !== x.id && z.active && z.code === v.code)) return err('Ο κωδικός ' + v.code + ' ανήκει ήδη σε άλλο χρήστη.');
         if (v.role === 'lead' && U.some((z) => z.id !== x.id && z.active && z.role === 'lead' && z.team === v.team)) return err('Η ομάδα έχει ήδη υπεύθυνο. Άλλαξε πρώτα τον άλλον σε πωλητή.');
@@ -381,59 +389,35 @@
     },
   });
 
-  /* ---------- Αρχική: ποιος είναι μέσα + πλακίδια ρόλου ---------- */
-  const ICON = {
-    alert: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5v.01"/></svg>',
-    usage: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
-    team: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-    org: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="5" rx="1"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/><path d="M12 7v5M5 17v-2.5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1V17"/></svg>',
-    users: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 9-5.2"/><circle cx="18" cy="17" r="2.5"/><path d="M18 13v1.5M18 19.5V21M14.5 17H16M20 17h1.5"/></svg>',
-  };
-  const tile = (go, team, icon, title, sub, cls) => `<button class="duec tmtile ${cls || ''}" data-tmgo="${esc(go)}" data-tmp="${esc(team || '')}"><span class="dc">${icon}</span><span class="dt"><span class="dl">${title}</span><span class="dm">${sub}</span></span></button>`;
-  const teamPct = (list) => pct(sum(list, (f) => f && f.fl && f.fl.now.sales), sum(list, (f) => f && f.fl && f.fl.now.target));
-  /* «Αλλαγή» (έξοδος). Με βάση: από αυτή τη συσκευή ή από όλες (απόφαση 18/11, π.χ. αν χάθηκε το κινητό) */
-  async function leave() {
-    if (!O.everywhere) { O.logout(); return; }
-    const k = await PL.dlg.choice('Έξοδος. «Από όλες τις συσκευές»: βγαίνεις και από το κινητό, το τάμπλετ και τον υπολογιστή· θα χρειαστεί ξανά ο κωδικός σε καθένα.',
-      ['Έξοδος από αυτή τη συσκευή', 'Έξοδος από όλες τις συσκευές', 'Άκυρο']);
-    if (k === 0) O.logout();
-    else if (k === 1) { const r = await O.logout(true); if (r && r.error) PL.dlg.toast(r.error); }
+  /* ---------- Αρχική: ποιος είναι μέσα ----------
+     Η Αρχική είναι ίδια για όλους, μόνο πωλήσεις (απόφαση Πασχάλη 19/11). Ομάδες, χρήστες, χρήση, ιστορικό, σφάλματα: στη
+     «Διαχείριση» (lab/admin). Εδώ μόνο το όνομα, μικρό κουμπί κάτω από την ημερομηνία → μενού (κωδικός, έξοδος). */
+  const CARET = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  const roleOf = (x) => (x.admin ? 'Διαχειριστής' : O.ROLES[x.role]) + (O.team(x.team) && !x.admin ? ' · ' + O.team(x.team).name : '');
+  /* Έξοδος. Με βάση: από αυτή τη συσκευή ή από όλες (απόφαση 18/11, π.χ. αν χάθηκε το κινητό)· στο απλό demo: άλλος χρήστης */
+  async function leave(everywhere) {
+    const r = await O.logout(everywhere);
+    if (r && r.error) PL.dlg.toast(r.error);
   }
-  const usedToday = () => new Set(O.usage.all().filter((x) => x.d === u.today()).map((x) => x.u)).size + ' μπήκαν σήμερα · ποιες οθόνες δουλεύονται';
+  function meMenu() {
+    const L = [];
+    if (O.setPassword && PL.teamAcc) L.push({ e: '🔑', label: 'Αλλαγή κωδικού', d: '', fn: () => PL.teamAcc.changePassword() });
+    if (O.everywhere) {
+      L.push({ e: '🚪', label: 'Έξοδος', d: 'από αυτή τη συσκευή', fn: () => leave(false) });
+      L.push({ e: '📵', label: 'Έξοδος από όλες τις συσκευές', d: 'κινητό, τάμπλετ, υπολογιστής· θα χρειαστεί ξανά ο κωδικός σε καθένα', fn: () => leave(true) });
+    } else L.push({ e: '🔄', label: 'Αλλαγή χρήστη', d: 'έξοδος και είσοδος με άλλον λογαριασμό', fn: () => leave(false) });
+    PL.menu.open(me.name + ' · ' + roleOf(me), L);
+  }
   PL.labActs = PL.labActs || [];
   PL.labActs.push({ page: 'home', mount(root) {
     if (!me) return null;
-    const t = O.team(me.team), box = document.createElement('div'); box.id = 'tmhome';
-    /* FLASH ομάδας: με βάση οι πωλητές έρχονται λίγο μετά το άνοιγμα («φορτώνω…» και ξαναζωγραφίζεται μόλις φτάσουν) */
-    const figs = (U) => (teamOk() ? U.map((x) => figOf(x.id)) : null);
-    const flashOf = (U, L) => ppl(U) + (L ? ' · FLASH ' + teamPct(L) + '%' : ' · φορτώνω…');
-    const paint = () => {
-      let tiles = '';
-      if (me.role === 'lead') { const U = O.sellers(me.team), L = figs(U); tiles += tile('team', '', ICON.team, 'Η ομάδα μου', flashOf(U, L), 'lead'); }
-      if (me.role === 'director') {
-        const U = O.sellers(), S = figs(U);
-        tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', flashOf(U, S), 'dir');
-        tiles += O.teams().map((tt) => { const U = O.sellers(tt.id), L = figs(U); return tile('team', tt.id, ICON.team, esc(tt.name), flashOf(U, L), 'lead'); }).join('');
-      }
-      if (me.admin && me.role !== 'director') { const U = O.sellers(), S = figs(U); tiles += tile('teams', '', ICON.org, 'Όλες οι ομάδες', flashOf(U, S), 'dir'); }
-      if (me.admin) tiles += tile('users', '', ICON.users, 'Χρήστες και ρόλοι', O.users().filter((x) => x.active).length + ' χρήστες · ρόλοι, ομάδες', 'adm') +
-        tile('usage', '', ICON.usage, 'Χρήση εφαρμογής', usedToday(), 'adm') +
-        (O.history ? tile('history', '', ICON.usage, 'Ιστορικό αλλαγών', 'ποιος άλλαξε τι και πότε', 'adm') : '') +
-        (O.errors ? tile('errors', '', ICON.alert, 'Σφάλματα', 'ό,τι «έσκασε» στις συσκευές', 'adm') : '');
-      box.innerHTML = `<div class="tmme"><span class="tmav">${esc(initials(me.name))}</span><div><b>${esc(me.name)}</b> <span class="mu">· ${me.admin ? 'Διαχειριστής' : esc(O.ROLES[me.role])}${t && !me.admin ? ' · ' + esc(t.name) : ''}</span></div><button id="tmout">Αλλαγή</button></div>` + tiles;
-    };
-    paint();
-    if (!teamOk()) O.teamReady.then(() => { if (box.isConnected) paint(); });
-    const hh = root.querySelector('.hh'); hh.parentNode.insertBefore(box, hh.nextSibling);
-    document.body.classList.toggle('tmdir', me.role === 'director');
-    box.addEventListener('click', (ev) => {
-      if (ev.target.closest('#tmout')) { ev.stopPropagation(); leave(); return; }
-      const b = ev.target.closest('[data-tmgo]'); if (!b) return;
-      ev.stopPropagation(); PL.nav.push(b.dataset.tmgo, b.dataset.tmp ? { team: b.dataset.tmp } : {});
-    });
-    /* η χρήση φτάνει από τη βάση λίγο μετά το άνοιγμα (lab/supa/session.js): ο αριθμός ενημερώνεται μόνος του */
-    const off = me.admin && O.usage.onChange ? O.usage.onChange(() => { const d = box.querySelector('[data-tmgo="usage"] .dm'); if (d) d.textContent = usedToday(); }) : null;
-    return () => { if (off) off(); document.body.classList.remove('tmdir'); };
+    const hdt = root.querySelector('.hdt'); if (!hdt) return null;
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'tmchip'; b.setAttribute('aria-haspopup', 'menu');
+    b.setAttribute('aria-label', me.name + ', ' + roleOf(me) + ': κωδικός, έξοδος');
+    b.innerHTML = `<span class="tmav">${esc(initials(me.name))}</span><span class="tmcn">${esc(me.name)}</span>${CARET}`;
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); meMenu(); });
+    hdt.parentNode.insertBefore(b, hdt.nextSibling);
+    return () => b.remove();
   } });
 
   /* ---------- Οθόνη εισόδου ---------- */
