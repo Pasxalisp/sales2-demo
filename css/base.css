@@ -799,6 +799,13 @@ a.btn.callo {
   --gli: rgba(255,255,255,.9);
   --glt: #3d464d;
   --glm: rgba(255,255,255,.78);
+  /* κάτω μπάρα σαν «υγρό γυαλί» (19/11): φόντο από πάνω προς τα κάτω, θάμπωμα και ζωντάνια του από κάτω, πλαίσιο ενότητας */
+  --glnav: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.34));
+  --glblur: 20px;
+  --glsat: 190%;
+  --glp: rgba(255,255,255,.72);
+  --glpi: rgba(255,255,255,.95);
+  --glsh: 0 10px 30px rgba(0,0,0,.13), 0 1px 3px rgba(0,0,0,.06);
 }
 
 /* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ---- */
@@ -825,6 +832,10 @@ a.btn.callo {
     --gli: rgba(255,255,255,.08);
     --glt: #d3dade;
     --glm: rgba(40,46,50,.82);
+    --glnav: linear-gradient(180deg, rgba(44,50,55,.62), rgba(28,32,36,.46));
+    --glp: rgba(255,255,255,.13);
+    --glpi: rgba(255,255,255,.22);
+    --glsh: 0 12px 32px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
   }
 }
 :root[data-theme="dark"] {
@@ -849,6 +860,10 @@ a.btn.callo {
   --gli: rgba(255,255,255,.08);
   --glt: #d3dade;
   --glm: rgba(40,46,50,.82);
+  --glnav: linear-gradient(180deg, rgba(44,50,55,.62), rgba(28,32,36,.46));
+  --glp: rgba(255,255,255,.13);
+  --glpi: rgba(255,255,255,.22);
+  --glsh: 0 12px 32px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
 }
 
 /* ---- Κοινά κομμάτια (κάρτες, γραμμές, ετικέτες, κουμπιά) ---- */
@@ -959,11 +974,12 @@ main {
   align-items: center;
   padding: 7px 4px;
   border-radius: 30px;
-  background: var(--gl);
-  -webkit-backdrop-filter: blur(9px) saturate(160%);
-  backdrop-filter: blur(9px) saturate(160%);
+  background: var(--glnav);
+  -webkit-backdrop-filter: blur(var(--glblur)) saturate(var(--glsat));
+  backdrop-filter: blur(var(--glblur)) saturate(var(--glsat));
   border: 1px solid var(--glb);
-  box-shadow: 0 6px 22px rgba(0,0,0,.12),inset 0 1px 0 var(--gli);
+  /* λάμψη στο πάνω χείλος, απαλό φως στο κάτω, σκιά που την κάνει να «επιπλέει» */
+  box-shadow: var(--glsh), inset 0 1px .5px var(--gli), inset 0 -1px 1px rgba(255,255,255,.14);
   max-width: 520px;
   margin: 0 auto;
   transition: transform .2s,opacity .2s;
@@ -1148,7 +1164,8 @@ main {
   left: 0;
   top: 0;
   border-radius: 20px;
-  background: color-mix(in srgb,var(--ac) 15%,transparent);
+  background: var(--glp);   /* σταγόνα γυαλιού: πιο φωτεινή από τη μπάρα, με δική της λάμψη */
+  box-shadow: inset 0 1px .5px var(--glpi), 0 2px 8px rgba(0,0,0,.08);
   pointer-events: none;
   opacity: 0;
   transition: transform .28s cubic-bezier(.3,.8,.3,1),width .28s,height .28s,opacity .15s;
