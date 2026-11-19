@@ -154,12 +154,11 @@
     backFrom(e) {
       const i = stack.indexOf(e); if (i < 1) return;
       if (i === stack.length - 1) { PL.nav.up(); return; }
+      if (PL.nav.guard && PL.nav.guard('back')) return;
       stack.length = i; show('back');
     },
-    /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο) */
-    up(o) { PL.nav.back(o); },
-    /* η τωρινή σελίδα γίνεται άλλη, χωρίς να μείνει στο «Πίσω» (π.χ. φόρμα «Νέος πελάτης» → η καρτέλα του) */
-    replace(id, params) { if (stack.length > 1) stack.pop(); stack.push({ id, params: params || {} }); show('push'); },
+    /* «Πίσω» του χρήστη (κουμπί ή σύρσιμο): ρωτάει πρώτα τον φύλακα της σελίδας, μετά γυρνά */
+    up(o) { if (!(PL.nav.guard && PL.nav.guard('back'))) PL.nav.back(o); },
     home() { stack.length = 0; stack.push({ id: 'home', params: {} }); show('tab'); },
     /* ενότητα της κάτω μπάρας: Αρχική → ενότητα */
     tab(id) { stack.length = 0; stack.push({ id: 'home', params: {} }, { id, params: {} }); show('tab'); },
@@ -183,7 +182,7 @@
   /* Πάνω μέρος σελίδας, όπως στο iPhone (απόφαση 06/11): αριστερά «‹ Πίσω» με το όνομα της σελίδας όπου γυρνάς,
      δεξιά «•••» με τις ενέργειες της σελίδας (ό,τι έχει και το «Νέο» της κάτω μπάρας· ανοίγουν από κάτω).
      Μπαίνει πρώτο μέσα στη σελίδα και ξαναμπαίνει όταν η σελίδα ξαναγράψει όλο το περιεχόμενό της.
-     Δεν μπαίνει στην Αρχική ή όταν δεν έχει τίποτα από τα δύο· noTop: η σελίδα έχει δικό της «Πίσω» (π.χ. η Διαχείριση στο κινητό).
+     Δεν μπαίνει στην Αρχική ή όταν δεν έχει τίποτα από τα δύο· noTop: η σελίδα έχει δικό της «Πίσω» (Υπαγόρευση).
      topTitle: ο τίτλος μικρός στη μέση της ίδιας γραμμής και κρύβεται το h2 (σελίδες χωρίς κύλιση, π.χ. «Η κάρτα μου»). */
   const backName = (b) => (b.id === 'client' && PL.model && PL.model.byId(b.params.id) ? PL.model.byId(b.params.id).name : PL.pageTitle(b.id));
   function topNav(el, e) {
@@ -298,7 +297,8 @@
     setBadge(v) { badge = v; const b = $('#nav .bdg'); if (b) { b.textContent = v > 99 ? '99+' : v; b.style.display = v ? 'block' : 'none'; } },
     hide(reason) { hideReasons.add(reason); apply(); },
     unhide(reason) { hideReasons.delete(reason); apply(); },
-    /* Κάτω μπάρα (απόφαση 06/11): οι ενότητες που ανοίγεις συνέχεια, όπως στο iPhone (19/11: 4, χωρίς την Υπαγόρευση).
+    /* Κάτω μπάρα (απόφαση 06/11): οι ενότητες που ανοίγεις συνέχεια, όπως στο iPhone (19/11: 4, χωρίς το κουμπί Υπαγόρευσης·
+       η Υπαγόρευση ανοίγει από τα σημεία της σελίδας).
        «Πίσω» και ενέργειες είναι πάνω στη σελίδα («‹ …» και «•••»). Πατημένη φαίνεται η ενότητα όπου βρίσκεσαι:
        η πιο πρόσφατη σελίδα της στοίβας που είναι στην μπάρα (π.χ. καρτέλα από το Πελατολόγιο → «Πελάτες»). */
     update() {
@@ -332,6 +332,9 @@
   function apply() {
     $('#nav').classList.toggle('off', hideReasons.size > 0);
     pill();
+    /* Υπαγόρευση όπως στην παλιά: χωρίς πληκτρολόγιο φαίνεται η μπάρα (body.dictnav)· όσο γράφεις κρύβεται και φαίνεται το «← Πίσω» */
+    const cur = stack[stack.length - 1];
+    document.body.classList.toggle('dictnav', !!(cur && cur.id === 'dictate' && !hideReasons.has('typing')));
     PL.bus.emit('bar');   /* άλλαξε σελίδα ή φάνηκε/κρύφτηκε η μπάρα: ενημερώνονται το κουμπί «Ανοιχτό πρόγραμμα» και η μπάρα κύλισης */
   }
 
@@ -353,16 +356,16 @@
     $('#nav').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       const a = b.dataset.a;
-      if (a === 'home') PL.nav.home();
+      if (a === 'home') { if (!(PL.nav.guard && PL.nav.guard(a))) PL.nav.home(); }
       /* ενότητα: ανοίγει από την αρχή της (Αρχική → ενότητα), όπως οι καρτέλες κάτω στο iPhone· αν είσαι ήδη εκεί, τίποτα */
-      else if (a && PL.nav.current().id !== a) PL.nav.tab(a);
+      else if (a) { if (PL.nav.current().id !== a && !(PL.nav.guard && PL.nav.guard('home'))) PL.nav.tab(a); }
     });
     $('#pm').addEventListener('click', closeMenu);
     $('#pmb').addEventListener('click', (e) => {
       const b = e.target.closest('[data-pmi]'); if (!b) return;
       const it = $('#pmb')._items[+b.dataset.pmi]; closeMenu(); if (it) it.fn();
     });
-    /* Η μπάρα κρύβεται όταν γράφεις σε πεδίο. */
+    /* Η μπάρα κρύβεται όταν γράφεις σε πεδίο (και στην Υπαγόρευση, όπως στην παλιά). */
     document.addEventListener('focusin', (e) => {
       if (e.target.matches('input,textarea,select')) PL.bar.hide('typing');
     });

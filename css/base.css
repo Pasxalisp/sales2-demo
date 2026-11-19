@@ -1,5 +1,5 @@
 /* base.css — Κοινά: θέμα (χρώματα ανοιχτό/σκούρο), βασικά στοιχεία, κουμπιά, κάρτες, πεδία, κάτω μπάρα, μενού «Νέο», παράθυρα, μηνύματα, κινήσεις.
-   Φορτώνεται με τη σειρά: base → home → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 
 /* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ----
    Αυτόματο = όπως το κινητό (prefers-color-scheme). Η επιλογή «Θέμα» στις Ρυθμίσεις βάζει data-theme="light"|"dark" στο <html>
@@ -942,6 +942,10 @@ main {
   border-color: var(--bd);
   background: transparent;
 }
+#dsh {
+  z-index: 20;
+  min-height: calc(100vh - 132px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+}
 
 /* ---- Κάτω μπάρα, «Νέο», κουμπί ανοιχτού προγράμματος, μπάρα κύλισης ---- */
 #nav {
@@ -1624,6 +1628,9 @@ html.big .sha > :last-child:nth-child(odd) {
   main {
     padding-left: var(--rail);
     padding-bottom: 40px;
+  }
+  #dsh {
+    min-height: calc(100vh - 52px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
   }
   main.split {
     display: grid;

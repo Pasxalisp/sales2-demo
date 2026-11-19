@@ -32,7 +32,7 @@
       el.addEventListener('click', (ev) => { const r = ev.target.closest('[data-xid]'); if (r) PL.nav.push('visit', { id: r.dataset.xid }); });
       return () => offs.forEach((f) => f());
     },
-    nova: () => PL.menu('Εκτός προγράμματος', [{ e: '🆕', label: 'Νέο κομμωτήριο', d: '', fn: () => PL.nav.push('newclient', { city: trips().base || '' }) }]),
+    nova: () => PL.menu('Εκτός προγράμματος', [{ e: '🆕', label: 'Νέο κομμωτήριο', d: '', fn: () => PL.dictation.open('Νέο κομμωτήριο ' + (trips().base || '') + ': ') }]),
     render(el) {
       el.id = 'xvsh';
       el.innerHTML = `<h2 style="color:#b5651d;margin:4px 0 6px">🚶 Επισκέψεις εκτός προγράμματος</h2><div id="xvtop"></div>
@@ -114,9 +114,10 @@
           render(); return;
         }
         if ((b = t.closest('[data-xvv]'))) {
-          const id = b.dataset.xvv, on = !E.visitedToday(id); b.disabled = true;
-          /* εγγραφή στο παρασκήνιο */
+          const id = b.dataset.xvv, c = M.byId(id), on = !E.visitedToday(id); b.disabled = true;
+          /* Εγγραφή στο παρασκήνιο· η ερώτηση δεν περιμένει τη βάση. */
           E.visit(id, on, (trips() || {}).base).catch(() => D.toast('Δεν αποθηκεύτηκε η επίσκεψη. Δοκίμασε ξανά.')).then(() => { b.disabled = false; render(); });
+          if (on && c && (await D.confirm('Θες να πεις τι έγινε στον «' + c.name + '»;', 'Υπαγόρευση', 'Όχι τώρα'))) PL.dictation.open('Στον πελάτη ' + c.name + ' (' + c.city + '): ');
         }
       });
       return () => offs.forEach((f) => f());

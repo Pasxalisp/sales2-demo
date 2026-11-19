@@ -1,6 +1,6 @@
 /* «Ποιος αγόρασε…»: προϊόν (δέχεται παρατσούκλια) + περιοχές → πελάτες με τεμάχια φέτος/πέρσι και αξία.
    Τάμπλετ: πάτημα σε πελάτη → φύλλο αγοράς δεξιά (buyer.js)· χωρίς πάτημα, όσοι το έπαιρναν πέρσι και φέτος όχι.
-   Εκθέτει PL.wb (query, match· το match το χρησιμοποιεί και το φύλλο πελάτη, buyer.js). */
+   Εκθέτει PL.wb.query για την Υπαγόρευση. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, esc = u.esc, nn = u.nn;
   const AL = { βαφη: ['topchic', 'tc'], βαφες: ['topchic', 'tc'], βαφειο: ['topchic', 'tc'], ρεφλε: ['colorance', 'col'], gloss: ['gloss'], ντεκαπαζ: ['silklift', 'ld'], ξανοιγμα: ['silklift', 'ld'], πλεξ: ['bond'], οξυζενε: ['developer', 'dev', 'lotion'], λουτηρα: ['ds'], μεταπωληση: ['ds'], σαμπουαν: ['sh', 'shampoo'], μασκα: ['mask', 'trt'], λακ: ['lacquer'], κερι: ['wax', 'pomade'], δοχειο: ['can', 'δοχειο', '250ml', '120ml'], σωληναριο: ['60ml', 'tb'] };

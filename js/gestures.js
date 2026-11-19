@@ -73,7 +73,7 @@
     const place = () => { const m = max(), H = fs.clientHeight, h = th.offsetHeight; th.style.top = (m > 0 ? window.scrollY / m * (H - h) : 0) + 'px'; };
     const check = () => {
       const navOff = document.getElementById('nav') && document.getElementById('nav').classList.contains('off');
-      const on = !!(!navOff && PL.nav.current() && SE().scrollHeight > window.innerHeight * 2.5);
+      const on = !!(!navOff && PL.nav.current() && PL.nav.current().id !== 'dictate' && SE().scrollHeight > window.innerHeight * 2.5);
       fs.style.display = on ? 'block' : 'none'; if (on) place();
     };
     const act = () => { fs.classList.add('act'); clearTimeout(hideT); hideT = setTimeout(() => fs.classList.remove('act'), 1400); };

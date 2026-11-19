@@ -11,13 +11,14 @@
 
   PL.register('visit', {
     title: 'Επίσκεψη',
+    nova: (p) => PL.menu('Επίσκεψη', [{ e: '🎙', label: 'Υπαγόρευση', d: 'πες τι έγινε στον πελάτη', fn: () => { const c = M.byId(p.id); if (c) PL.dictation.open('Στον πελάτη ' + c.name + ' (' + c.city + '): '); } }]),
     render(el, params) {
       const { pid, id } = params, free = !pid;
       COLS.forEach((c) => S.use(c));
       el.innerHTML = '<div id="vstop"></div><div class="shbox"><h3>Τι έγινε σήμερα</h3><div class="shrow" id="vpr" style="margin:0">' +
         PRODUCTS.map((x) => `<button class="chip" data-vp="${esc(x)}">${esc(x)}</button>`).join('') +
         '</div><input id="vp" type="text" placeholder="Προϊόντα που συζητήθηκαν" style="margin-top:8px"><textarea id="vt" placeholder="Τι συζητήσατε…"></textarea><input id="vo" type="text" placeholder="Να πω την επόμενη φορά…">' +
-        `<div class="shrow"><button class="pri" id="vsave" style="flex:1">Αποθήκευση και ✓ ${free ? 'Επίσκεψη' : 'Έγινε'}</button></div><div class="mu" id="vmsg"></div></div><div id="vbot"></div>`;
+        `<div class="shrow"><button class="pri" id="vsave" style="flex:1">Αποθήκευση και ✓ ${free ? 'Επίσκεψη' : 'Έγινε'}</button><button id="vdict">🎙 Υπαγόρευση</button></div><div class="mu" id="vmsg"></div></div><div id="vbot"></div>`;
       const $ = (s) => el.querySelector(s);
       const base = () => (S.get('settings', 'trips') || {}).base;
       const plan = () => (free ? null : S.get('plans', pid));
@@ -58,6 +59,7 @@
           else if (b.dataset.vgo) PL.nav.push('visit', { pid, id: b.dataset.vgo });
           else if (b.id === 'vdone') { b.disabled = true; await markDone(); }
           else if (b.id === 'vundo') { b.disabled = true; await undo(); }
+          else if (b.id === 'vdict') { const c = M.byId(id); PL.dictation.open('Στον πελάτη ' + c.name + ' (' + c.city + '): '); }
           else if (b.id === 'vord') await PL.orders.openFor(id);
           else if (b.id === 'vsave') {
             const pr = $('#vp').value.trim(), tx = $('#vt').value.trim(), todo = $('#vo').value.trim();
