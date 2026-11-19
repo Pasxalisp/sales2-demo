@@ -520,7 +520,7 @@ body.home #nvo .oc {
   justify-content: space-between;
   gap: 10px;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);   /* η δεύτερη στήλη (ημερομηνία, όνομα) στενεύει, δεν σπρώχνει τα κουμπιά δεξιά */
   grid-template-rows: auto;
   column-gap: 10px;
   min-height: 44px;

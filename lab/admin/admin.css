@@ -1,7 +1,8 @@
-/* «Διαχείριση» — μαζί με το lab/admin/admin.js. Τάμπλετ και υπολογιστής.
+/* «Διαχείριση» — μαζί με το lab/admin/admin.js. Τάμπλετ και υπολογιστής (.adm)· στο κινητό μενού και σελίδες (.admm, στο τέλος).
    Ύφος «πίνακα ελέγχου» (ιδέα Πασχάλη 17/11, από το Mercato): αριστερά σκούρο πάνελ με «πλήκτρα» και ρολόι, δεξιά ανοιχτό
-   φόντο με λευκές κάρτες. Χρώματα στο .adm (ανοιχτό/σκούρο θέμα όπως το base.css). */
-.adm {
+   φόντο με λευκές κάρτες. Χρώματα (ανοιχτό/σκούρο θέμα όπως το base.css): κοινά για .adm και .admm. */
+.adm,
+.admm {
   --a-bg: #eef2f0;
   --a-card: #fff;
   --a-line: #e3e8e5;
@@ -13,6 +14,8 @@
   --a-y: #c98a12;
   --a-r: #d0453a;
   --a-shadow: 0 1px 2px rgba(16,40,32,.06), 0 6px 18px rgba(16,40,32,.06);
+}
+.adm {
   position: fixed;
   inset: 0;
   z-index: 30;
@@ -22,7 +25,8 @@
   color: var(--tx);
 }
 @media (prefers-color-scheme:dark) {
-  :root:not([data-theme="light"]) .adm {
+  :root:not([data-theme="light"]) .adm,
+  :root:not([data-theme="light"]) .admm {
     --a-bg: #121614;
     --a-card: #1c221f;
     --a-line: #2b332f;
@@ -34,7 +38,8 @@
     --a-shadow: 0 1px 2px rgba(0,0,0,.3);
   }
 }
-:root[data-theme="dark"] .adm {
+:root[data-theme="dark"] .adm,
+:root[data-theme="dark"] .admm {
   --a-bg: #121614;
   --a-card: #1c221f;
   --a-line: #2b332f;
@@ -820,37 +825,38 @@ body.admmode {
   }
 }
 
-/* ---------- Είσοδος από την Αρχική (τάμπλετ/υπολογιστής): στη θέση των πλακιδίων ρόλου ---------- */
-body.admhome #tmhome .tmtile {
-  display: none;
-}
-.admentry {
+/* ---------- Είσοδος από την Αρχική (όλες οι οθόνες): κουμπί «Διαχείριση» κάτω από την πάνω γραμμή ---------- */
+#home button.admentry {
+  flex: none;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 12px;
   width: 100%;
-  margin: 0 0 12px;
-  padding: 16px 18px;
+  margin: 0;
+  padding: clamp(8px, 1.4vh, 14px) 14px;
   border: 0;
   border-radius: 20px;
   background: linear-gradient(135deg, #275c4f, #1a4339);
   box-shadow: 0 8px 22px rgba(16,40,32,.22);
   color: #fff;
+  font-weight: 400;
   text-align: left;
 }
 .admei {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: clamp(36px, 5vh, 46px);
+  height: clamp(36px, 5vh, 46px);
   flex: none;
-  border-radius: 14px;
+  border-radius: 13px;
   background: rgba(255,255,255,.14);
 }
 .admei svg {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
 }
 .admet {
   flex: 1;
@@ -858,15 +864,203 @@ body.admhome #tmhome .tmtile {
 }
 .admet b {
   display: block;
-  font-size: 19px;
+  font-size: calc(18 * var(--u, 1px));
+  font-weight: 700;
 }
 .admet small {
   display: block;
-  margin-top: 2px;
-  font-size: 13.5px;
+  margin-top: 1px;
+  font-size: calc(13 * var(--u, 1px));
   color: rgba(255,255,255,.78);
 }
 .admec svg {
   width: 22px;
   height: 22px;
+}
+
+/* ---------- Κινητό: η Διαχείριση ως μενού (όπως οι Ρυθμίσεις του iPhone), οι σελίδες σε όλη την οθόνη ---------- */
+.admm .admmh {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 2px 6px;
+}
+.admm .admmh svg {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  filter: drop-shadow(0 4px 10px rgba(47,111,94,.3));
+}
+.admm .admmh b {
+  display: block;
+  font-size: calc(24 * var(--u));
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+.admm .admmh small {
+  display: block;
+  color: var(--mu);
+  font-size: calc(13 * var(--u));
+}
+.admm .admmsec {
+  margin: 20px 6px 8px;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 600;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: var(--mu);
+}
+.admm .admmbox {
+  overflow: hidden;
+  border: 1px solid var(--a-line);
+  border-radius: 16px;
+  background: var(--a-card);
+  box-shadow: var(--a-shadow);
+}
+.admm .admmg + .admmg {
+  border-top: 1px solid var(--a-line);
+}
+.admm button.admmi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: calc(16 * var(--u));
+  font-weight: 600;
+  text-align: left;
+}
+.admm .admmi > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.admm .admmic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #275c4f, #1a4339);
+  color: #fff;
+}
+.admm .admmic svg {
+  width: 19px;
+  height: 19px;
+}
+.admm .admmi i {
+  display: flex;
+  color: var(--mu);
+}
+.admm .admmi i svg,
+.admm .admmsi svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  transition: transform .2s;
+}
+.admm .admmi i.admcar,
+.admm .admmi i.admcar.op {
+  width: auto;
+  height: auto;
+  transform: none;   /* στο κινητό: ⌄ κλειστό, ⌃ ανοιχτό (το βελάκι γυρίζει μόνο του) */
+}
+.admm .admmi i.admcar svg {
+  transform: rotate(90deg);
+}
+.admm .admmi i.admcar.op svg {
+  transform: rotate(-90deg);
+}
+.admm .admmsub {
+  padding: 0 0 4px 58px;
+}
+.admm .admmsub h5 {
+  margin: 12px 0 2px;
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--mu);
+}
+.admm button.admmsi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 14px 10px 0;
+  border: 0;
+  border-top: 1px solid var(--a-line);
+  border-radius: 0;
+  background: none;
+  color: var(--tx);
+  font: inherit;
+  font-size: calc(15 * var(--u));
+  text-align: left;
+}
+.admm .admmsi span {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admm .admmsi em {
+  font-style: normal;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  font-variant-numeric: tabular-nums;
+}
+.admm .admmsi svg {
+  color: var(--mu);
+}
+.admm .admmsi.off {
+  opacity: .5;
+}
+.admm .admmsi.admnew {
+  color: var(--ac);
+  font-weight: 600;
+}
+.admm .admsrch {
+  margin: 6px 14px 6px 0;
+  padding: 0 10px;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: var(--a-bg);
+  color: var(--mu);
+}
+.admm .admsrch input {
+  flex: 1;
+  padding: 8px 0;
+  color: var(--tx);
+  font-size: 16px;   /* όχι μικρότερο: αλλιώς το iPhone μεγεθύνει */
+}
+.admm .admsrch input::placeholder {
+  color: var(--mu);
+}
+.admm button.admmx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 24px 0 8px;
+  padding: 12px;
+  border-radius: 14px;
+  font-weight: 600;
+}
+.admm .admmx svg {
+  width: 18px;
+  height: 18px;
+}
+/* Επισκόπηση στο κινητό: ο πίνακας πωλητών κυλάει οριζόντια μέσα στην κάρτα */
+.admm.admv-overview [data-table] {
+  overflow-x: auto;
 }

@@ -350,6 +350,8 @@
     m._items = items;
     $('#pm').classList.add('on'); m.classList.add('on');
   }
+  /* το ίδιο μενού από κάτω και για άλλα κουμπιά (π.χ. το όνομα του χρήστη στην Αρχική, lab/team) */
+  PL.menu.open = (title, items) => openMenu(PL.menu(title, items));
 
   function wire() {
     $('#nav').addEventListener('click', (e) => {
