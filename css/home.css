@@ -1,5 +1,5 @@
 /* home.css — Αρχική: τίτλος, Εκκρεμότητες, πλακίδια, ⚙️.
-   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+   Φορτώνεται με τη σειρά: base → home → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 body.home #home {
   display: flex;
 }
@@ -486,9 +486,6 @@ body.home #nvo .oc {
   :root:not([data-theme="light"]) body.home #nav .nb.on {
     color: #4fdcb4;
   }
-  :root:not([data-theme="light"]) body.home #nav .nmic {
-    color: #f0857c;
-  }
   :root:not([data-theme="light"]) body.home #nvo {
     background: #0f2a23;
     color: #8ff0d4;
@@ -506,9 +503,6 @@ body.home #nvo .oc {
 }
 :root[data-theme="dark"] body.home #nav .nb.on {
   color: #4fdcb4;
-}
-:root[data-theme="dark"] body.home #nav .nmic {
-  color: #f0857c;
 }
 :root[data-theme="dark"] body.home #nvo {
   background: #0f2a23;

@@ -144,18 +144,14 @@
       }
 
       /* ---- τικ επίσκεψης ---- */
-      el.addEventListener('change', async (ev) => {
+      el.addEventListener('change', (ev) => {
         const k = ev.target.dataset.done; if (k === undefined || !cur) return;
         const s = cur.stops[+k], wasAll = cur.stops.every((x) => x.done);
         s.done = ev.target.checked; s.doneDate = s.done ? u.today() : ''; renderPlan(); savePlan();
         E.PLDONE = cur.mode !== 'free' && s.done && !wasAll && cur.stops.every((x) => x.done) ? { p: clone(cur) } : null;
-        /* Επίσκεψη και SOS γράφονται στο παρασκήνιο· η ερώτηση δεν περιμένει τη βάση. */
+        /* επίσκεψη και SOS γράφονται στο παρασκήνιο */
         Promise.all([E.setVisit(s.id, s.done), s.done ? E.clearSos(s.id) : null]).catch(() => D.toast('Δεν αποθηκεύτηκε η επίσκεψη. Δοκίμασε ξανά.'));
-        if (s.done) {
-          const c = M.byId(s.id);
-          if (c && (await D.confirm('Θες να πεις τι έγινε στον «' + c.name + '»;', 'Υπαγόρευση', 'Όχι τώρα'))) PL.dictation.open('Στον πελάτη ' + c.name + ' (' + c.city + '): ');
-          else if (E.PLDONE) E.finishPlan();
-        }
+        if (E.PLDONE) E.finishPlan();
       });
 
       /* ---- κλικ ---- */

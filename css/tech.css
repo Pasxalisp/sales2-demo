@@ -1,5 +1,5 @@
 /* tech.css — Ενέργειες: τεχνικός, σεμινάρια, καμπάνιες.
-   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+   Φορτώνεται με τη σειρά: base → home → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 /* αρχική «Ενέργειες»: τρεις κάρτες με εικονίδιο σε κύκλο, μετρητή και βελάκι */
 .hubk {
   display: flex;
