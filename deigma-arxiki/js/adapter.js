@@ -1,0 +1,137 @@
+/* ΠΡΟΣΑΡΜΟΓΕΑΣ — το ΜΟΝΟ σημείο που μιλάει με βάση, Claude, αρχεία και χρήστη.
+   Όλο το υπόλοιπο πρόγραμμα καλεί PL.adapter.* και δεν ξέρει πού ζουν τα δεδομένα.
+   Σήμερα: claude.ai (db / sample / downloads / user). Αύριο: αλλάζει μόνο αυτό το αρχείο
+   (π.χ. Supabase + δικό μας server για το Claude). Αν δεν υπάρχει claude.ai → τοπική μνήμη (δοκιμές).
+   Δοκιμαστική έκδοση σε δική της σελίδα: το js/demo-seed.js ορίζει window.PL_LOCAL = {key, seed:{path: doc}}.
+   Τότε η τοπική μνήμη ξεκινά από τα ψεύτικα δεδομένα και οι αλλαγές του χρήστη φυλάγονται στη συσκευή (localStorage).
+   Με βάση δεδομένων (db.html, lab/supa/session.js): το PL_LOCAL.remote γράφει κάθε αλλαγή στη βάση και φέρνει τις αλλαγές
+   άλλης συσκευής· τα δεδομένα φορτώνουν πριν ξεκινήσει η εφαρμογή (window.PL_BOOT).
+   Πολλοί χρήστες (PL.adapter.org): χρήστες, ομάδες, ποιος βλέπει ποιον και τα δεδομένα ενός πωλητή για τον υπεύθυνο/διευθυντή.
+   Σήμερα υπάρχει μόνο στη δοκιμαστική (lab/team/session.js, PL_LOCAL.org)· στο claude.ai είναι null. Στην κανονική έκδοση
+   θα τα δίνει ο server (π.χ. Supabase): org.me, teams(), team(id), sellers(tid), data(uid) → {all, get}, users(), saveUser(x), login/logout. */
+(function () {
+  const PL = (window.PL = window.PL || {});
+  let db = null, user = null, sample = null, dl = null, uid = null, mode = 'local';
+  const mem = new Map();            // path -> object   (μόνο για τοπική λειτουργία)
+  const memWatch = new Set();       // {col, cb}
+
+  const parts = (p) => p.split('/');
+  const colOf = (p) => parts(p).slice(0, -1).join('/');
+  const snapDocs = (s) => s.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+
+  /* Τοπική έκδοση με αποθήκευση: κρατάμε μόνο τις αλλαγές πάνω από τα ψεύτικα δεδομένα (path -> doc | null). */
+  const LOCAL = window.PL_LOCAL || null;
+  let over = {};
+  const loadLocal = () => {
+    Object.entries(LOCAL.seed || {}).forEach(([p, v]) => mem.set(p, v));
+    try { over = JSON.parse(localStorage.getItem(LOCAL.key) || '{}') || {}; } catch (e) { over = {}; }
+    Object.entries(over).forEach(([p, v]) => { if (v === null) mem.delete(p); else mem.set(p, v); });
+  };
+  const keep = (path) => {
+    if (!LOCAL) return;
+    over[path] = mem.has(path) ? mem.get(path) : null;
+    try { localStorage.setItem(LOCAL.key, JSON.stringify(over)); } catch (e) { /* γεμάτη ή κλειστή μνήμη: μένει μόνο για αυτή τη συνεδρία */ }
+  };
+
+  const memList = (col) => [...mem.entries()]
+    .filter(([p]) => colOf(p) === col)
+    .map(([p, v]) => Object.assign({ id: parts(p).pop() }, v));
+  const notify = (path) => memWatch.forEach((w) => { if (w.col === colOf(path)) w.cb(memList(w.col)); });
+  /* μία αλλαγή στη μνήμη: ενημερώνει τις σελίδες και τη φυλάει (βάση ή συσκευή). Αν η βάση την απορρίψει, γυρνά πίσω. */
+  const memChanged = async (path, had, prev) => {
+    notify(path);
+    if (!(LOCAL && LOCAL.remote)) { keep(path); return; }
+    try { await LOCAL.remote.put(path, mem.has(path) ? mem.get(path) : null); }
+    catch (e) { if (had) mem.set(path, prev); else mem.delete(path); notify(path); throw e; }
+  };
+  /* αλλαγή από άλλη συσκευή (μόνο με βάση): μπαίνει στη μνήμη χωρίς να ξαναγραφτεί */
+  const fromRemote = (path, d) => {
+    if (JSON.stringify(d === undefined ? null : d) === JSON.stringify(mem.has(path) ? mem.get(path) : null)) return;
+    if (d === null || d === undefined) mem.delete(path); else mem.set(path, d);
+    notify(path);
+  };
+
+  const ready = (async () => {
+    try {
+      if (window.claude && claude.use) {
+        db = await claude.use('db');
+        user = await claude.use('user');
+        sample = await claude.use('sample');
+        dl = await claude.use('downloads');
+        uid = user ? await user.id() : null;
+      }
+    } catch (e) { /* μένει τοπικά */ }
+    mode = db ? 'cloud' : 'local';
+    if (!db && window.PL_BOOT) { try { await window.PL_BOOT; } catch (e) { /* χωρίς σύνδεση με τη βάση: η σελίδα το λέει (db.html) */ } }
+    if (!db && LOCAL) { loadLocal(); if (LOCAL.remote) LOCAL.remote.listen(fromRemote); }
+    PL.bus && PL.bus.emit('adapter', mode);
+    return mode;
+  })();
+
+  PL.adapter = {
+    ready,
+    mode: () => mode,
+    userId: () => uid,
+    org: (LOCAL && LOCAL.org) || null,
+    isAdmin: async () => (user ? !!(await user.isOwner()) : false),
+
+    /* Κάθε εγγραφή ανακοινώνεται στο PL.bus ('write', διαδρομή) — π.χ. για τη μέτρηση χρήσης. */
+    db: {
+      async get(path) {
+        if (!db) return mem.has(path) ? mem.get(path) : null;
+        const s = await db.doc(path).get();
+        return s.exists ? s.data() : null;
+      },
+      async set(path, obj) {
+        PL.bus.emit('write', path);
+        if (!db) { const had = mem.has(path), prev = mem.get(path); mem.set(path, JSON.parse(JSON.stringify(obj))); await memChanged(path, had, prev); return; }
+        await db.doc(path).set(obj);
+      },
+      async merge(path, obj) {
+        PL.bus.emit('write', path);
+        if (!db) { const had = mem.has(path), prev = mem.get(path); mem.set(path, Object.assign({}, mem.get(path) || {}, obj)); await memChanged(path, had, prev); return; }
+        await db.doc(path).update(obj);
+      },
+      async remove(path) {
+        PL.bus.emit('write', path);
+        if (!db) { const had = mem.has(path), prev = mem.get(path); mem.delete(path); await memChanged(path, had, prev); return; }
+        await db.doc(path).delete();
+      },
+      async list(col) {
+        if (!db) return memList(col);
+        return snapDocs(await db.collection(col).get());
+      },
+      /* Συνδρομή: μία φορά ανά συλλογή, επιστρέφει συνάρτηση διακοπής. */
+      watch(col, cb, err) {
+        if (!db) { const w = { col, cb }; memWatch.add(w); cb(memList(col)); return () => memWatch.delete(w); }
+        return db.collection(col).onSnapshot((s) => cb(snapDocs(s)), err || (() => {}));
+      },
+      /* Εξαγωγή / εισαγωγή όλης της βάσης ως ένα αρχείο (όπως το dedomena.json) — προστίθεται στο βήμα 2. */
+    },
+
+    ai: {
+      available: () => !!sample,
+      async ask(input, opts) {
+        if (!sample) throw { code: 'not_granted', message: 'Το Claude δεν είναι διαθέσιμο εδώ.' };
+        return sample(input, opts);
+      },
+      async json(input, opts) {
+        if (!sample) throw { code: 'not_granted', message: 'Το Claude δεν είναι διαθέσιμο εδώ.' };
+        return sample.json(input, opts);
+      },
+      limits: async () => (sample && sample.limits ? sample.limits() : null),
+    },
+
+    /* Λήψη αρχείου: στο claude.ai μέσω downloads· σε δική μας σελίδα με απλή λήψη του browser. */
+    files: {
+      available: () => !!dl || mode === 'local',
+      async save(filename, data) {
+        if (dl) return dl.save({ filename, data });
+        if (mode !== 'local') throw { code: 'not_granted', message: 'Η λήψη αρχείων δεν είναι διαθέσιμη εδώ.' };
+        const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data]));
+        const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      },
+    },
+  };
+})();
