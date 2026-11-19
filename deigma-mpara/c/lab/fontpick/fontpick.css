@@ -1,0 +1,32 @@
+/* ΔΕΙΓΜΑ «Γραμματοσειρά» — μαζί με το fontpick.js. Η διαλεγμένη γραμματοσειρά μπαίνει παντού (εκτός από κώδικες/αριθμούς
+   σταθερού πλάτους). Στην κανονική έκδοση αυτό θα γίνει με ένα κοινό --font στο base.css, χωρίς !important. */
+html[data-font] *:not(code):not(.admclock):not(.admclock *) {
+  font-family: var(--pl-font), system-ui, -apple-system, sans-serif !important;
+}
+.fprow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 6px 6px 6px 12px;
+  border: 1px dashed var(--bd);
+  border-radius: 14px;
+  font-size: calc(13 * var(--u));
+}
+.fpick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+.fpick > span {
+  font-weight: 800;
+  color: var(--ac);
+}
+.fpick select {
+  width: auto;
+  padding: 6px 8px;
+  font-size: calc(13 * var(--u));
+  border-radius: 10px;
+}
