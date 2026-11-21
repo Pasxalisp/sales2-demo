@@ -288,7 +288,7 @@
     ['home', 'Αρχική', 'Αρχική', '<path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>'],
     ['clients', 'Πελάτες', 'Πελατολόγιο', '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>'],
     ['balances', 'Υπόλοιπα', 'Υπόλοιπα', '<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9a2 2 0 0 0-1.8-1h-.5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h.5a2 2 0 0 0 1.8-1"/><path d="M7.5 10.5h4M7.5 13.5h4"/>'],
-    ['tech', 'Ενέργειες', 'Ενέργειες', '<path d="M7 10h3V7L6.5 3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1-3 3l-6-6a6 6 0 0 1-8-8L7 10"/>'],
+    ['tech', 'Ενέργειες', 'Ενέργειες', '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 12 12M20 4 8.1 15.9M14.8 14.8 20 20"/>'],
     ['tasks', 'Ημερολόγιο', 'Εκκρεμότητες · Ημερολόγιο', '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>'],
   ];
   const SV = (p, sz, sw) => `<svg viewBox="0 0 24 24" width="${sz || 22}" height="${sz || 22}" fill="none" stroke="currentColor" stroke-width="${sw || 2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
