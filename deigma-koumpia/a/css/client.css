@@ -1,0 +1,154 @@
+/* client.css — Καρτέλα πελάτη.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+.ent {
+  border-left: 3px solid var(--ac);
+  padding: 4px 0 4px 10px;
+  margin: 10px 0;
+}
+.debt {
+  margin-top: 4px;
+  font-size: calc(14 * var(--u));
+}
+.ordl .oi {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bd);
+  font-size: calc(14 * var(--u));
+  cursor: pointer;
+}
+
+/* καρτέλα πελάτη: τρεις μεγάλες ενέργειες (Κλήση, Οδηγίες, Παραγγελία) και μικρά κουμπιά κατάστασης (SOS, Τεχνικός, Σεμινάριο) */
+.cact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+.cact .cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 12px 4px;
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--ac);
+  font-size: calc(14 * var(--u));
+  text-decoration: none;
+}
+.cact .cat span {
+  color: var(--tx);
+}
+.cact .cat svg {
+  width: 24px;
+  height: 24px;
+}
+.cact .cat:disabled {
+  opacity: .4;
+}
+.cchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+/* κινητό: τα τέσσερα (SOS, Τεχνικός, Σεμινάριο, Καμπάνια) σε 2 × 2, ίσα */
+@media (max-width: 520px) {
+  .cchips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .cchip {
+    justify-content: center;
+  }
+}
+.cchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 99px;
+  font-size: calc(13 * var(--u));
+  white-space: nowrap;
+}
+.cchip svg {
+  width: 16px;
+  height: 16px;
+}
+.cchip.sos {
+  background: #fdecea;
+  border-color: #e2735f;
+  color: #b2392a;
+}
+.cchip.tech {
+  background: var(--techbg);
+  border-color: var(--tech);
+  color: var(--tech);
+}
+.cchip.sem {
+  background: var(--sembg);
+  border-color: var(--sem);
+  color: var(--sem);
+}
+.cchip.camp {
+  background: var(--campbg);
+  border-color: var(--camp);
+  color: var(--camp);
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) .cchip.sos {
+    background: rgba(217,56,47,.18);
+    border-color: #c4523f;
+    color: #ff9a8a;
+  }
+}
+:root[data-theme="dark"] .cchip.sos {
+  background: rgba(217,56,47,.18);
+  border-color: #c4523f;
+  color: #ff9a8a;
+}
+
+/* ---- πάνω μέρος καρτέλας (απόφαση Πασχάλη 21/11, δείγμα deigma-kartela): γιορτή σε μία γραμμή, «με μια ματιά» (Τζίρος,
+   Goldwell, Υπόλοιπο σε κουτάκια), κουτιά (.cbox) για Goldwell, παραγγελίες, μάρκες, κατηγορίες, «Τι παίρνει» ---- */
+.cnd { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 4px; color: var(--mu); font-size: calc(14 * var(--u)); }
+.cnd > span { min-width: 0; }
+.cnd .ndbtn { flex: none; margin: 0; padding: 4px 10px; font-size: calc(13 * var(--u)); }
+.cglance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.cglance.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cglance.n1 { grid-template-columns: minmax(0, 1fr); }
+.cgl { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 10px 11px; border: 1px solid var(--bd); border-radius: 14px; background: var(--card); }
+.cgl .cgll { color: var(--mu); font-size: calc(12 * var(--u)); font-weight: 600; letter-spacing: .2px; }
+.cgl b { font-size: calc(19 * var(--u)); line-height: 1.15; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cgl .cgls { color: var(--mu); font-size: calc(12 * var(--u)); line-height: 1.25; }
+.cgl.bad b { color: var(--rd); }
+.cgl.ok b { color: var(--ac); }
+.cbox { margin: 10px 0; padding: 12px 13px; border: 1px solid var(--bd); border-radius: 14px; background: var(--card); }
+.cbox .cbh { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-size: calc(16 * var(--u)); }
+.cpill { padding: 2px 9px; border-radius: 999px; font-size: calc(12.5 * var(--u)); font-weight: 700; white-space: nowrap; background: rgba(35,135,90,.12); }
+.cpill.dn { background: rgba(214,69,51,.12); }
+.cgr { display: grid; grid-template-columns: 1fr auto; row-gap: 3px; margin: 7px 0; font-size: calc(14 * var(--u)); }
+.cgr > span { color: var(--mu); }
+.cgr > i { grid-column: 1 / -1; height: 7px; border-radius: 4px; background: var(--bd); }
+.cgr.now > i { background: var(--ac); }
+.cgr.fy > i { background: color-mix(in srgb, var(--mu) 45%, transparent); }
+.cbf { margin-top: 8px; color: var(--mu); font-size: calc(13 * var(--u)); }
+.ordl .oi:last-child { border-bottom: 0; }
+@media (max-width: 359px) {
+  .cglance { gap: 6px; }
+  .cgl { padding: 8px 8px; }
+  .cgl b { font-size: calc(15.5 * var(--u)); letter-spacing: -.4px; }
+}
+
+/* ---- ΔΕΙΓΜΑ 21/11: SOS · Τεχνικός · Σεμινάριο · Καμπάνια σε μία σειρά, σαν κουμπιά (εικονίδιο πάνω, λέξη κάτω) ---- */
+.cchips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 0 10px; }
+.cchip { flex-direction: column; justify-content: center; align-items: center; gap: 4px; min-width: 0; margin: 0; padding: 9px 2px 8px;
+  border: 1px solid var(--bd); border-radius: 12px; background: var(--card); color: var(--tx);
+  font-size: calc(12 * var(--u)); font-weight: 600; line-height: 1.15; white-space: nowrap; }
+.cchip svg { width: 20px; height: 20px; color: var(--mu); }
+.cchip.sos svg, .cchip.tech svg, .cchip.sem svg, .cchip.camp svg { color: currentColor; }
+.cchip:active { transform: scale(.96); }
+.cchip { box-shadow: 0 1px 3px rgba(0,0,0,.06); }

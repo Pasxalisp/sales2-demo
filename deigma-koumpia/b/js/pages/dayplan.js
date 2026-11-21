@@ -1,0 +1,110 @@
+/* «Πρόγραμμα ημέρας»: λίστα περιοχών, πελάτες χωρίς τζίρο, «Δημιουργία προγράμματος».
+   Πόλη με πολλές περιοχές (Θεσσαλονίκη): ▸ ανοίγει τις περιοχές της (ΚΕΝΤΡΟ, ΕΥΟΣΜΟΣ…) για να διαλέξεις μόνο κάποιες (απόφαση 12/11).
+   Επιλογή st.sel = 'ΠΟΛΗ' (όλη) ή 'ΠΟΛΗ|ΠΕΡΙΟΧΗ' (E.partOf, engine.js).
+   Τα ανοιχτά, τα πρόχειρα και τα παλαιότερα προγράμματα είναι στη σελίδα «📂 Τα προγράμματά μου» (myplans.js). */
+(function () {
+  const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, E = PL.plans, D = PL.dlg, esc = u.esc;
+  const st = { sel: new Set(), open: new Set(), n: 2, q: '', busy: false };
+
+  PL.dayplan = { st };
+  PL.register('dayplan', {
+    title: 'Πρόγραμμα ημέρας',
+    render(el, params) {
+      el.innerHTML = `<h2 style="color:var(--pday);margin:6px 0 10px">📋 Πρόγραμμα ημέρας</h2>
+<input id="pq" placeholder="Αναζήτηση περιοχής…" value="${esc(st.q)}">
+<div id="pl" style="max-height:max(140px,calc(100dvh - 450px));overflow:auto;margin:8px 0;border:1px solid var(--bd);border-radius:10px"></div>
+<div style="display:flex;align-items:center;gap:10px;margin:4px 0 8px"><label for="pn" style="margin:0;flex:1">Πελάτες χωρίς τζίρο</label><input id="pn" type="number" value="${st.n}" min="0" max="10" style="width:72px;text-align:center"></div>
+<button class="pri" id="pgo" style="width:100%;min-height:50px;font-size:calc(17*var(--u));font-weight:700;background:var(--pday);border-color:var(--pday)">Δημιουργία προγράμματος</button>
+<div id="pst" class="mu"></div>`;
+      const $ = (s) => el.querySelector(s);
+      let alive = true;
+      ['clients', 'prospects', 'plans'].forEach((c) => S.use(c));
+      const cities = () => { const m = {}; M.live().forEach((c) => { if (c.city) m[c.city] = (m[c.city] || 0) + 1; }); return m; };
+      const box = (k, on, mixed) => `<input type="checkbox" data-pc="${esc(k)}" ${on ? 'checked' : ''}${mixed ? ' data-mixed="1"' : ''} style="width:auto;margin-right:8px">`;
+      const plist = () => {
+        const f = u.nn($('#pq').value), m = cities();
+        $('#pl').innerHTML = Object.keys(m).sort((a, b) => a.localeCompare(b, 'el')).map((x) => {
+          const P = E.parts(x), hitP = f && !u.nn(x).includes(f) ? P.filter(([p]) => u.nn(p).includes(f)) : null;
+          if (f && !u.nn(x).includes(f) && !hitP.length) return '';
+          const whole = st.sel.has(x), some = P.some(([p]) => st.sel.has(x + '|' + p)), op = P.length && (st.open.has(x) || (hitP && hitP.length));
+          const head = `<label class="pk" style="margin:0;color:var(--tx);font-size:calc(16*var(--u))"><span>${box(x, whole, !whole && some)}${esc(x)}</span><span class="mu">${m[x]}${P.length ? `<button type="button" class="pkx" data-px="${esc(x)}" aria-expanded="${!!op}" aria-label="Περιοχές ${esc(x)}">${op ? '▾' : '▸'}</button>` : ''}</span></label>`;
+          return head + (op ? (hitP && hitP.length ? hitP : P).map(([p, n]) => `<label class="pk pkp" style="margin:0;color:var(--tx);font-size:calc(15*var(--u))"><span>${box(x + '|' + p, whole || st.sel.has(x + '|' + p))}${esc(p)}</span><span class="mu">${n}</span></label>`).join('') : '');
+        }).join('');
+        $('#pl').querySelectorAll('[data-mixed]').forEach((i) => { i.indeterminate = true; });
+      };
+      plist();
+      const offs = [S.on('clients', plist), S.on('prospects', plist)];
+      $('#pq').addEventListener('input', plist);
+      $('#pn').addEventListener('change', () => { st.n = Math.max(0, Math.min(10, +$('#pn').value || 0)); });
+      /* τικ σε πόλη = όλη η πόλη· τικ σε περιοχή = μόνο αυτή (όλες οι περιοχές τικαρισμένες = όλη η πόλη) */
+      el.addEventListener('change', (ev) => {
+        const k = ev.target.dataset.pc; if (k === undefined) return;
+        const [cy, pt] = k.split('|'), P = E.parts(cy).map(([p]) => cy + '|' + p), on = ev.target.checked;
+        if (!pt) { P.forEach((x) => st.sel.delete(x)); on ? st.sel.add(cy) : st.sel.delete(cy); }
+        else {
+          if (st.sel.has(cy)) { st.sel.delete(cy); P.forEach((x) => st.sel.add(x)); }
+          on ? st.sel.add(k) : st.sel.delete(k);
+          if (P.every((x) => st.sel.has(x))) { P.forEach((x) => st.sel.delete(x)); st.sel.add(cy); }
+        }
+        plist();
+      });
+      el.addEventListener('click', (ev) => { const b = ev.target.closest('[data-px]'); if (!b) return; ev.preventDefault(); const cy = b.dataset.px; st.open.has(cy) ? st.open.delete(cy) : st.open.add(cy); plist(); });
+      const say = (m) => { if (alive) $('#pst').innerHTML = esc(m); };
+
+      async function create() {
+        if (st.busy) return;
+        if (!st.sel.size) return say('Διάλεξε τουλάχιστον μία περιοχή.');
+        st.busy = true; $('#pgo').disabled = true;
+        let clock = null;
+        try {
+          await E.use();
+          const sel = new Set(st.sel), keys = [...sel], cs = [...new Set(keys.map((k) => k.split('|')[0]))], parts = keys.filter((k) => k.includes('|')), t = u.today(), c = E.candidates(sel);
+          let act = c.act, mode = '';
+          if (c.recent.length || c.visited.size || c.actPl.length) {
+            const O = [];
+            if (c.actPl.length) O.push(['rest', 'Μόνο όσους δεν είναι στο ενεργό πρόγραμμα (' + act.filter((x) => !c.inPlan.has(x.i)).length + ')']);
+            if (c.recent.length || c.visited.size) O.push(['new', 'Μόνο όσους δεν επισκέφθηκα αυτόν τον μήνα (' + act.filter((x) => !c.visited.has(x.i) || S.get('sos', x.i)).length + ')']);
+            O.push(['all', 'Όλο το πελατολόγιο (' + act.length + ')']);
+            const key = keys.slice().sort().join('+'), ex = c.actPl.find(([, p]) => [...E.selOf(p)].sort().join('+') === key);
+            if (ex) O.push(['open', 'Άνοιξε το ενεργό πρόγραμμα']);
+            O.push(['x', 'Άκυρο']);
+            const msg = (c.actPl.length ? 'Έχεις ' + (c.actPl.length > 1 ? c.actPl.length + ' ενεργά προγράμματα' : 'ενεργό πρόγραμμα') + ' για ' + E.selName(keys) + ' με ' + c.inPlan.size + ' πελάτες. ' : '') + (c.visited.size ? 'Αυτόν τον μήνα τσέκαρες ' + c.visited.size + ' πελάτες. ' : '') + 'Ποιους να βάλω στο νέο πρόγραμμα;';
+            const k = O[await D.choice(msg, O.map((o) => o[1]))][0];
+            if (k === 'x') return;
+            if (k === 'open') { PL.planview.open(ex[0]); return; }
+            mode = k === 'all' ? '' : k;
+            if (mode === 'new') act = act.filter((x) => !c.visited.has(x.i) || S.get('sos', x.i));
+            if (mode === 'rest') act = act.filter((x) => !c.inPlan.has(x.i));
+          }
+          const excl = new Set(act.map((x) => x.i).concat(mode === 'new' ? [...c.visited] : mode === 'rest' ? [...c.inPlan] : []));
+          const zeros = E.zeroQueue(sel, excl).slice(0, Math.max(0, Math.min(10, st.n))), zset = new Set(zeros.map((x) => x.i)), all = act.concat(zeros);
+          if (!all.length) return say('Δεν υπάρχουν ενεργοί ή νέοι πελάτες στις περιοχές αυτές.');
+          const T0 = Date.now(), N = all.length;
+          $('#pst').innerHTML = `<div class="pbw"><div class="pbt"><span id="pbm">Διαβάζω ${N} πελάτες…</span><span id="pbe">0″</span></div><div class="pbar ind" id="pbb"><i></i></div>${PL.adapter.ai.available() ? '<div class="pbs">Σε μεγάλες περιοχές μπορεί να πάρει έως δύο λεπτά. Μην κλείσεις τη σελίδα.</div>' : ''}</div>`;
+          clock = PL.tick.add(() => { const e = document.getElementById('pbe'); if (e) { const s = Math.round((Date.now() - T0) / 1000); e.textContent = s < 60 ? s + '″' : Math.floor(s / 60) + '′ ' + u.pad(s % 60) + '″'; } }, 1);
+          const g = await E.generate(keys.map(E.keyName), all, { mode, zset, touch: c.touch, recentTouch: c.recentTouch }, (k, n) => {
+            const b = document.getElementById('pbb'), m = document.getElementById('pbm'); if (!b || !m) return;
+            if (k > 0) { b.classList.remove('ind'); const pc = Math.min(97, Math.round(k / n * 100)); b.firstChild.style.width = pc + '%'; m.textContent = 'Γράφω σημειώσεις: ' + k + ' από ' + n + ' πελάτες (' + pc + '%)'; } else m.textContent = 'Αναλύω τζίρους και σημειώσεις…';
+          });
+          { const b = document.getElementById('pbb'), m = document.getElementById('pbm'); if (b) { b.classList.remove('ind'); b.firstChild.style.width = '100%'; } if (m) m.textContent = 'Βάζω σε σειρά διαδρομής…'; }
+          const plan = Object.assign({ id: null, cities: cs, created: t, stops: g.stops, note: g.note || '', saved: false, mode, sort: 'area' }, parts.length ? { parts } : {});
+          { const m = document.getElementById('pbm'); if (m) m.textContent = 'Αποθηκεύω το πρόγραμμα…'; }
+          try { const nid = 'pl' + Date.now(); await E.savePlan(nid, Object.assign({ sort: plan.sort, mode, cities: cs, created: t, closed: false, stops: plan.stops, note: plan.note }, parts.length ? { parts } : {})); plan.id = nid; plan.saved = true; } catch (e) { plan.saved = false; plan.id = null; }
+          if (alive) $('#pst').textContent = '';
+          PL.planview.openNew(plan);
+        } catch (e) {
+          say('Δεν ολοκληρώθηκε (' + ((e && e.code) || 'σφάλμα') + (e && e.message ? ': ' + String(e.message).slice(0, 160) : '') + '). Δοκίμασε ξανά.');
+        } finally { if (clock) PL.tick.remove(clock); st.busy = false; const b = document.getElementById('pgo'); if (b) b.disabled = false; }
+      }
+
+      el.addEventListener('click', async (ev) => {
+        const t = ev.target;
+        try {
+          if (t.id === 'pgo') create();
+        } catch (e) { say('Δεν έγινε. Δοκίμασε ξανά.'); }
+      });
+      if (params && params.auto) setTimeout(create, 0);
+      return () => { alive = false; offs.forEach((f) => f()); };
+    },
+  });
+})();

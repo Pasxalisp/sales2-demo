@@ -1,0 +1,11 @@
+/* Σφάλματα (lab/errors) — πάνω στα κουτιά της ομάδας (team.css) και στους δείκτες της Χρήσης (usage.css: .uskpi). */
+button.errg { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; width: 100%; text-align: left; margin: 0; padding: 10px 0; border: 0; border-bottom: 1px solid var(--bd); border-radius: 0; background: none; color: var(--tx); font: inherit; }
+button.errg.on { border-bottom-color: transparent; }
+.errg .errm { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.errg .errm b { font-weight: 600; }
+.errg small { font-size: calc(12.5 * var(--u)); color: var(--mu); }
+.errg .errn { display: flex; flex-direction: column; align-items: flex-end; flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+.errg .errn b { color: var(--rd); }
+.errd { padding: 0 0 10px 12px; border-bottom: 1px solid var(--bd); border-left: 2px solid var(--bd); }
+.errsrc { margin: 6px 0 0; font-size: calc(12 * var(--u)); overflow-wrap: anywhere; }
+.errok { margin: 12px 0; padding: 14px; border-radius: 14px; background: var(--ac2); }

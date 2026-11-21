@@ -1,0 +1,236 @@
+/* ΔΟΚΙΜΑΣΤΙΚΟ «Χρήστες και ρόλοι» (lab/team/team.js) — μόνο στη δοκιμαστική έκδοση. */
+
+/* ---- οθόνη εισόδου ---- */
+body.tmlock { overflow: hidden; }
+#tmlogin, .tmover { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: max(28px, env(safe-area-inset-top)) 16px 28px; }
+.tmlb { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; }
+.tmlogo { display: flex; align-items: center; gap: 10px; font-size: calc(30 * var(--u)); font-weight: 800; color: var(--tx); margin-top: 6px; }
+.tmlogo svg { width: 44px; height: 44px; }
+.tmlogo small { font-size: calc(16 * var(--u)); font-weight: 700; color: #2f6f5e; margin-left: 3px; vertical-align: super; }
+.tmlb > p.mu { margin: 0 0 6px; }
+.tmlb label { display: flex; flex-direction: column; gap: 4px; font-size: calc(14 * var(--u)); color: var(--mu); font-weight: 600; }
+.tmlb input { font-size: calc(17 * var(--u)); padding: 12px; }
+#tmgo { padding: 13px; font-size: calc(17 * var(--u)); margin-top: 4px; }
+#tmerr { margin: 0; min-height: 1.2em; }
+/* «Βάλε δικό σου κωδικό» (lab/team/accounts.js): ίδια όψη με την είσοδο, πάνω από την εφαρμογή */
+.tmover { z-index: 210; }
+.tmover h2 { margin: 6px 0 0; font-size: calc(24 * var(--u)); }
+#tmps { padding: 13px; font-size: calc(17 * var(--u)); margin-top: 4px; }
+#tmpe { margin: 0; min-height: 1.2em; color: var(--rd); }
+#tmpx { align-self: center; background: none; border: 0; color: var(--mu); font-size: calc(15 * var(--u)); }
+.tmq { border-top: 1px solid var(--bd); padding-top: 12px; margin-top: 4px; display: flex; flex-direction: column; gap: 8px; }
+.tmq h3 { margin: 0 0 2px; font-size: calc(13 * var(--u)); color: var(--mu); text-transform: uppercase; letter-spacing: .3px; }
+.tmq button { display: flex; align-items: center; gap: 12px; text-align: left; padding: 11px 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--bd); color: var(--tx); }
+.tmq button b { display: block; font-size: calc(16 * var(--u)); }
+.tmq button small { display: block; color: var(--mu); font-size: calc(13 * var(--u)); font-weight: 400; }
+.tmqi { font-size: calc(24 * var(--u)); width: 36px; text-align: center; flex: none; }
+.tmhint { font-size: calc(13 * var(--u)); text-align: center; }
+
+/* ---- αρχική: ποιος είναι μέσα, στρογγυλό κουμπί με τα αρχικά, τρίτο δεξιά: QR · ⚙️ · ΠΠ (απόφαση 21/11, δείγμα «Α»·
+   πάτημα → μενού κωδικός / έξοδος). Ίδιο μέγεθος και θέση με τα κουμπιά του css/home.css· όταν υπάρχει, εκείνα πάνε αριστερά. ---- */
+#home .hh:has(#tmchip) { padding-right: 156px; }
+#home .hh:has(#tmchip) button#hset { right: 52px; }
+#home .hh:has(#tmchip) button#hqr { right: 104px; }
+#home button#tmchip {
+  position: absolute; right: 0; top: 0; flex: none;
+  width: 44px; height: 44px; margin: 0; padding: 0; border-radius: 50%;
+  border: 2px solid #fff; background: #2f6f5e; box-shadow: 0 2px 10px rgba(0,0,0,.07);
+  display: flex; align-items: center; justify-content: center;
+}
+#home #tmchip .tmav { width: 100%; height: 100%; background: none; color: #fff; font-size: calc(15 * var(--u)); letter-spacing: .3px; }
+#home #tmchip:active { transform: scale(.92); }
+@media (max-width: 359px) {
+  #home .hh:has(#tmchip) { padding-right: 132px; }
+  #home .hh:has(#tmchip) button#hset { right: 44px; }
+  #home .hh:has(#tmchip) button#hqr { right: 88px; }
+  #home button#tmchip { width: 40px; height: 40px; }
+}
+
+/* ---- κοινά ---- */
+.tmav { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #2f6f5e; color: #fff; font-weight: 700; font-size: calc(14 * var(--u)); flex: none; letter-spacing: .5px; }
+.tmav.l { background: #2563c9; }
+.tmav.d { background: var(--sem); }
+.tmav.s { width: 26px; height: 26px; font-size: calc(11 * var(--u)); }
+.tmav.big { width: 52px; height: 52px; font-size: calc(19 * var(--u)); }
+.tmro { display: inline-block; font-size: calc(12 * var(--u)); font-weight: 600; color: var(--mu); border: 1px solid var(--bd); border-radius: 999px; padding: 2px 9px; white-space: nowrap; vertical-align: 1px; }
+.tmrole { font-size: calc(12 * var(--u)); font-weight: 700; border-radius: 999px; padding: 2px 9px; white-space: nowrap; background: var(--ac2); color: var(--ac); }
+.tmrole.lead { background: rgba(37, 99, 201, .12); color: #2563c9; }
+.tmrole.director { background: rgba(122, 63, 184, .12); color: var(--sem); }
+.tmpage .up, b.up { color: var(--ac); }
+.tmpage .dn, b.dn { color: var(--rd); }
+.tmpage .mid, b.mid { color: #c78a00; }
+.tmbar { height: 7px; border-radius: 4px; background: var(--bd); overflow: hidden; margin-top: 5px; }
+.tmbar i { display: block; height: 100%; border-radius: 4px; background: #e0a11b; }
+.tmbar i.up { background: var(--ac); }
+.tmbar i.dn { background: var(--rd); }
+.tmmini { display: flex; flex-wrap: wrap; gap: 3px 14px; margin-top: 7px; font-size: calc(13.5 * var(--u)); color: var(--mu); }
+.tmfoot { font-size: calc(13 * var(--u)); margin-top: 14px; }
+
+/* ---- σελίδα: κεφαλίδα, πλέγμα καρτών ---- */
+.tmhead h2 { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.tmhead h2 svg { color: var(--ac); flex: none; }
+/* μόνο προηγούμενος / επόμενος πωλητής, δεξιά (το «‹ Πίσω» είναι στην πάνω γραμμή της εφαρμογής) */
+.tmtop { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 6px; }
+.tmpn { display: flex; gap: 6px; }
+.tmpn button { border-radius: 999px; padding: 5px 12px; font-size: calc(14 * var(--u)); margin: 0; }
+.tmwho { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.tmwho > div { flex: 1; min-width: 0; }
+.tmwho h2 { margin: 0; }
+.tmgrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.tmcard { border: 1px solid var(--bd); border-radius: 16px; background: var(--card); padding: 12px 14px; min-width: 0; }
+.tmcard > h3 { margin: 0 0 8px; font-size: calc(12.5 * var(--u)); color: var(--mu); font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+.tmsec { margin: 18px 2px 8px; font-size: calc(12.5 * var(--u)); color: var(--mu); text-transform: uppercase; letter-spacing: .4px; }
+.tmsum { display: flex; align-items: center; gap: 14px; }
+.tmsumb { flex: 1; min-width: 0; }
+.tmbig { font-size: calc(19 * var(--u)); }
+.tmkp { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; padding: 4px 0; }
+.tmkp > div { padding: 9px 14px; border-bottom: 1px solid var(--bd); min-width: 0; }
+.tmkp > div:nth-child(odd) { border-right: 1px solid var(--bd); }
+.tmkp > div:nth-last-child(-n+2) { border-bottom: 0; }
+.tmkp > div > span { display: block; font-size: calc(12 * var(--u)); color: var(--mu); }
+.tmkp > div > b { display: block; font-size: calc(19 * var(--u)); }
+.tmkp > div > small { display: block; font-size: calc(12 * var(--u)); color: var(--mu); }
+.tmn { padding: 7px 0; border-bottom: 1px solid var(--bd); }
+.tmn:last-child { border-bottom: 0; }
+.tmn > .mu { font-size: calc(13 * var(--u)); }
+.tmdl { padding: 6px 0; border-bottom: 1px solid var(--bd); }
+.tmdl:last-child { border-bottom: 0; }
+.tmdl small { color: var(--mu); }
+
+/* ---- λίστα πωλητών ---- */
+.tmrows { display: grid; grid-template-columns: 1fr; gap: 8px; }
+button.tmrow { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; color: var(--tx); background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 12px 12px 12px 14px; margin: 0; }
+button.tmrow.me { border-left: 4px solid #2563c9; }
+button.tmrow.off { opacity: .55; }
+.tmrb { flex: 1; min-width: 0; display: block; }
+.tmrb > b { display: block; font-size: calc(16 * var(--u)); }
+.tmchev { color: var(--mu); font-size: calc(24 * var(--u)); line-height: 1; flex: none; }
+.tmteamh { display: flex; align-items: center; gap: 12px; }
+.tmrl { padding: 7px 0; border-bottom: 1px solid var(--bd); display: flex; flex-direction: column; gap: 2px; }
+.tmrl:last-child { border-bottom: 0; }
+.tmrl span { color: var(--mu); font-size: calc(14 * var(--u)); }
+
+/* ---- κατάσταση: «Χρειάζεται προσοχή», πωλητές με χρώμα (πράσινο / κίτρινο / κόκκινο) ---- */
+.tmalert { background: color-mix(in srgb, var(--rd) 9%, var(--card)); border-color: color-mix(in srgb, var(--rd) 35%, var(--bd)); }
+.tmalert > h3 { color: var(--rd); }
+.tmalert.y { background: color-mix(in srgb, #e0a11b 10%, var(--card)); border-color: color-mix(in srgb, #e0a11b 40%, var(--bd)); }
+.tmalert.y > h3 { color: #b07a10; }
+.tmok { background: color-mix(in srgb, var(--ac) 8%, var(--card)); }
+.tmok > h3 { color: var(--ac); }
+.tmatt { margin: 0 0 4px; font-size: calc(16 * var(--u)); line-height: 1.45; }
+.tmatt + .shlink { margin-bottom: 10px; }
+.tmwhyl { margin: 6px 0 0; padding-left: 20px; font-size: calc(15.5 * var(--u)); line-height: 1.6; }
+.tmwhyl.r li::marker { color: var(--rd); }
+.tmwhyl.y li::marker { color: #e0a11b; }
+.tmwhyl.g li::marker { color: var(--ac); }
+.tmhero { font-size: calc(30 * var(--u)); font-weight: 800; line-height: 1.1; }
+.tmsl { display: flex; flex-direction: column; }
+button.tmsr { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0; padding: 11px 0; text-align: left; font: inherit; color: var(--tx); background: none; border: 0; border-bottom: 1px solid var(--bd); border-radius: 0; }
+button.tmsr:last-child { border-bottom: 0; }
+.tmdot { width: 13px; height: 13px; border-radius: 50%; flex: none; background: var(--ac); }
+.tmdot.y { background: #e0a11b; }
+.tmdot.r { background: var(--rd); }
+.tmsrb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tmsrb > b { font-size: calc(16.5 * var(--u)); overflow-wrap: anywhere; }
+.tmwhy { font-size: calc(14 * var(--u)); color: var(--mu); }
+.tmwhy.r { color: var(--rd); }
+.tmpct { flex: none; font-size: calc(20 * var(--u)); font-weight: 800; color: var(--ac); }
+.tmpct.y { color: #b07a10; }
+.tmpct.r { color: var(--rd); }
+.tmtag { font-size: calc(11.5 * var(--u)); font-weight: 700; color: #2563c9; background: rgba(37, 99, 201, .12); border-radius: 99px; padding: 1px 7px; vertical-align: 2px; }
+.tmbar.mk { position: relative; overflow: visible; height: 8px; margin-top: 6px; }
+.tmbar.mk i.g { background: var(--ac); }
+.tmbar.mk i.y { background: #e0a11b; }
+.tmbar.mk i.r { background: var(--rd); }
+.tmbar.mk u { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--tx); border-radius: 1px; }
+button.tmmore { display: block; width: 100%; margin: 12px 0 0; padding: 11px; border-radius: 14px; font-weight: 600; color: var(--ac); background: var(--card); border: 1px solid var(--bd); }
+.tmdet { margin-top: 10px; }
+.tmnums td.up { color: var(--ac); }
+.tmnums td.mid { color: #c78a00; }
+.tmnums td.dn { color: var(--rd); }
+.tmteamh h3 { margin: 0; font-size: calc(17 * var(--u)); }
+
+/* ---- γραφήματα (χρώματα από τις μεταβλητές: ανοιχτό και σκούρο) ---- */
+.tmdon { flex: none; }
+.tmdon circle { fill: none; stroke-width: 12; }
+.tmdon .tk { stroke: var(--bd); }
+.tmdon .v { stroke-linecap: round; stroke: #e0a11b; }
+.tmdon .v.up { stroke: var(--ac); }
+.tmdon .v.dn { stroke: var(--rd); }
+/* γράμματα μέσα σε γράφημα: μεγαλώνουν μαζί με το γράφημα, όχι με το --u */
+.tmdon text { text-anchor: middle; fill: var(--tx); }
+.tmdon .big { font-weight: 800; }
+.tmdon .sm { font-size: 11px; fill: var(--mu); }
+.tmch { width: 100%; height: auto; display: block; }
+.tmch .ax, .tmch .vl { font-size: 11px; text-anchor: middle; fill: var(--mu); }
+.tmch .vl { fill: var(--tx); }
+.tmch .b { fill: #e0a11b; opacity: .8; }
+.tmch .b.up { fill: var(--ac); }
+.tmch .b.dn { fill: var(--rd); }
+.tmch .b.cur { opacity: 1; }
+.tmch .t { stroke: var(--tx); stroke-width: 2; }
+.tmch .s { fill: color-mix(in srgb, var(--ac) 40%, transparent); }
+.tmch .s.on { fill: var(--ac); }
+.tmleg { display: flex; gap: 14px; font-size: calc(12 * var(--u)); color: var(--mu); margin-bottom: 4px; }
+.tmleg i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.tmleg i.ly, .tmpair i.ly { background: color-mix(in srgb, var(--mu) 45%, transparent); }
+.tmleg i.ty, .tmpair i.ty { background: var(--ac); }
+.tmpair { display: grid; grid-template-columns: 92px 1fr 78px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--bd); cursor: pointer; }
+.tmpair:last-child { border-bottom: 0; }
+.tmpair .l { font-size: calc(14 * var(--u)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmpair .bs i { display: block; height: 7px; border-radius: 3px; margin: 2px 0; min-width: 2px; }
+.tmpair i.ty.dn { background: var(--rd); }
+.tmpair .r { text-align: right; font-size: calc(13 * var(--u)); line-height: 1.2; }
+.tmpair .r small { display: block; color: var(--mu); font-size: calc(11.5 * var(--u)); }
+.tmheat { overflow-x: auto; }
+.tmheat table { border-collapse: separate; border-spacing: 3px; font-size: calc(13 * var(--u)); width: 100%; }
+.tmheat th { font-weight: 600; color: var(--mu); font-size: calc(12 * var(--u)); text-align: center; white-space: nowrap; padding: 2px 4px; }
+.tmheat tbody th { text-align: left; color: var(--tx); font-size: calc(13.5 * var(--u)); }
+.tmheat tr[data-mem] { cursor: pointer; }
+.tmheat td { text-align: center; border-radius: 6px; padding: 6px 4px; white-space: nowrap; font-weight: 600; background: color-mix(in srgb, var(--bd) 50%, transparent); }
+.tmheat td.hu { background: color-mix(in srgb, var(--ac) 22%, transparent); color: var(--ac); }
+.tmheat td.hd { background: color-mix(in srgb, var(--rd) 18%, transparent); color: var(--rd); }
+.tmheat td.hm { color: #c78a00; }
+
+/* ---- φόρμα χρήστη ---- */
+.tmform { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; max-width: 560px; }
+.tmform label { display: flex; flex-direction: column; gap: 4px; font-size: calc(14 * var(--u)); color: var(--mu); font-weight: 600; }
+.tmform label.tmck { flex-direction: row; align-items: center; gap: 8px; color: var(--tx); font-weight: 400; font-size: calc(15 * var(--u)); }
+.tmform label.tmck input { width: 20px; height: 20px; }
+
+/* ---- τάμπλετ / υπολογιστής: δύο ή τρεις στήλες ---- */
+@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
+  .tmgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; grid-auto-flow: dense; }
+  .tmgrid > .tmwide2 { grid-column: 1 / -1; }
+  .tmrows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tmkp { grid-template-columns: repeat(4, 1fr); }
+  .tmkp > div:nth-child(odd) { border-right: 0; }
+  .tmkp > div { border-right: 1px solid var(--bd); }
+  .tmkp > div:nth-child(4n) { border-right: 0; }
+  .tmkp > div:nth-last-child(-n+4) { border-bottom: 0; }
+}
+@media (min-width: 1300px) and (orientation: landscape) {
+  .tmgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tmrows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---- λογαριασμοί (lab/team/accounts.js, μόνο με βάση) ---- */
+.tmacc { margin-top: 18px; padding: 14px; max-width: 560px; border: 1px solid var(--bd); border-radius: 16px; background: var(--card); }
+.tmacc h3 { margin: 0 0 8px; font-size: calc(16 * var(--u)); }
+.tmacc p { margin: 6px 0; }
+.tmaccst { font-size: calc(15 * var(--u)); }
+.tmaccb { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 !important; }
+/* προσωρινός κωδικός: παράθυρο στη μέση, ο κωδικός μεγάλος και καθαρός για να διαβαστεί στο τηλέφωνο */
+.tmtemp { position: fixed; inset: 0; z-index: 220; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.tmtb { width: 100%; max-width: 400px; background: var(--card); color: var(--tx); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.tmtb h3 { margin: 0; font-size: calc(19 * var(--u)); }
+.tmtb p { margin: 0; line-height: 1.4; }
+.tmtc { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; border: 1px solid var(--bd); border-radius: 14px; background: var(--bg); }
+.tmtc code { text-align: center; white-space: nowrap; font: 700 calc(22 * var(--u)) ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .5px; user-select: all; -webkit-user-select: all; }
+#tmtok { padding: 12px; font-size: calc(16 * var(--u)); }
+
+/* «🟢 Online τώρα» (lab/usage/usage.js, στη λίστα χρηστών και στη Χρήση εφαρμογής) */
+.uson {
+  color: var(--ac);
+  font-weight: 600;
+}
