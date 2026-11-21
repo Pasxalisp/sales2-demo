@@ -391,8 +391,8 @@
 
   /* ---------- Αρχική: ποιος είναι μέσα ----------
      Η Αρχική είναι ίδια για όλους, μόνο πωλήσεις (απόφαση Πασχάλη 19/11). Ομάδες, χρήστες, χρήση, ιστορικό, σφάλματα: στη
-     «Διαχείριση» (lab/admin). Εδώ μόνο το όνομα, μικρό κουμπί κάτω από την ημερομηνία → μενού (κωδικός, έξοδος). */
-  const CARET = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+     «Διαχείριση» (lab/admin). Εδώ μόνο ποιος είναι μέσα: στρογγυλό κουμπί με τα αρχικά του, δεξιά από το ⚙️ (απόφαση 21/11,
+     δείγμα «Α») → μενού (κωδικός, έξοδος). */
   const roleOf = (x) => (x.admin ? 'Διαχειριστής' : O.ROLES[x.role]) + (O.team(x.team) && !x.admin ? ' · ' + O.team(x.team).name : '');
   /* Έξοδος. Με βάση: από αυτή τη συσκευή ή από όλες (απόφαση 18/11, π.χ. αν χάθηκε το κινητό)· στο απλό demo: άλλος χρήστης */
   async function leave(everywhere) {
@@ -411,12 +411,12 @@
   PL.labActs = PL.labActs || [];
   PL.labActs.push({ page: 'home', mount(root) {
     if (!me) return null;
-    const hdt = root.querySelector('.hdt'); if (!hdt) return null;
+    const hh = root.querySelector('.hh'); if (!hh) return null;
     const b = document.createElement('button'); b.type = 'button'; b.id = 'tmchip'; b.setAttribute('aria-haspopup', 'menu');
-    b.setAttribute('aria-label', me.name + ', ' + roleOf(me) + ': κωδικός, έξοδος');
-    b.innerHTML = `<span class="tmav">${esc(initials(me.name))}</span><span class="tmcn">${esc(me.name)}</span>${CARET}`;
+    b.setAttribute('aria-label', me.name + ', ' + roleOf(me) + ': κωδικός, έξοδος'); b.title = me.name;
+    b.innerHTML = `<span class="tmav">${esc(initials(me.name))}</span>`;
     b.addEventListener('click', (ev) => { ev.stopPropagation(); meMenu(); });
-    hdt.parentNode.insertBefore(b, hdt.nextSibling);
+    hh.appendChild(b);
     return () => b.remove();
   } });
 

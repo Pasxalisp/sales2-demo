@@ -126,20 +126,20 @@ main,
   grid-row: 1;
   grid-column: 1;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   padding: 0;
   margin: 0;
   border: 0;
-  border-radius: 12px;
+  border-radius: 11px;
   background: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 #home button#hlogo svg {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   display: block;
   filter: drop-shadow(0 3px 8px rgba(47,111,94,.30));
 }
@@ -151,7 +151,7 @@ main,
   grid-column: 2;
   align-self: center;
   min-width: 0;
-  font-size: clamp(calc(16 * var(--u)), 2.2vh, calc(18 * var(--u)));
+  font-size: calc(15 * var(--u));   /* 21/11: μικρότερη, για να χωρά δεξιά και το κουμπί του χρήστη */
   font-weight: 600;
   letter-spacing: -.1px;
   line-height: 1.15;
@@ -556,6 +556,32 @@ body.home #nvo .oc {
 #home button#hset:active,
 #home button#hqr:active {
   transform: scale(.92);
+}
+/* πολύ μικρή οθόνη (π.χ. 320px): λίγο μικρότερα κουμπιά, λογότυπο και ημερομηνία, για να χωράει η ημερομηνία */
+@media (max-width: 359px) {
+  #home .hh {
+    padding-right: 88px;
+    column-gap: 8px;
+  }
+  #home button#hset,
+  #home button#hqr {
+    width: 40px;
+    height: 40px;
+  }
+  #home button#hqr {
+    right: 44px;
+  }
+  #home button#hlogo {
+    width: 32px;
+    height: 32px;
+  }
+  #home button#hlogo svg {
+    width: 30px;
+    height: 30px;
+  }
+  #home .hdt {
+    font-size: calc(14 * var(--u));
+  }
 }
 /* Οριζόντια οθόνη: χώρος για την κάθετη μπάρα αριστερά, πλακίδια σε 3 στήλες. */
 @media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {

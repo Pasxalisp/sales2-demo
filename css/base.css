@@ -955,7 +955,7 @@ main {
   bottom: var(--navb);
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(4,1fr);
+  grid-template-columns: repeat(5,1fr);
   align-items: center;
   padding: 7px 4px;
   border-radius: 30px;
@@ -987,6 +987,13 @@ main {
   position: relative;
   min-height: 44px;
   justify-content: center;
+}
+/* 5 ενότητες σε πολύ μικρή οθόνη (π.χ. 320px): λίγο μικρότερα γράμματα, για να μην ακουμπούν οι λέξεις */
+@media (max-width: 359px) {
+  #nav .nb {
+    font-size: calc(10 * var(--uc));
+    letter-spacing: -.2px;
+  }
 }
 #nav .nb:disabled {
   opacity: .35;
