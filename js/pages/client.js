@@ -7,28 +7,29 @@
   const SM = 'font-weight:400;font-size:calc(13*var(--u))';
 
   /* ---- τμήματα με νούμερα ---- */
+  /* Goldwell: κουτί με μπάρες φέτος / πέρσι ίδια περίοδο / πέρσι όλο, και πόσο έχει φτάσει φέτος (απόφαση Πασχάλη 21/11) */
   function goldDetail(c) {
     const g = M.gold(c); if (!g) return '';
-    const y = M.yoy(c); let s = '<h3>Goldwell</h3>';
-    if (y) s += `<div class="${y.cls}">${y.txt} (${M.dd(y)}) σε σχέση με πέρσι (ίδια περίοδο)</div>`;
-    s += `<div class="mu">Φέτος ${money(g[1])} · πέρσι ίδια περίοδο ${money(g[0])} · διαφορά ${money(g[1] - g[0])}</div>`;
-    if (g[2] != null) s += `<div class="mu">Πέρσι όλη η χρονιά: ${money(g[2])}${g[2] > 0 ? ' · φέτος έχει φτάσει το ' + Math.round(g[1] / g[2] * 100) + '%' : ''}</div>`;
-    return s;
+    const [ly, ty, fy] = g, y = M.yoy(c), mx = Math.max(ly, ty, fy || 0, 1);
+    const row = (l, v, cls) => `<div class="cgr${cls ? ' ' + cls : ''}"><span>${l}</span><b>${money(v)}</b><i style="width:${Math.max(1, Math.round(v / mx * 100))}%"></i></div>`;
+    return `<div class="cbox cgold"><div class="cbh"><b>Goldwell</b>${y ? `<span class="cpill ${y.cls}">${y.txt} · ${M.dd(y)}</span>` : ''}</div>` +
+      row('Φέτος', ty, 'now') + row('Πέρσι, ίδια περίοδο', ly) + (fy != null ? row('Πέρσι, όλη η χρονιά', fy, 'fy') : '') +
+      (fy > 0 ? `<div class="cbf">Φέτος έχει φτάσει το <b>${Math.round(ty / fy * 100)}%</b> της περσινής χρονιάς</div>` : '') + '</div>';
   }
   function brandDetail(id) {
     const B = S.get('brands', 'all'), d = B && B[id]; if (!d) return '';
     const r = Object.keys(d).filter((k) => Array.isArray(d[k]) && d[k].some((x) => Math.abs(+x || 0) >= 1)); if (!r.length) return '';
     r.sort((a, b) => (M.EXB.includes(a) - M.EXB.includes(b)) || (d[b][1] - d[a][1]));
     let A = 0, Bt = 0; r.forEach((k) => { if (!M.EXB.includes(k)) { A += +d[k][0] || 0; Bt += +d[k][1] || 0; } });
-    return `<h3>Ανά μάρκα <span class="mu" style="${SM}">(${esc(B._d || '')})</span></h3><div style="overflow-x:auto"><table class="ctab"><tr><th></th><th>Πέρσι ίδια περ.</th><th>Φέτος</th></tr>` +
+    return `<div class="cbox"><div class="cbh"><b>Ανά μάρκα</b><span class="mu" style="${SM}">${esc(u.fd(B._d || ''))}</span></div><div style="overflow-x:auto"><table class="ctab"><tr><th></th><th>Πέρσι ίδια περ.</th><th>Φέτος</th></tr>` +
       r.map((k) => { const [a, b] = d[k].map((x) => +x || 0); return `<tr><td>${esc(M.BRL[k] || k)}${M.EXB.includes(k) ? ' <span class="mu">✕</span>' : ''}${a >= M.WORKED && b < 1 ? ' <span class="dn">σταμάτησε</span>' : a < 1 && b >= 1 ? ' <span class="up">νέο</span>' : ''}</td><td>${money(a)}</td><td class="${b >= a ? 'up' : 'dn'}">${money(b)}</td></tr>`; }).join('') +
-      `<tr><td><b>Γενικός τζίρος</b></td><td><b>${money(A)}</b></td><td class="${Bt >= A ? 'up' : 'dn'}"><b>${money(Bt)}</b></td></tr></table></div><div class="mu" style="font-size:calc(12*var(--u))">✕ = δεν μετράει στον γενικό τζίρο</div>`;
+      `<tr><td><b>Γενικός τζίρος</b></td><td><b>${money(A)}</b></td><td class="${Bt >= A ? 'up' : 'dn'}"><b>${money(Bt)}</b></td></tr></table></div><div class="mu" style="font-size:calc(12*var(--u))">✕ = δεν μετράει στον γενικό τζίρο</div></div>`;
   }
   function catDetail(id) {
     const all = S.get('cats', 'all') || {}, d = all[id]; if (!d) return '';
     const r = M.CATN.filter((k) => Array.isArray(d[k]) && d[k].some((x) => x)); if (!r.length) return '';
-    return `<h3>Ανά κατηγορία <span class="mu" style="${SM}">(${esc(d.d || all._d || '')})</span></h3><div style="overflow-x:auto"><table class="ctab"><tr><th></th><th>Πέρσι ίδια περ.</th><th>Φέτος</th><th>Όλο πέρσι</th></tr>` +
-      r.map((k) => { const [a, b, f] = d[k].map((x) => +x || 0), lost = a > 0 && f >= M.WORKED && b <= 0, nw = a <= 0 && b > 0; return `<tr><td>${esc(M.CATL[k] || k)}${lost ? ' <span class="dn">σταμάτησε</span>' : nw ? ' <span class="up">νέο</span>' : ''}</td><td>${money(a)}</td><td class="${b >= a ? 'up' : 'dn'}">${money(b)}</td><td>${money(f)}</td></tr>`; }).join('') + '</table></div>';
+    return `<div class="cbox"><div class="cbh"><b>Ανά κατηγορία</b><span class="mu" style="${SM}">${esc(u.fd(d.d || all._d || ''))}</span></div><div style="overflow-x:auto"><table class="ctab"><tr><th></th><th>Πέρσι ίδια περ.</th><th>Φέτος</th><th>Όλο πέρσι</th></tr>` +
+      r.map((k) => { const [a, b, f] = d[k].map((x) => +x || 0), lost = a > 0 && f >= M.WORKED && b <= 0, nw = a <= 0 && b > 0; return `<tr><td>${esc(M.CATL[k] || k)}${lost ? ' <span class="dn">σταμάτησε</span>' : nw ? ' <span class="up">νέο</span>' : ''}</td><td>${money(a)}</td><td class="${b >= a ? 'up' : 'dn'}">${money(b)}</td><td>${money(f)}</td></tr>`; }).join('') + '</table></div></div>';
   }
   function itemsDetail(id) {
     const d = S.get('items', id); if (!d || !Array.isArray(d.it) || !d.it.length) return '';
@@ -40,17 +41,25 @@
       return `<td style="text-align:right;color:var(--mu)">${p || '—'}</td>${hasF ? `<td style="text-align:right;color:var(--mu)">${f || '—'}</td>` : ''}<td style="text-align:right;${st}">${c || '—'}</td>`; };
     const rows = G.map((g) => `<tr style="background:var(--ac2)"><td style="white-space:normal"><b>${esc(g.g)}</b></td><td style="text-align:right"><b>${g.qp}</b></td>${hasF ? `<td style="text-align:right"><b>${g.qf}</b></td>` : ''}<td style="text-align:right"><b>${g.qc}</b></td></tr>` +
       g.it.sort((a, b) => ((+b.qc || 0) - (+a.qc || 0)) || ((+b.qp || 0) - (+a.qp || 0))).map((x) => `<tr><td style="white-space:normal;padding-left:14px">${esc(x.n)}</td>${cell(+x.qc || 0, +x.qp || 0, +x.qf || 0)}</tr>`).join('')).join('');
-    return `<details style="margin:10px 0"><summary style="cursor:pointer;font-weight:600">🧴 Τι παίρνει: πέρσι / φέτος (${nNow} είδη φέτος σε ${G.filter((g) => g.qc > 0).length} κατηγορίες)<span class="mu" style="${SM}"> · σύστημα ${esc(d.d || '')}</span></summary>` +
+    return `<details class="cbox"><summary style="cursor:pointer;font-weight:600">🧴 Τι παίρνει: πέρσι / φέτος (${nNow} είδη φέτος σε ${G.filter((g) => g.qc > 0).length} κατηγορίες)<span class="mu" style="${SM}"> · σύστημα ${esc(d.d || '')}</span></summary>` +
       `<div style="overflow-x:auto"><table class="ctab"><thead><tr><th style="text-align:left">Κατηγορία / είδος</th><th style="text-align:right">Πέρσι<br><span style="font-weight:400">ίδια περίοδος</span></th>${hasF ? '<th style="text-align:right">Πέρσι<br><span style="font-weight:400">όλο το έτος</span></th>' : ''}<th style="text-align:right">Φέτος<br><span style="font-weight:400">τεμ.</span></th></tr></thead><tbody>${rows}</tbody></table></div>` +
       `<p class="mu" style="font-size:calc(12*var(--u));margin:6px 0 0"><span style="color:var(--rd);font-weight:600">Κόκκινο</span>: το έπαιρνε πέρσι, φέτος όχι · <span style="color:var(--ac);font-weight:600">Πράσινο</span>: νέο φέτος${hasF ? ' · Τεμάχια' : ''}</p></details>`;
   }
 
-  /* ---- μικρές γραμμές πληροφορίας ---- */
-  function debtLine(id) {
-    const b = S.get('balances', id); if (!b) return '';
-    const a = +b.amount || 0, o = +b.over || 0, d = +b.bounced || 0; if (Math.abs(a) < 1 && o < 1 && !d) return '';
-    return `<div class="debt">💶 Χρέος ${money(a)}${o > 0 ? ` · <span class="dn">υπέρβαση ${money(o)}</span>` : ''}${d ? ` · <span class="dn">διαμαρτυρημένα ${money(d)}</span>` : ''}${b.d ? ` <span class="mu">(${esc(b.d)})</span>` : ''}</div>`;
+  /* ---- με μια ματιά: Τζίρος, Goldwell φέτος, Υπόλοιπο σε κουτάκια δίπλα-δίπλα (απόφαση Πασχάλη 21/11) ---- */
+  function glance(id, c) {
+    const tz = M.tz(c), g = M.gold(c), y = M.yoy(c), b = S.get('balances', id), L = [];
+    const box = (lbl, val, sub, cls) => `<div class="cgl${cls ? ' ' + cls : ''}"><span class="cgll">${lbl}</span><b>${val}</b>${sub ? `<span class="cgls">${sub}</span>` : ''}</div>`;
+    if (tz !== 0) L.push(box('Τζίρος', u.eur(tz), 'σύνολο φέτος'));
+    if (g && (g[0] || g[1])) L.push(box('Goldwell', u.eur(g[1]), y ? `<span class="${y.cls}">${y.txt}</span>` : ''));
+    if (b) {
+      const a = +b.amount || 0, o = +b.over || 0, d = +b.bounced || 0, when = b.d ? 'στις ' + u.fd(b.d).slice(0, 5) : '';
+      if (Math.abs(a) < 1 && o < 1 && !d) L.push(box('Υπόλοιπο', '0 €', 'χωρίς χρέος', 'ok'));
+      else L.push(box(a < 0 ? 'Πιστωτικό' : 'Χρέος', money(Math.abs(a)), [o > 0 ? `<span class="dn">υπέρβαση ${u.eur(o)}</span>` : '', d ? `<span class="dn">διαμαρτ. ${u.eur(d)}</span>` : '', when].filter(Boolean).join(' · '), a > 0 ? 'bad' : ''));
+    }
+    return L.length ? `<div class="cglance n${L.length}">${L.join('')}</div>` : '';
   }
+  /* ---- μικρές γραμμές πληροφορίας ---- */
   const XOL = { closed: 'Έκλεισε', no: 'Δεν ενδιαφέρεται', later: 'Άλλη φορά' };
   function xoLine(id) {
     const x = S.get('xout', id); if (!x) return ''; const bl = !!M.out(id);
@@ -58,7 +67,7 @@
   }
   function ordLine(id) {
     const L = Object.entries(S.all('orders')).filter(([, o]) => o.cid === id).sort((a, b) => String(b[1].ts || 0).localeCompare(String(a[1].ts || 0))).slice(0, 6); if (!L.length) return '';
-    return '<div class="ordl"><b>🛒 Παραγγελίες</b>' + L.map(([k, o]) => { const s = PL.orders.split(o);
+    return '<div class="cbox ordl"><div class="cbh"><b>🛒 Πρόχειρες παραγγελίες</b></div>' + L.map(([k, o]) => { const s = PL.orders.split(o);
       return `<div class="oi" data-oo="${esc(k)}"><span>${esc(u.fd(o.date))} · 📝 Πρόχειρη</span><span>${s.P.length} είδη${s.G.length ? ' + ' + s.G.length + ' δώρα' : ''} · ${money(s.sp.n)}</span></div>`; }).join('') + '</div>';
   }
   /* προσωρινός: αν μοιάζει με κανονικό πελάτη (π.χ. πέρασε στο orders), πρόταση ένωσης· αλλιώς ένωση με το χέρι */
@@ -82,7 +91,6 @@
     return `<option value="${esc(f.k)}">${esc(dm(x.day))} · ${esc(f.t ? f.t + ': ' + s : s)}</option>`; };
   function topHtml(id, c) {
     const SOS = !!S.get('sos', id), T = S.get('tech', id), A = PL.actions, sem = A.seminar.state(id), cmp = A.campaign.state(id), I = PL.icon, map = PL.call.mapUrl(c);
-    const tz = M.tz(c);
     const N = PL.names, T0 = N.today(), Y = +T0.slice(0, 4), fx = N.fixOf(id), up = N.upcoming(c, T0), dm = (d) => u.fd(d).slice(0, 5);
     return `<h2 style="margin:4px 0 2px">${SOS ? '⭐ ' : ''}${PL.names.badge(c)}${PL.prospects.tag(c)}${esc(c.name)}</h2>` +
       `<div class="mu">${esc(c.addr)}${c.addr && c.city ? ', ' : ''}${esc(c.city)} ${esc(c.zip)}${' · κωδ. ' + esc(c.prospect ? 'ΝΕΟΣ' : (c.codes || [c.code]).join(', '))}</div>` +
@@ -94,15 +102,15 @@
       `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${MARK[sem]}</button>` +
       `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${MARK[cmp]}</button></div>` +
       `${T && T.note ? `<div class="mu">Τεχνικός: ${esc(T.note)}</div>` : ''}` +
-      `<div class="mu">🎉 ${ndLine(c, up, fx, T0)}` +
-      `<br><label class="ndbtn">✎ ${up.length || fx ? 'Αλλαγή γιορτής' : 'Ορισμός γιορτής'}<select id="ndsel" aria-label="Αλλαγή γιορτής"><option value="" selected disabled>Διάλεξε γιορτή</option>` +
+      `<div class="cnd"><span>🎉 ${ndLine(c, up, fx, T0)}</span>` +
+      `<label class="ndbtn">✎ ${up.length || fx ? 'Αλλαγή' : 'Ορισμός'}<select id="ndsel" aria-label="Αλλαγή γιορτής"><option value="" selected disabled>Διάλεξε γιορτή</option>` +
       `${fx ? '<option value="*">↺ Αυτόματα, από το όνομα</option>' : ''}${fx !== '-' ? '<option value="-">🚫 Δεν γιορτάζει</option>' : ''}` +
       `${up.length > 1 ? `<optgroup label="Από το όνομα">${up.map((x) => ndOpt(x, dm)).join('')}</optgroup>` : ''}` +
       `<optgroup label="Όλες οι μέρες">${N.year(Y).map((x) => ndOpt(x, dm)).join('')}</optgroup></select></label></div>` +
-      `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${tz !== 0 ? `<p class="tz">Τζίρος: ${money(tz)}</p>` : ''}` +
+      `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${glance(id, c)}` +
       `${c.ex ? `<div class="mu">Έχουν αφαιρεθεί: ${esc(c.exn)} (αρχικός τζίρος ${money(c.tz0)})</div>` : ''}` +
       `${c.tzold != null ? `<div class="mu">Ο τζίρος ενημερώθηκε στο μεγαλύτερο ποσό (Goldwell φέτος· πριν ${money(c.tzold)})</div>` : ''}` +
-      `${debtLine(id)}${A.seminar.line(id)}${A.campaign.line(id)}${xoLine(id)}${ordLine(id)}${PL.deals.line(id)}${goldDetail(c)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
+      `${A.seminar.line(id)}${A.campaign.line(id)}${xoLine(id)}${PL.deals.line(id)}${goldDetail(c)}${ordLine(id)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
       `${c.prospect ? prospPanel(id) : ''}<h3>Δουλεύει ήδη</h3><div class="chips" style="flex-wrap:wrap">${M.PR.map((p) => `<button class="chip ${M.works(id).includes(p) ? 'on' : ''}" data-w="${p}">${p}</button>`).join('')}</div>`;
   }
 
