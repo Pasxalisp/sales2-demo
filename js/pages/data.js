@@ -1,6 +1,6 @@
 /* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική): θέμα, μέγεθος γραμμάτων, κάδος (js/trash.js), έλεγχος (μέτρηση της βάσης)
-   και ό,τι προσθέτουν τα δοκιμαστικά (lab/, π.χ. ειδοποιήσεις).
-   Δεν γράφει τίποτα στη βάση. Τα δεδομένα του orders τα περνά το Claude απευθείας. */
+   με λογαριασμούς ο συνεργαζόμενος τεχνικός και οι ειδοποιήσεις αιτημάτων (settings/techmate, settings/tnotify· js/treq.js),
+   και ό,τι προσθέτουν τα δοκιμαστικά (lab/, π.χ. ειδοποιήσεις). Τα δεδομένα του orders τα περνά το Claude απευθείας. */
 (function () {
   const PL = window.PL, D = () => PL.dataio;
   PL.register('data', {
@@ -19,6 +19,7 @@
                <div class="fsdots" aria-hidden="true">${'<i></i>'.repeat(7)}</div></div></div>
            <div class="card" id="trgo" style="margin-bottom:10px"><div class="row"><b>🗑 Κάδος</b><span class="mu" id="trn"></span></div>
              <p class="mu">Ό,τι διαγράφεις μένει εδώ ${PL.trash.DAYS} μέρες και επαναφέρεται με ένα πάτημα.</p></div>
+           <div id="dtech"></div>
            <div id="dlabs"></div>
            <div class="card" style="cursor:default;margin-bottom:10px"><b>Έλεγχος</b>
              <p class="mu">Μετράει τι υπάρχει τώρα στη βάση. Δεν αλλάζει τίποτα.</p>
@@ -34,6 +35,25 @@
       $('#fsr').oninput = (e) => { PL.fontSize.set(e.target.value); fsShow(); };
       $('#fsa').onchange = (e) => { PL.fontSize.set(e.target.checked ? '' : String(PL.fontSize.step())); fsShow(); };
       fsShow();
+      /* Τεχνικός (27/11/2026, js/treq.js, μόνο με λογαριασμούς): ο πωλητής διαλέγει τον συνεργαζόμενο τεχνικό· και οι δύο
+         διαλέγουν για ποια βήματα των αιτημάτων θέλουν ειδοποίηση (settings/tnotify). */
+      const TR = PL.treq;
+      const paintTech = () => {
+        if (!TR.on()) return;
+        const tech = TR.isTech(), m = TR.mate(), esc = PL.u.esc;
+        const tog = TR.NOTIFY[tech ? 'tech' : 'sales'].map(([k, l]) => `<label class="trtog">${esc(l)} <input type="checkbox" data-tn="${k}"${TR.notifyOn(k) ? ' checked' : ''}></label>`).join('');
+        $('#dtech').innerHTML = (tech ? '' : `<div class="card" style="cursor:default;margin-bottom:10px"><b>🧰 Συνεργαζόμενος τεχνικός</b>
+             <p class="mu">Όλα τα αιτήματά σου για επίσκεψη τεχνικού πάνε σε αυτόν.</p>
+             <select id="tmsel"><option value=""${m ? '' : ' selected'} disabled>Διάλεξε τεχνικό</option>${TR.techs().map((x) => `<option value="${esc(x.id)}"${m && m.id === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>`) +
+          `<div class="card" style="cursor:default;margin-bottom:10px"><b>🔔 Ειδοποιήσεις ${tech ? 'αιτημάτων' : 'από τον τεχνικό'}</b><p class="mu">${tech ? 'Να σε ειδοποιεί όταν:' : 'Να σε ειδοποιεί όταν ο τεχνικός:'}</p>${tog}</div>`;
+      };
+      PL.store.use('settings').then(paintTech);
+      $('#dtech').addEventListener('change', async (e) => {
+        try {
+          if (e.target.id === 'tmsel') { await TR.setMate(e.target.value); PL.dlg.toast('🧰 Συνεργαζόμενος τεχνικός: ' + (TR.mate() || {}).name); }
+          else if (e.target.dataset.tn) await TR.setNotify(e.target.dataset.tn, e.target.checked);
+        } catch (x) { PL.dlg.toast('Δεν αποθηκεύτηκε'); paintTech(); }
+      });
       /* δοκιμαστικά (φάκελος lab/): PL.labActs με page 'data' και mount(κουτί) → καθάρισμα (π.χ. ειδοποιήσεις, lab/push) */
       const labs = (PL.labActs || []).filter((x) => x.page === 'data' && x.mount).map((x) => x.mount($('#dlabs')));
       $('#cnt').onclick = async () => {

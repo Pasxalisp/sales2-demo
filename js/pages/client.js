@@ -3,7 +3,7 @@
    ό,τι γράφεις όταν ανανεώνονται τα δεδομένα) και ιστορικό. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, money = u.money, db = () => PL.adapter.db;
-  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'balances', 'seminars', 'campaigns', 'xout', 'ndfix', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
+  const COLS = ['clients', 'prospects', 'notes', 'sos', 'tech', 'treq', 'tnotes', 'balances', 'seminars', 'campaigns', 'xout', 'ndfix', 'deals', 'dealmsg', 'brands', 'cats', 'items', 'orders', 'plans'];
   const SM = 'font-weight:400;font-size:calc(13*var(--u))';
 
   /* ---- τμήματα με νούμερα ---- */
@@ -89,6 +89,19 @@
   /* επιλογή γιορτής: «16/11 · Αγίου Ματθαίου: Ιφιγένεια, Ματθαίος» (έως 6 ονόματα) */
   const ndOpt = (x, dm) => { const f = x.f, s = f.s.slice(0, 6).join(', ') + (f.s.length > 6 ? '…' : '');
     return `<option value="${esc(f.k)}">${esc(dm(x.day))} · ${esc(f.t ? f.t + ': ' + s : s)}</option>`; };
+  /* Τεχνικός (27/11/2026, js/treq.js). Ο τεχνικός: κατηγορίες ✓ φέτος/πέρσι και τα αιτήματα για αυτόν τον πελάτη.
+     Ο πωλητής: τα αιτήματα (βήμα, αναφορά) και οι σημειώσεις του τεχνικού για τον πελάτη (tnotes, μόνο ανάγνωση). */
+  function techBox(id) {
+    if (!PL.treq.on()) return '';
+    const TR = PL.treq, L = TR.ofClient(id), tech = TR.isTech(), tn = S.get('tnotes', id);
+    if (!L.length && !(tn && (tn.entries || []).length)) return '';
+    const req = L.map(([rid, r]) => `<div class="trli" data-treq="${esc(rid)}"><div class="row"><b>${esc(u.fd(r.sent).slice(0, 5))} · ${esc(tech ? 'από ' + (r.sname || '') : (r.tname || 'Τεχνικός'))}</b><span class="trp ${TR.cls(r)}">${esc(TR.label(r))}</span></div>` +
+      (r.note ? `<div class="mu">${esc(r.note)}</div>` : '') + (r.rep ? `<div class="trrep"><b>Αναφορά · ${esc(u.fd(r.rep.at.slice(0, 10)).slice(0, 5))}</b>${esc(r.rep.t)}</div>` : '') + '</div>').join('');
+    const notes = !tech && tn ? (tn.entries || []).map((x) => `<div class="ent"><b>${esc(x.d)}</b> ${x.products ? `<span class="pr">${esc(x.products)}</span>` : ''}<div>${esc(x.text)}</div>${x.todo ? `<div><b>Να πω:</b> ${esc(x.todo)}</div>` : ''}</div>`).join('') : '';
+    return `<div class="cbox"><div class="cbh">🧰 ${tech ? 'Αιτήματα' : 'Τεχνικός'}</div>` + (tech && L[0] ? `<h3 style="margin-top:4px">Τι δουλεύει</h3>${TR.catsTable(L[0][1].c)}<h3>Αιτήματα</h3>` : '') + req +
+      (notes ? `<h3>Σημειώσεις τεχνικού · ${esc(tn.tname || '')}</h3>${notes}` : '') + '</div>';
+  }
+
   function topHtml(id, c) {
     const SOS = !!S.get('sos', id), T = S.get('tech', id), A = PL.actions, sem = A.seminar.state(id), cmp = A.campaign.state(id), I = PL.icon, map = PL.call.mapUrl(c);
     const N = PL.names, T0 = N.today(), Y = +T0.slice(0, 4), fx = N.fixOf(id), up = N.upcoming(c, T0), dm = (d) => u.fd(d).slice(0, 5);
@@ -96,18 +109,19 @@
       `<div class="mu">${esc(c.addr)}${c.addr && c.city ? ', ' : ''}${esc(c.city)} ${esc(c.zip)}${' · κωδ. ' + esc(c.prospect ? 'ΝΕΟΣ' : (c.codes || [c.code]).join(', '))}</div>` +
       `<div class="cact"><button class="cat" data-callc="${esc(id)}"${PL.call.tels(c).length ? '' : ' disabled'}>${I.phone}<span>Κλήση</span></button>` +
       (map ? `<a class="cat" href="${esc(map)}" target="_blank" rel="noopener">${I.pin}<span>Οδηγίες</span></a>` : `<button class="cat" disabled>${I.pin}<span>Οδηγίες</span></button>`) +
-      `<button class="cat" id="ordb">${I.cart}<span>Παραγγελία</span></button></div>` +
-      `<div class="cchips"><button class="cchip${SOS ? ' sos' : ''}" id="sosb" aria-pressed="${SOS}">${I.star}SOS</button>` +
+      /* ο τεχνικός: μόνο Κλήση και Οδηγίες (χωρίς Παραγγελία, SOS, λίστα τεχνικού, σεμινάριο, καμπάνια) */
+      (PL.can('orders') ? `<button class="cat" id="ordb">${I.cart}<span>Παραγγελία</span></button>` : '') + '</div>' +
+      (PL.can('sos') ? `<div class="cchips"><button class="cchip${SOS ? ' sos' : ''}" id="sosb" aria-pressed="${SOS}">${I.star}SOS</button>` +
       `<button class="cchip${T ? ' tech' : ''}" id="techb" aria-pressed="${!!T}">${I.tech16}Τεχνικός</button>` +
       `<button class="cchip${sem ? ' sem' : ''}" id="semb" aria-pressed="${!!sem}">${I.cap}Σεμινάριο${MARK[sem]}</button>` +
-      `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${MARK[cmp]}</button></div>` +
+      `<button class="cchip${cmp ? ' camp' : ''}" id="campb" aria-pressed="${!!cmp}">${I.pct}Καμπάνια${MARK[cmp]}</button></div>` : '') +
       `${T && T.note ? `<div class="mu">Τεχνικός: ${esc(T.note)}</div>` : ''}` +
       `<div class="cnd"><span>🎉 ${ndLine(c, up, fx, T0)}</span>` +
       `<label class="ndbtn">✎ ${up.length || fx ? 'Αλλαγή' : 'Ορισμός'}<select id="ndsel" aria-label="Αλλαγή γιορτής"><option value="" selected disabled>Διάλεξε γιορτή</option>` +
       `${fx ? '<option value="*">↺ Αυτόματα, από το όνομα</option>' : ''}${fx !== '-' ? '<option value="-">🚫 Δεν γιορτάζει</option>' : ''}` +
       `${up.length > 1 ? `<optgroup label="Από το όνομα">${up.map((x) => ndOpt(x, dm)).join('')}</optgroup>` : ''}` +
       `<optgroup label="Όλες οι μέρες">${N.year(Y).map((x) => ndOpt(x, dm)).join('')}</optgroup></select></label></div>` +
-      `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${glance(id, c)}` +
+      `${c.alt ? `<div class="mu">Επίσης: ${esc(c.alt.join(' · '))}</div>` : ''}${glance(id, c)}${techBox(id)}` +
       `${c.ex ? `<div class="mu">Έχουν αφαιρεθεί: ${esc(c.exn)} (αρχικός τζίρος ${money(c.tz0)})</div>` : ''}` +
       `${c.tzold != null ? `<div class="mu">Ο τζίρος ενημερώθηκε στο μεγαλύτερο ποσό (Goldwell φέτος· πριν ${money(c.tzold)})</div>` : ''}` +
       `${A.seminar.line(id)}${A.campaign.line(id)}${xoLine(id)}${PL.deals.line(id)}${goldDetail(c)}${ordLine(id)}${brandDetail(id)}${catDetail(id)}${itemsDetail(id)}` +
@@ -144,7 +158,7 @@
     title: 'Καρτέλα πελάτη',
     nova: (params) => PL.menu((M.byId(params.id) || {}).name || 'Πελάτης', [
       { e: '📝', label: 'Σημείωση', d: 'τι συζητήσατε, τι να πεις την επόμενη φορά', fn: () => focusEl(document.getElementById('ft')) },
-      { e: '📋', label: 'Στο πρόγραμμα', d: 'μπαίνει στο ανοιχτό πρόγραμμα της πόλης του', fn: () => addToPlan(params.id) },
+      ...(PL.can('plans') ? [{ e: '📋', label: 'Στο πρόγραμμα', d: 'μπαίνει στο ανοιχτό πρόγραμμα της πόλης του', fn: () => addToPlan(params.id) }] : []),
       { e: '⏰', label: 'Υπενθύμιση', d: 'ημερομηνία και ώρα για εκκρεμότητα', fn: () => focusEl(document.getElementById('fn')) },
     ]),
     render(el, params) {
@@ -181,6 +195,7 @@
           else if (t.closest('#campb')) await PL.actions.campaign.pick(id);
           else if (t.closest('#ordb')) await PL.orders.openFor(id);
           else if (t.closest('[data-oo]')) PL.nav.push('order', { id: t.closest('[data-oo]').dataset.oo });
+          else if (t.closest('[data-treq]')) PL.nav.push('treq', { id: t.closest('[data-treq]').dataset.treq });
           else if (PL.deals.click(t)) { /* Συμφωνία: μήνυμα / ενημερώθηκε */ }
           else if (t.dataset.xorest) {
             if (M.out(id) && !await D.confirm('Να ξαναμπαίνει ο «' + (c ? c.name : '') + '» στα προγράμματα;', 'Ναι', 'Άκυρο')) return;

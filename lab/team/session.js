@@ -10,7 +10,13 @@
    - Υπεύθυνος ομάδας: διαβάζει (μόνο ανάγνωση) τα δεδομένα των πωλητών της ομάδας του. Διευθυντής και διαχειριστής (18/11): όλων.
      Πωλητής: μόνο τα δικά του.
    - Διαχειριστής: αλλάζει χρήστες (ρόλος, ομάδα, κωδικός πωλητή, ενεργός).
-   Αποθήκευση στη συσκευή: αλλαγές κάθε χρήστη στο localStorage '<key>:<id>', αλλαγές χρηστών στο '<key>:org', είσοδος στο '<key>:session'. */
+   - Τεχνικός (27/11/2026): δεν έχει πελάτες, ποσά, παραγγελίες, προγράμματα ή καμπάνιες. Παίρνει ΜΟΝΟ τα αιτήματα επίσκεψης που του
+     έστειλαν (treq, με τα στοιχεία του πελάτη χωρίς ποσά) και από αυτά «πελάτες» (μόνο όνομα, διεύθυνση, τηλέφωνα), τις δικές του
+     σημειώσεις, τα σεμινάρια μόνο με τους δικούς του πελάτες. Ο πωλητής βλέπει τις σημειώσεις του τεχνικού για τους πελάτες του (tnotes).
+   - Αιτήματα τεχνικού (treq) είναι ΚΟΙΝΑ: τα βλέπουν και τα γράφουν μόνο ο πωλητής (sid) και ο τεχνικός (tid) του αιτήματος·
+     ο τεχνικός αλλάζει μόνο κατάσταση, ραντεβού, αναφορά (treqOk). Εδώ φυλάγονται στο '<key>:shared' (ίδια συσκευή, όλοι οι χρήστες).
+   Αποθήκευση στη συσκευή: αλλαγές κάθε χρήστη στο localStorage '<key>:<id>', αλλαγές χρηστών στο '<key>:org', είσοδος στο '<key>:session',
+   κοινά έγγραφα (αιτήματα τεχνικού) στο '<key>:shared'. */
 (function () {
   const BASE = window.PL_LOCAL; if (!BASE || !BASE.seed) return;
   const SEED = BASE.seed, NS = BASE.key || 'sales2-demo', PASS = 'demo';
@@ -20,7 +26,7 @@
     del: (k) => { try { localStorage.removeItem(k); } catch (e) { /* τίποτα */ } },
   };
   const col = (p) => p.slice(0, p.lastIndexOf('/')), idOf = (p) => p.slice(p.lastIndexOf('/') + 1);
-  const ROLES = { director: 'Διευθυντής', lead: 'Υπεύθυνος ομάδας', sales: 'Πωλητής' };
+  const ROLES = { director: 'Διευθυντής', lead: 'Υπεύθυνος ομάδας', sales: 'Πωλητής', tech: 'Τεχνικός' };
 
   /* ---- πίνακες χρηστών και ομάδων (σπόρος + αλλαγές του διαχειριστή) ---- */
   const table = (c) => Object.entries(SEED).filter(([p]) => col(p) === c).map(([p, d]) => Object.assign({ id: idOf(p) }, d));
@@ -36,14 +42,50 @@
   const PERSONAL = new Set(['month', 'extra', 'route', 'wish', 'pdrafts']);   // του αρχικού χρήστη των ψεύτικων δεδομένων
   const SERVER = new Set(['users', 'teams', 'usage']);                          // μόνο μέσω της «org» παρακάτω
   const FIRST = (table('users').find((x) => x.admin) || {}).id;                 // σε αυτόν ανήκουν τα προσωπικά έγγραφα του σπόρου
+  const SHARED = new Set(['treq']);                                             // κοινά πωλητή–τεχνικού (στο '<key>:shared')
+  const TECH_CHANGE = ['st', 'appt', 'rep', 'log', 'upd', 'by'];                // ό,τι αλλάζει ο τεχνικός σε ένα αίτημα
+
+  /* ---- αιτήματα τεχνικού: σπόρος + κοινές αλλαγές όλων των χρηστών σε αυτή τη συσκευή ---- */
+  const treqAll = () => { const m = {}; Object.entries(SEED).forEach(([p, d]) => { if (col(p) === 'treq') m[idOf(p)] = d; });
+    Object.entries(ls.get(NS + ':shared') || {}).forEach(([p, d]) => { if (col(p) !== 'treq') return; if (d === null) delete m[idOf(p)]; else m[idOf(p)] = d; });
+    return m; };
+  const treqMine = (uid) => Object.entries(treqAll()).filter(([, d]) => d.sid === uid || d.tid === uid);
+  /* ο κανόνας του server για κάθε εγγραφή αιτήματος: μόνο πωλητής και τεχνικός του· νέο μόνο από πωλητή προς τεχνικό·
+     ο τεχνικός δεν αλλάζει πελάτη, σημείωμα ή πωλητή· κανείς δεν το σβήνει (ακύρωση = κατάσταση «cancel») */
+  function treqOk(prev, next, uid) {
+    if (!next) return false;
+    const me0 = user(uid), t = user(next.tid);
+    if (!prev) return next.sid === uid && !!t && t.role === 'tech' && t.active && me0 && me0.role !== 'tech';
+    if (prev.sid !== next.sid || prev.tid !== next.tid || prev.cid !== next.cid) return false;
+    if (uid === prev.sid) return true;
+    if (uid === prev.tid) return Object.keys(Object.assign({}, prev, next)).every((k) => TECH_CHANGE.includes(k) || JSON.stringify(prev[k]) === JSON.stringify(next[k]));
+    return false;
+  }
+  /* ο τεχνικός «βλέπει» τον πελάτη μόνο μέσα από τα αιτήματά του: στοιχεία από το πιο πρόσφατο αίτημα, χωρίς ποσά */
+  const techClient = (cid, r) => ({ i: cid, code: r.c.code || '', name: r.c.name, addr: r.c.addr || '', city: r.c.city || '', area: r.c.area || '', zip: r.c.zip || '', t1: r.c.t1 || '', t2: r.c.t2 || '', owner: '' });
+  /* σημειώσεις ενός τεχνικού για έναν πελάτη: σπόρος (tnseed) + ό,τι έγραψε ο ίδιος σε αυτή τη συσκευή */
+  const techNotes = (tid, cid) => { const ch = ls.get(NS + ':' + tid) || {}, k = 'notes/' + cid;
+    return k in ch ? ch[k] : SEED['tnseed/' + tid + '_' + cid] || null; };
+
+  function techSeed(u) {
+    const out = {}, cids = new Map();
+    treqMine(u.id).sort((a, b) => ((a[1].sent || '') < (b[1].sent || '') ? -1 : 1)).forEach(([rid, r]) => { out['treq/' + rid] = r; cids.set(r.cid, r); });
+    cids.forEach((r, cid) => { out['clients/' + cid] = techClient(cid, r); const n = SEED['tnseed/' + u.id + '_' + cid]; if (n) out['notes/' + cid] = n; });
+    Object.entries(SEED).forEach(([p, d]) => {
+      if (col(p) === 'seminars') out[p] = Object.assign({}, d, { cust: (d.cust || []).filter((x) => cids.has(x)), conf: (d.conf || []).filter((x) => cids.has(x)) });
+      if (p === 'settings/card') out[p] = Object.assign({}, d, { name: u.name, email: u.email, title: 'Τεχνικός' });
+    });
+    return out;
+  }
 
   function seedFor(uid) {
     const u = user(uid), out = {}, mine = new Set();
     if (!u) return out;
+    if (u.role === 'tech') return techSeed(u);
     Object.entries(SEED).forEach(([p, d]) => { const c = col(p); if ((c === 'clients' || c === 'prospects') && u.code && d.owner === u.code) mine.add(idOf(p)); });
     Object.entries(SEED).forEach(([p, d]) => {
       const c = col(p);
-      if (SERVER.has(c)) return;
+      if (SERVER.has(c) || SHARED.has(c) || c === 'tnseed') return;
       if (KEYED.has(c)) { if (mine.has(idOf(p))) out[p] = d; return; }
       if (MAPS.has(p)) { const m = {}; Object.entries(d).forEach(([k, v]) => { if (k[0] === '_' || mine.has(k)) m[k] = v; }); out[p] = m; return; }
       if (c === 'tasks' || c === 'orders') { if (mine.has(d.cid)) out[p] = d; return; }
@@ -56,6 +98,11 @@
       if (c === 'flash') { out[p] = Object.assign({}, d, { me: u.code || '' }); return; }
       out[p] = d;   /* κοινά για όλους: κατάλογος ειδών, στόχοι, FLASH της εταιρείας */
     });
+    /* αιτήματα τεχνικού του πωλητή, ο συνεργαζόμενος τεχνικός του και οι σημειώσεις των τεχνικών για τους πελάτες του */
+    treqMine(uid).forEach(([rid, r]) => { out['treq/' + rid] = r; });
+    if (u.tmate) out['settings/techmate'] = { tid: u.tmate };
+    const tids = new Set(treqMine(uid).map(([, r]) => r.tid));
+    mine.forEach((cid) => { tids.forEach((tid) => { const n = techNotes(tid, cid); if (n && (n.entries || []).length) out['tnotes/' + cid] = { tid, tname: (user(tid) || {}).name || '', entries: n.entries }; }); });
     return out;
   }
   /* η πόλη με τους περισσότερους πελάτες του (αφετηρία ταξιδιών) */
@@ -71,7 +118,7 @@
 
   const sid = ls.get(NS + ':session'), me = sid && user(sid) && user(sid).active ? user(sid) : null;
   /* ποιους πωλητές βλέπει ο συνδεδεμένος (ο κανόνας του server): διευθυντής και διαχειριστής όλους, υπεύθυνος την ομάδα του */
-  const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' &&
+  const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' && x.role !== 'tech' &&
     (me.role === 'director' || me.admin || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
 
   /* ---- χρήση εφαρμογής: ένα έγγραφο ανά χρήστη και μέρα {u, d, p: {σελίδα: [φορές, δευτερόλεπτα]}, a: {ενέργεια: φορές}, last}.
@@ -110,6 +157,8 @@
       .sort((a, b) => (a.role === 'lead') !== (b.role === 'lead') ? (a.role === 'lead' ? -1 : 1) : a.name.localeCompare(b.name, 'el')),
     /* δεδομένα ενός πωλητή, μόνο αν τα δικαιούται ο συνδεδεμένος (αλλιώς null) */
     data: (uid) => (visible().some((x) => x.id === uid) ? source(uid) : null),
+    /* τεχνικοί (για τον «συνεργαζόμενο τεχνικό» του πωλητή) */
+    techs: () => users().filter((x) => x.active && x.role === 'tech').map((x) => ({ id: x.id, name: x.name })),
     /* ---- διαχειριστής ---- */
     usage,
     users: () => (me && me.admin ? users() : []),
@@ -121,12 +170,30 @@
     },
     resetUsers: () => { const o = ls.get(NS + ':org') || {}; delete o.users; ls.set(NS + ':org', o); location.reload(); },
     /* ---- είσοδος (όλοι οι δοκιμαστικοί λογαριασμοί έχουν κωδικό «demo») ---- */
-    quick: () => ['u3', 'u2', 'u1', FIRST].map(user).filter((x) => x && x.active),
+    quick: () => ['u3', 'u2', 'u1', FIRST, 'u14'].map(user).filter((x) => x && x.active),
     hint: 'Όλοι οι δοκιμαστικοί λογαριασμοί έχουν κωδικό <b>demo</b>.',
     check: (email, pass) => { const x = users().find((z) => z.email.toLowerCase() === String(email).trim().toLowerCase()); return x && x.active && pass === PASS ? x : null; },
     login: (uid) => { ls.set(NS + ':session', uid); location.reload(); },
     logout: () => { ls.del(NS + ':session'); location.reload(); },
   };
+  /* Εγγραφές (ρόλος του server): τα κοινά (αιτήματα) στο '<key>:shared' με τον κανόνα treqOk, τα υπόλοιπα στις αλλαγές του χρήστη.
+     Αλλαγή κοινού από άλλη καρτέλα του browser (π.χ. πωλητής εδώ, τεχνικός εκεί): φτάνει με το «storage» → listen. */
+  const remote = me && {
+    async put(path, d) {
+      if (SHARED.has(col(path))) {
+        const sh = ls.get(NS + ':shared') || {}, prev = treqAll()[idOf(path)] || null;
+        if (!treqOk(prev, d, me.id)) throw new Error('Δεν επιτρέπεται αυτή η αλλαγή.');
+        sh[path] = d; ls.set(NS + ':shared', sh); return;
+      }
+      const o = ls.get(NS + ':' + me.id) || {}; o[path] = d === undefined ? null : d; ls.set(NS + ':' + me.id, o);
+    },
+    listen(cb) {
+      window.addEventListener('storage', (e) => {
+        if (e.key !== NS + ':shared') return;
+        treqMine(me.id).forEach(([rid, r]) => { cb('treq/' + rid, r); if (me.role === 'tech') cb('clients/' + r.cid, techClient(r.cid, r)); });
+      });
+    },
+  };
   /* ο adapter θα φορτώσει μόνο τα δεδομένα του συνδεδεμένου (χωρίς σύνδεση: τίποτα) */
-  window.PL_LOCAL = me ? { key: NS + ':' + me.id, seed: seedFor(me.id), org } : { key: NS + ':none', seed: {}, org };
+  window.PL_LOCAL = me ? { key: NS + ':' + me.id, seed: seedFor(me.id), org, remote } : { key: NS + ':none', seed: {}, org };
 })();

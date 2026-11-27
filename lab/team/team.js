@@ -317,9 +317,10 @@
       const grp = (title, L) => (L.length ? `<h3 class="tmsec">${esc(title)}</h3><div class="tmrows">` + L.map((x) => `<button class="tmrow tmu${x.active ? '' : ' off'}" data-uid="${esc(x.id)}"><span class="tmav${x.role === 'lead' ? ' l' : x.role === 'director' ? ' d' : ''}">${esc(initials(x.name))}</span><span class="tmrb"><b>${esc(x.name)}</b>` +
         `<span class="tmmini"><span class="tmrole ${esc(x.role)}">${esc(O.ROLES[x.role])}</span>${x.admin ? '<span>🛠 διαχειριστής</span>' : ''}<span>${esc(x.email)}</span>${x.code ? `<span>κωδ. ${esc(x.code)} · ${n[x.code] || 0} πελάτες</span>` : ''}${x.active ? '' : '<span class="dn">ανενεργός</span>'}${ACC ? PL.teamAcc.badges(x) : ''}${PL.usage && PL.usage.status ? `<span>${PL.usage.status(x.id)}</span>` : ''}</span></span><span class="tmchev">›</span></button>`).join('') + '</div>' : '');
       el.innerHTML = `<div class="tmhead"><h2>${ICON.users}Χρήστες και ρόλοι</h2><p class="mu">${U.filter((x) => x.active).length} ενεργοί χρήστες · ${O.teams().length} ομάδες</p></div>` +
-        `<div class="tmgrid"><section class="tmcard tmwide2"><h3>Ποιος βλέπει τι</h3><div class="tmrl"><b>Πωλητής</b><span>Τους δικούς του πελάτες: όσους έχουν τον κωδικό πωλητή του στο orders.</span></div><div class="tmrl"><b>Υπεύθυνος ομάδας</b><span>Τους δικούς του πελάτες, και τα νούμερα και τις σημειώσεις των πωλητών της ομάδας του, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διευθυντής</b><span>Όλες τις ομάδες, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διαχειριστής</b><span>Προσθέτει χρήστες και αλλάζει ρόλους και ομάδες. Είναι και πωλητής.</span></div></section></div>` +
+        `<div class="tmgrid"><section class="tmcard tmwide2"><h3>Ποιος βλέπει τι</h3><div class="tmrl"><b>Πωλητής</b><span>Τους δικούς του πελάτες: όσους έχουν τον κωδικό πωλητή του στο orders.</span></div><div class="tmrl"><b>Υπεύθυνος ομάδας</b><span>Τους δικούς του πελάτες, και τα νούμερα και τις σημειώσεις των πωλητών της ομάδας του, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διευθυντής</b><span>Όλες τις ομάδες, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διαχειριστής</b><span>Προσθέτει χρήστες και αλλάζει ρόλους και ομάδες. Είναι και πωλητής.</span></div><div class="tmrl"><b>Τεχνικός</b><span>Μόνο τους πελάτες που του έστειλαν οι πωλητές για επίσκεψη: στοιχεία, σημειώματα και κατηγορίες ✓ φέτος/πέρσι. Κανένα ποσό.</span></div></section></div>` +
         `<p><button class="pri" id="tmnew">+ Νέος χρήστης</button></p>` +
-        grp('Διεύθυνση', U.filter((x) => x.role === 'director')) + O.teams().map((t) => grp(t.name, U.filter((x) => x.role !== 'director' && x.team === t.id).sort((a, b) => (a.role === 'lead' ? -1 : b.role === 'lead' ? 1 : 0)))).join('') +
+        grp('Διεύθυνση', U.filter((x) => x.role === 'director')) + O.teams().map((t) => grp(t.name, U.filter((x) => x.role !== 'director' && x.role !== 'tech' && x.team === t.id).sort((a, b) => (a.role === 'lead' ? -1 : b.role === 'lead' ? 1 : 0)))).join('') +
+        grp('Τεχνικοί', U.filter((x) => x.role === 'tech')) +
         (orphan ? `<p class="warn">${orphan} πελάτες έχουν κωδικό πωλητή που δεν ανήκει σε ενεργό χρήστη· δεν τους βλέπει κανείς.</p>` : '') +
         (O.db ? '<p class="mu tmfoot">Οι αλλαγές γράφονται στη βάση και ισχύουν σε όλες τις συσκευές.</p>'
           : '<p class="mu tmfoot">Δοκιμαστική έκδοση: οι αλλαγές μένουν σε αυτή τη συσκευή. Στην κανονική μένουν στον server.</p><p><button id="tmrst">Επαναφορά αρχικών χρηστών</button></p>');
@@ -372,8 +373,9 @@
         if (!v.name) return err('Γράψε όνομα.');
         if (!/^\S+@\S+\.\S+$/.test(v.email)) return err('Το email δεν φαίνεται σωστό.');
         if (U.some((z) => z.id !== x.id && z.email.toLowerCase() === v.email)) return err('Υπάρχει ήδη χρήστης με αυτό το email.');
-        if (v.role === 'director') v.team = '';
-        if (v.role !== 'director' && !v.code) return err('Ο πωλητής χρειάζεται κωδικό πωλητή.');
+        if (v.role === 'director' || v.role === 'tech') v.team = '';
+        if (v.role === 'tech') { v.code = ''; v.admin = false; }   /* ο τεχνικός δεν έχει πελάτες με κωδικό ούτε διαχείριση */
+        if (v.role !== 'director' && v.role !== 'tech' && !v.code) return err('Ο πωλητής χρειάζεται κωδικό πωλητή.');
         if (v.code && U.some((z) => z.id !== x.id && z.active && z.code === v.code)) return err('Ο κωδικός ' + v.code + ' ανήκει ήδη σε άλλο χρήστη.');
         if (v.role === 'lead' && U.some((z) => z.id !== x.id && z.active && z.role === 'lead' && z.team === v.team)) return err('Η ομάδα έχει ήδη υπεύθυνο. Άλλαξε πρώτα τον άλλον σε πωλητή.');
         if (ACC && isNew) {   // με βάση: λογαριασμός στον server + προσωρινός κωδικός
@@ -422,7 +424,7 @@
 
   /* ---------- Οθόνη εισόδου ---------- */
   if (!me && !O.busy) {
-    const LBL = { director: ['🏢', 'Διευθυντής'], lead: ['👥', 'Υπεύθυνος ομάδας'], sales: ['🧑‍💼', 'Πωλητής'] };
+    const LBL = { director: ['🏢', 'Διευθυντής'], lead: ['👥', 'Υπεύθυνος ομάδας'], sales: ['🧑‍💼', 'Πωλητής'], tech: ['🧰', 'Τεχνικός'] };
     const o = document.createElement('div'); o.id = 'tmlogin'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Είσοδος');
     o.innerHTML = `<form class="tmlb" autocomplete="on"><div class="tmlogo"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2f6f5e"/><rect x="8" y="19" width="5" height="8" rx="1.5" fill="#fff"/><rect x="14.5" y="14" width="5" height="13" rx="1.5" fill="#fff"/><rect x="21" y="8" width="5" height="19" rx="1.5" fill="#8fe3c6"/></svg><span>Sales<small>2.0</small></span></div>` +
       `<p class="mu">Δοκιμαστική έκδοση · ψεύτικα δεδομένα</p>` +

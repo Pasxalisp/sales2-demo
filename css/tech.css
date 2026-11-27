@@ -138,3 +138,184 @@
     bottom: 0;
   }
 }
+/* Αιτήματα τεχνικού (27/11/2026, js/treq.js, js/pages/treqs.js, λίστα «Τεχνική υποστήριξη»): κατάσταση σε κάψουλα,
+   πρόοδος 4 βημάτων (Στάλθηκε → Το είδε → Ραντεβού → Ολοκλήρωση), σημείωμα σε κίτρινο κουτί, αναφορά σε πράσινο. */
+.trh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.trstripe {
+  height: 8px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(-45deg, #f2c94c 0 11px, #2b2b2b 11px 22px);
+  margin: -4px 0 12px;
+}
+.trp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--ac2);
+  color: var(--ac);
+}
+.trp.dr {
+  background: transparent;
+  border: 1px dashed var(--bd);
+  color: var(--mu);
+}
+.trp.ap {
+  background: var(--techbg);
+  color: var(--tech);
+}
+.trp.pp {
+  background: rgba(179,64,46,.10);
+  color: var(--rd);
+}
+.trnote, .trrep {
+  margin-top: 8px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.trnote {
+  background: var(--techbg);
+  border-left: 3px solid var(--tech);
+}
+.trrep {
+  background: var(--ac2);
+}
+.trnote b, .trrep b {
+  display: block;
+  font-size: calc(12 * var(--u));
+  margin-bottom: 2px;
+}
+.trnote b {
+  color: var(--tech);
+}
+.trrep b {
+  color: var(--ac);
+}
+.trst {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+.trst i {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bd);
+}
+.trst i.d {
+  background: var(--tech);
+}
+.trsl {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: calc(11 * var(--u));
+  color: var(--mu);
+  margin-top: 3px;
+}
+.trg {
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  font-weight: 700;
+  margin: 16px 0 6px;
+}
+.trcity {
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+.trdone summary {
+  cursor: pointer;
+}
+.tracts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.tracts .trb {
+  background: var(--tech);
+  border-color: var(--tech);
+  color: #1f2421;
+  font-weight: 600;
+}
+.trform {
+  margin-top: 8px;
+}
+.trwho {
+  margin-top: 8px;
+  font-size: calc(14 * var(--u));
+}
+.trappt {
+  margin: 8px 0 0;
+}
+.trcat {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(14.5 * var(--u));
+}
+.trcat th {
+  font-size: calc(12 * var(--u));
+  color: var(--mu);
+  font-weight: 600;
+  text-align: center;
+  padding: 4px;
+}
+.trcat td {
+  padding: 7px 4px;
+  border-top: 1px solid var(--bd);
+  text-align: center;
+}
+.trcat th:first-child, .trcat td:first-child {
+  text-align: left;
+}
+.trlost {
+  color: var(--tech);
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+}
+.trlog {
+  margin-top: 12px;
+}
+.trlog summary {
+  cursor: pointer;
+  color: var(--mu);
+  font-size: calc(14 * var(--u));
+}
+.trli {
+  padding: 8px 0;
+  border-top: 1px solid var(--bd);
+  cursor: pointer;
+}
+.trli:first-of-type {
+  border-top: 0;
+}
+.trtog {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  margin: 0;
+  border-top: 1px solid var(--bd);
+  color: var(--tx);
+  font-size: calc(15 * var(--u));
+}
+.trtog input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  flex: none;
+  accent-color: var(--ac);
+}

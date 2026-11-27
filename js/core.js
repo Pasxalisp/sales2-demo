@@ -281,9 +281,17 @@
   div.addEventListener('dblclick', () => { root.style.removeProperty('--paneL'); try { localStorage.removeItem(PK); } catch (e) { /* τίποτα */ } placeDiv(); });
 
   /* ---- κάτω μπάρα: ίδια με της παλιάς σελίδας (nav, pm, pmb) ---- */
-  let badge = 0;
+  const badge = { tasks: 0 };   /* σήματα με αριθμό ανά κουμπί της μπάρας */
   const hideReasons = new Set();
-  /* κουμπιά της κάτω μπάρας: [σελίδα, κείμενο, aria-label, εικονίδιο] */
+  /* Ρόλος του συνδεδεμένου (μόνο με λογαριασμούς· στο claude.ai πάντα πωλητής) και τι ΔΕΝ βλέπει κάθε ρόλος.
+     Τεχνικός (27/11/2026): χωρίς ποσά, παραγγελίες, προγράμματα, SOS, καμπάνιες, συμφωνίες, προϊόντα, Υπαγόρευση. Ο server
+     ούτως ή άλλως δεν του δίνει αυτά τα δεδομένα· εδώ κρύβονται τα κουμπιά και οι σελίδες τους. */
+  const NO = { tech: new Set(['money', 'orders', 'plans', 'sos', 'campaigns', 'deals', 'products', 'dictate', 'techlist', 'actedit']) };
+  PL.role = () => { const o = PL.adapter && PL.adapter.org; return (o && o.me && o.me.role) || 'sales'; };
+  PL.can = (k) => !(NO[PL.role()] && NO[PL.role()].has(k));
+  /* κουμπιά της κάτω μπάρας: [σελίδα, κείμενο, aria-label, εικονίδιο]· ο τεχνικός έχει «Αιτήματα» στη θέση των «Υπόλοιπα» */
+  const TREQS = ['treqs', 'Αιτήματα', 'Αιτήματα τεχνικού', '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'];
+  const tabs = () => TABS.map((t) => (t[0] === 'balances' && !PL.can('money') ? TREQS : t));
   const TABS = [
     ['home', 'Αρχική', 'Αρχική', '<path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>'],
     ['clients', 'Πελάτες', 'Πελατολόγιο', '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 2.8 3 6"/>'],
@@ -295,7 +303,8 @@
   /* Μενού του «•••» (πάνω δεξιά): τίτλος της οθόνης + επιλογές, ανοίγει από κάτω όπως στην παλιά σελίδα το «Νέο». */
   PL.menu = (title, items) => { items.title = title; return items; };
   PL.bar = {
-    setBadge(v) { badge = v; const b = $('#nav .bdg'); if (b) { b.textContent = v > 99 ? '99+' : v; b.style.display = v ? 'block' : 'none'; } },
+    /* σήμα με αριθμό σε κουμπί της μπάρας (χωρίς tab: Ημερολόγιο, εκκρεμότητες που περιμένουν) */
+    setBadge(v, tab) { tab = tab || 'tasks'; badge[tab] = v; const b = $('#nav .nb[data-a="' + tab + '"] .bdg'); if (b) { b.textContent = v > 99 ? '99+' : v; b.style.display = v ? 'block' : 'none'; } },
     hide(reason) { hideReasons.add(reason); apply(); },
     unhide(reason) { hideReasons.delete(reason); apply(); },
     /* Κάτω μπάρα (απόφαση 06/11): οι ενότητες που ανοίγεις συνέχεια, όπως στο iPhone. Σειρά (απόφαση 21/11): Αρχική,
@@ -303,12 +312,12 @@
        «Πίσω» και ενέργειες είναι πάνω στη σελίδα («‹ …» και «•••»). Πατημένη φαίνεται η ενότητα όπου βρίσκεσαι:
        η πιο πρόσφατη σελίδα της στοίβας που είναι στην μπάρα (π.χ. καρτέλα από το Πελατολόγιο → «Πελάτες»). */
     update() {
-      const sec = [...stack].reverse().map((e) => e.id).find((id) => TABS.some((t) => t[0] === id)) || 'home', nav = $('#nav');
+      const T = tabs(), sec = [...stack].reverse().map((e) => e.id).find((id) => T.some((t) => t[0] === id)) || 'home', nav = $('#nav');
       /* τα κουμπιά φτιάχνονται μία φορά· σε κάθε αλλαγή σελίδας αλλάζει μόνο ποιο είναι πατημένο (και γλιστράει το πλαίσιο) */
       if (!nav.querySelector('.nb')) {
-        nav.innerHTML = '<i class="npill" aria-hidden="true"></i>' + TABS.map(([id, label, aria, icon]) => {
+        nav.innerHTML = '<i class="npill" aria-hidden="true"></i>' + T.map(([id, label, aria, icon]) => { const n = badge[id] || 0;
           return `<button class="nb${id === 'home' ? ' nhome' : ''}" data-a="${id}" aria-label="${aria}">${SV(icon, id === 'home' ? 25 : 22)}<span>${label}</span>` +
-            (id === 'tasks' ? `<i class="bdg" style="display:${badge ? 'block' : 'none'}">${badge > 99 ? '99+' : badge}</i>` : '') + '</button>';
+            (id !== 'home' ? `<i class="bdg" style="display:${n ? 'block' : 'none'}">${n > 99 ? '99+' : n}</i>` : '') + '</button>';
         }).join('');
         /* στροφή οθόνης (μπάρα κάτω ↔ στο πλάι): το πλαίσιο πάει στη θέση του χωρίς κίνηση. Μόνο όταν αλλάξει το πλάτος της
            μπάρας· το ύψος αλλάζει λίγο με κάθε πατημένο κουμπί και δεν πρέπει να κόβει την κίνηση. */
@@ -380,5 +389,6 @@
   PL.start = function () {
     wire();
     PL.nav.home();
+    PL.bus.emit('started');
   };
 })();

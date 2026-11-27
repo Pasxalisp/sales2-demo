@@ -27,10 +27,10 @@
   PL.register('clients', {
     title: 'Πελατολόγιο',
     split: ['client'],   /* σε οριζόντια οθόνη: η καρτέλα ανοίγει δεξιά (core.js) */
-    nova: () => PL.menu('Πελατολόγιο', [
+    nova: () => (!PL.can('dictate') ? null : PL.menu('Πελατολόγιο', [
       { e: '👤', label: 'Νέος πελάτης', d: 'κομμωτήριο που δεν υπάρχει στη λίστα', fn: () => PL.dictation.open('Νέος πελάτης: ') },
       { e: '📝', label: 'Νέα σημείωση σε πελάτη', d: 'πες τι συζητήσατε, μπαίνει στην καρτέλα', fn: () => PL.dictation.open('Στον πελάτη ') },
-    ]),
+    ])),
     render(el) {
       el.innerHTML = HEAD;
       const $ = (s) => el.querySelector(s);
@@ -43,8 +43,9 @@
 
       const draw = () => {
         /* οι εκτός (M.out) δεν φαίνονται· μόνο με «Εκτός» ή όταν ψάχνεις με όνομα/τηλέφωνο/κωδικό */
-        const C = M.clients(), cq = nn(st.city), t = nn(st.q), yf = st.yf, onlyT = st.onlyT, nOut = C.filter((c) => M.out(c.i)).length;
-        $('#chips').innerHTML = `<button class="chip ${!cq && !onlyT && !yf && !st.out ? 'on' : ''}" data-c="">Όλοι</button><button class="chip ${onlyT ? 'on' : ''}" data-t="1">Με τζίρο</button><button class="chip ${yf === 'up' ? 'on' : ''}" data-y="up">▲ Θετικοί</button><button class="chip ${yf === 'dn' ? 'on' : ''}" data-y="dn">▼ Αρνητικοί</button>` + (nOut ? `<button class="chip ${st.out ? 'on' : ''}" data-xo="1">🚫 Εκτός (${nOut})</button>` : '');
+        /* ο τεχνικός (PL.can('money') = false): χωρίς τζίρο, Goldwell, φίλτρα ποσών, SOS */
+        const MON = PL.can('money'), C = M.clients(), cq = nn(st.city), t = nn(st.q), yf = MON ? st.yf : '', onlyT = MON && st.onlyT, nOut = C.filter((c) => M.out(c.i)).length;
+        $('#chips').innerHTML = `<button class="chip ${!cq && !onlyT && !yf && !st.out ? 'on' : ''}" data-c="">Όλοι</button>` + (MON ? `<button class="chip ${onlyT ? 'on' : ''}" data-t="1">Με τζίρο</button><button class="chip ${yf === 'up' ? 'on' : ''}" data-y="up">▲ Θετικοί</button><button class="chip ${yf === 'dn' ? 'on' : ''}" data-y="dn">▼ Αρνητικοί</button>` : '') + (nOut ? `<button class="chip ${st.out ? 'on' : ''}" data-xo="1">🚫 Εκτός (${nOut})</button>` : '');
         const base = C.filter((c) => (st.out ? M.out(c.i) : !M.out(c.i) || t) && (!cq || nn(c.city).includes(cq)) && (!yf || (M.yoy(c) && M.yoy(c).cls === yf)) &&
           (!t || nn(c.name + ' ' + (c.alt || []).join(' ') + ' ' + c.addr + ' ' + c.city + ' ' + c.t1 + ' ' + c.t2 + ' ' + (c.more || []).join(' ') + ' ' + (c.codes || [c.code]).join(' ')).includes(t)));
         const tz = new Map(base.map((c) => [c.i, M.tz(c)]));
@@ -54,7 +55,7 @@
         $('#list').innerHTML = L.map((c) => {
           const e = M.entries(c.i), nx = M.nextOf(c.i), due = nx && nx <= today, y = M.yoy(c), w = M.works(c.i), td = e.find((z) => z.todo), z = tz.get(c.i);
           return `<div class="card" data-id="${esc(c.i)}"><div class="row"><span class="nm">${TECH[c.i] ? `<span class="ti">${PL.icon.tech16}</span> ` : ''}${PL.prospects.tag(c)}${esc(c.name)}</span>` +
-            `<span style="display:flex;align-items:center;gap:4px"><span class="tz">${z > 0 ? money(z) : ''}</span><button data-star="${esc(c.i)}" aria-label="SOS" style="padding:0 4px;border:none;background:none;font-size:calc(22*var(--u));line-height:1">${SOS[c.i] ? '⭐' : '☆'}</button></span></div>` +
+            `<span style="display:flex;align-items:center;gap:4px"><span class="tz">${z > 0 ? money(z) : ''}</span>${PL.can('sos') ? `<button data-star="${esc(c.i)}" aria-label="SOS" style="padding:0 4px;border:none;background:none;font-size:calc(22*var(--u));line-height:1">${SOS[c.i] ? '⭐' : '☆'}</button>` : ''}</span></div>` +
             `<div class="mu">${esc(c.city)}</div>` + (M.out(c.i) ? `<div class="dn">🚫 ${esc(M.OUTL[M.out(c.i)])}</div>` : '') + (y ? `<div class="${y.cls}" style="font-size:calc(14*var(--u))">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
             (w.length ? `<div class="mu">Δουλεύει: ${esc(w.join(', '))}</div>` : '') +
             (e.length ? `<div class="mu">Τελευταία: ${esc(e[0].d)}${e[0].products ? ' · ' + esc(e[0].products) : ''}</div>` : '') +
@@ -62,7 +63,7 @@
         }).join('');
         $('#cnt').textContent = L.length + ' πελάτες';
         const ct = $('#ct');
-        if (cq) {
+        if (cq && MON) {
           const Sx = C.filter((c) => nn(c.city).includes(cq)); let tzs = 0, a = 0, b = 0;
           Sx.forEach((c) => { tzs += M.tz(c); const g = M.gold(c); if (g) { a += g[0]; b += g[1]; } });
           const d = b - a, p = a > 0 ? Math.round(Math.abs(d) / a * 100) : null;
@@ -84,6 +85,8 @@
         fb.textContent = 'Φίλτρα' + (parts.length ? ' (' + parts.length + ')' : '') + (st.open ? ' ▴' : ' ▾'); fb.title = parts.join(' · '); fb.classList.toggle('on', parts.length > 0);
       };
       let raf = 0; const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); };
+      /* τεχνικός: χωρίς τα κουμπιά Τζίρος / FLASH και τη λήψη σε αρχείο */
+      if (!PL.can('money')) { $('.hmb').remove(); $('#exp').remove(); }
       draw();
       const offs = COLS.map((c) => S.on(c, redraw));
 

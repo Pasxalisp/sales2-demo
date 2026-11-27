@@ -64,11 +64,13 @@
     const fieldsHtml = (pre) => (K.fields.every((f) => f.type !== 'text') ? `<div style="display:flex;gap:6px">${K.fields.map((f) => field(f, pre)).join('')}</div>` : K.fields.map((f) => field(f, pre)).join(''));
     const read = (el, pre) => { const o = {}; K.fields.forEach((f) => { o[f.k] = el.querySelector('#' + pre + f.id).value.trim(); }); return o; };
 
-    const nova = () => PL.menu(K.title, [{ e: K.mEmoji || K.ic(), label: K.newL, d: '', fn: () => {
+    /* ο τεχνικός (PL.can('actedit') = false) βλέπει μόνο: χωρίς νέο, αλλαγές, προσθήκη/αφαίρεση πελατών, κατάσταση */
+    const ro = () => !PL.can('actedit');
+    const nova = () => (ro() ? null : PL.menu(K.title, [{ e: K.mEmoji || K.ic(), label: K.newL, d: '', fn: () => {
       while (PL.nav.current().id !== K.list && PL.nav.depth() > 1) PL.nav.back();
       if (PL.nav.current().id !== K.list) PL.nav.push(K.list);
       setTimeout(() => { const b = document.getElementById(K.p + 'open'); if (b) b.click(); }, 30);
-    } }]);
+    } }]));
 
     /* ---------- Λίστα ---------- */
     PL.register(K.list, {
@@ -81,6 +83,7 @@
 <label>Παρατηρήσεις</label><textarea id="${p}n" rows="2" placeholder="${esc(K.nph)}"></textarea>
 <p style="display:flex;gap:6px"><button class="pri" id="${p}new">Δημιουργία</button><button id="${p}cancel">Άκυρο</button></p><div id="${p}st" class="mu"></div></div><div id="${p}l"></div>`;
         const $ = (s) => el.querySelector(s);
+        if (ro()) $('#' + p + 'open').remove();
         COLS.forEach((c) => S.use(c));
         const row = ([id, x]) => { const n = members(x).length, sb = K.sub(x), tl = tally(x);
           return `<div class="card" data-${K.row}="${esc(id)}"><div class="row"><span class="nm">${K.ic()} ${esc(x.title || '')}</span><span class="tz">${pel(n)}</span></div><div class="mu">📅 ${esc(K.when(x))}${sb ? ' · ' + esc(sb) : ''}</div>${tl ? `<div class="mu">${tl}</div>` : ''}</div>`; };
@@ -92,7 +95,7 @@
         };
         paint();
         const offs = COLS.map((c) => S.on(c, paint));
-        $('#' + p + 'open').onclick = () => { $('#' + p + 'form').hidden = false; $('#' + p + 'open').hidden = true; $('#' + p + 't').focus(); };
+        if (!ro()) $('#' + p + 'open').onclick = () => { $('#' + p + 'form').hidden = false; $('#' + p + 'open').hidden = true; $('#' + p + 't').focus(); };
         $('#' + p + 'cancel').onclick = () => { $('#' + p + 'form').hidden = true; $('#' + p + 'open').hidden = false; $('#' + p + 'st').textContent = ''; };
         $('#' + p + 'l').addEventListener('click', (ev) => { const c = ev.target.closest('[data-' + K.row + ']'); if (c) PL.nav.push(K.page, { id: c.dataset[K.row] }); });
         $('#' + p + 'new').onclick = async () => {
@@ -111,7 +114,7 @@
     PL.register(K.page, {
       title: K.page1, nova,
       render(el, params) {
-        const id = params.id, p = K.p, pe = p + 'e'; let gone = false;
+        const id = params.id, p = K.p, pe = p + 'e', RO = ro(); let gone = false;
         el.innerHTML = `<h2 id="${p}h"></h2><div id="${p}i" class="warn"></div>
 <details id="${p}edit" style="margin-bottom:10px"><summary style="cursor:pointer;color:var(--ac);font-weight:600">✏️ Αλλαγή στοιχείων</summary><label>Τίτλος</label><input id="${pe}t">${fieldsHtml(pe)}
 <label>Παρατηρήσεις</label><textarea id="${pe}n" rows="2"></textarea><p><button class="pri" id="${p}esave">Αποθήκευση</button></p></details>
@@ -119,17 +122,18 @@
 <div style="display:flex;gap:6px;margin-top:8px"><input id="${p}add" list="dcl" placeholder="ή γράψε όνομα πελάτη…" style="flex:1;min-width:0"><button id="${p}addb">Προσθήκη</button></div>
 <div id="${p}dl" style="margin-top:8px"></div><p style="margin-top:18px"><button id="${p}del">🗑 ${K.delL}</button></p><span id="dclh"></span>`;
         const $ = (s) => el.querySelector(s);
+        if (RO) { [p + 'edit', p + 'pick', p + 'del'].forEach((k) => $('#' + k).closest(k === p + 'del' ? 'p' : '#' + k).remove()); $('#' + p + 'add').parentNode.remove(); }
         COLS.forEach((c) => S.use(c));
         const paint = () => {
           const x = all()[id]; if (!x) { if (!gone) { gone = true; PL.nav.back(); } return; }
           const n = members(x).length, tl = tally(x);
           $('#' + p + 'h').innerHTML = K.ic() + ' ' + esc(x.title || '');
           $('#' + p + 'i').innerHTML = `<div>📅 ${esc(K.when(x))}${K.on(x) ? '' : ' · <b>ολοκληρώθηκε</b>'}</div>${K.info(x).map((l) => `<div style="margin-top:4px">${esc(l)}</div>`).join('')}${x.notes ? `<div style="margin-top:4px;white-space:pre-wrap">${esc(x.notes)}</div>` : ''}<div style="margin-top:4px;font-weight:600">${pel(n)}${tl ? ' · ' + tl : ''}</div>`;
-          if (!$('#' + p + 'edit').open) { $('#' + pe + 't').value = x.title || ''; K.fields.forEach((f) => { $('#' + pe + f.id).value = x[f.k] || ''; }); $('#' + pe + 'n').value = x.notes || ''; }
+          if (!RO && !$('#' + p + 'edit').open) { $('#' + pe + 't').value = x.title || ''; K.fields.forEach((f) => { $('#' + pe + f.id).value = x[f.k] || ''; }); $('#' + pe + 'n').value = x.notes || ''; }
           const L = members(x).map(([i, s]) => [M.byId(i), s]).sort((a, b) => String(a[0].city).localeCompare(String(b[0].city), 'el') || String(a[0].name).localeCompare(String(b[0].name), 'el'));
           /* κατάσταση: μικρά κουμπιά σε μία σειρά· το τρέχον χρωματισμένο */
           const seg = (c, s) => '<div class="acseg">' + K.ST.map(([k, e, l]) => `<button data-${p}st="${esc(c.i)}" data-v="${k}" class="${s === k ? 'on' : ''}" aria-pressed="${s === k}"><span>${e}</span>${l}</button>`).join('') + '</div>';
-          const card = ([c, s]) => { const tel = PL.call.first(c); return `<div class="card" style="cursor:default"><div class="row"><span class="nm acnm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)} <span class="mu">›</span></span><button data-${p}rm="${esc(c.i)}" aria-label="Αφαίρεση" style="padding:2px 10px">✕</button></div><div class="mu">${esc(c.addr || '')}${tel ? ` · ${PL.call.btn(tel, c.name, true)}` : ''}</div>${seg(c, s)}</div>`; };
+          const card = ([c, s]) => { const tel = PL.call.first(c); return `<div class="card" style="cursor:default"><div class="row"><span class="nm acnm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)} <span class="mu">›</span></span>${RO ? '' : `<button data-${p}rm="${esc(c.i)}" aria-label="Αφαίρεση" style="padding:2px 10px">✕</button>`}</div><div class="mu">${esc(c.addr || '')}${tel ? ` · ${PL.call.btn(tel, c.name, true)}` : ''}</div>${RO ? '' : seg(c, s)}</div>`; };
           const sec = ([k]) => { const arr = L.filter(([, s]) => s === k); let cc = ''; return arr.length ? `<h3 style="margin-top:16px">${stTxt(k)} (${arr.length})</h3>` + arr.map((r) => { const hd = r[0].city !== cc ? (cc = r[0].city, `<div class="mu" style="font-weight:600;margin:8px 0 2px">${esc(cc)}</div>`) : ''; return hd + card(r); }).join('') : ''; };
           $('#' + p + 'dl').innerHTML = L.length ? K.ST.map(sec).join('') : '<p class="mu">Κανένας πελάτης ακόμα.</p>';
           $('#dclh').innerHTML = PL.dcl();
@@ -137,11 +141,11 @@
         paint();
         const offs = COLS.map((c) => S.on(c, paint));
         const upd = async (fn) => { const x = Object.assign({}, all()[id]); fn(x); try { await save(id, x); } catch (e) { D.toast('Δεν αποθηκεύτηκε'); } paint(); };
-        $('#' + p + 'pick').onclick = () => PL.nav.push('smpick', {
+        if (!RO) $('#' + p + 'pick').onclick = () => PL.nav.push('smpick', {
           title: 'Για: ' + (all()[id] || {}).title, inSet: () => new Set(K.ids(all()[id] || {})),
           onOk: async (ids) => { const x = Object.assign({}, all()[id]); ids.forEach((i) => { if (!K.get(x, i)) K.set(x, i, K.ST[0][0]); }); await save(id, x); },
         });
-        $('#' + p + 'esave').onclick = async () => {
+        if (!RO) $('#' + p + 'esave').onclick = async () => {
           const t = $('#' + pe + 't').value.trim(); if (!t) { D.toast('Γράψε τίτλο'); return; }
           await upd((x) => Object.assign(x, { title: t }, read(el, pe), { notes: $('#' + pe + 'n').value.trim() })); $('#' + p + 'edit').open = false; paint();
         };
@@ -149,6 +153,7 @@
           const x = all()[id]; if (!x) return;
           const t = ev.target.closest('[data-open],[data-' + p + 'st],[data-' + p + 'rm],button') || ev.target, d = t.dataset;
           if (d.open) PL.nav.push('client', { id: d.open });
+          else if (RO) return;
           else if (d[p + 'st']) { if (K.get(x, d[p + 'st']) !== d.v) await upd((y) => K.set(y, d[p + 'st'], d.v)); }
           else if (d[p + 'rm']) {
             const c = M.byId(d[p + 'rm']);

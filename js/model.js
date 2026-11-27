@@ -90,9 +90,16 @@
           L.push({ c: M.byId(s.id), e: { next: d, nt: s.appt, todo: 'στις ' + s.appt + (p.mode === 'free' ? ' · εκτός προγράμματος' : ' · πρόγραμμα ' + PL.plans.planName(p)), d: p.created || '' }, appt: pid + '|' + s.id });
         });
       });
+      /* ραντεβού τεχνικού (treq): ο τεχνικός τα βλέπει ως δικά του, ο πωλητής ως πληροφορία για τον πελάτη του */
+      Object.entries(S().all('treq')).forEach(([rid, r]) => {
+        if (!r || r.st !== 'appt' || !r.appt) return; const [d, nt] = r.appt.split('T'); if (d < t) return;
+        const c = M.byId(r.cid) || { i: r.cid, name: (r.c && r.c.name) || '', city: (r.c && r.c.city) || '', t1: '', t2: '' }, tech = PL.role && PL.role() === 'tech';
+        L.push({ c, e: { next: d, nt: nt || '', todo: (tech ? '' : (r.tname || 'Τεχνικός') + ' · ') + (r.note || 'επίσκεψη τεχνικού'), d: r.sent || '' }, treq: rid });
+      });
       return L.sort((a, b) => ((a.e.next + (a.e.nt || '99')) < (b.e.next + (b.e.nt || '99')) ? -1 : 1));
     };
-    M.dueList = (t) => { t = t || u.today(); return M.openTasks(t).filter((x) => x.e.next <= t); };
+    /* «περιμένουν» σήμερα (σήμα στη μπάρα, Αρχική): τα ραντεβού του τεχνικού μετράνε μόνο για τον ίδιο τον τεχνικό */
+    M.dueList = (t) => { t = t || u.today(); const tech = PL.role && PL.role() === 'tech'; return M.openTasks(t).filter((x) => x.e.next <= t && (!x.treq || tech)); };
 
 
     /* Τελευταία επαφή με τον πελάτη: επίσκεψη (visits) ή καταγραφή στην καρτέλα, ό,τι είναι πιο πρόσφατο. */
@@ -187,7 +194,7 @@
 
   /* Εκκίνηση: φορτώνει ό,τι χρειάζεται η αρχική και η μπάρα (λίστα πελατών και εκκρεμότητες). */
   M.boot = async function () {
-    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout', 'ndfix'];
+    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout', 'ndfix', 'treq'];
     /* ο γενικός τζίρος (M.tz) και το Goldwell (M.gold) χρειάζονται brands/cats σε ΚΑΘΕ σελίδα, όπως στην παλιά */
     ['brands', 'cats'].forEach((c) => PL.store.use(c));
     const upd = () => { const n = M.dueList().length; PL.bar.setBadge(n); PL.bus.emit('due', n); };

@@ -3,7 +3,10 @@
   const PL = window.PL;
   /* πάνω γραμμή: μικρό λογότυπο (πάτημα → «Σχετικά», js/about.js) και η ημερομηνία· δεξιά QR και ⚙️ */
   const MARKUP = `<div class="hh"><button id="hlogo" type="button" aria-label="Σχετικά με την εφαρμογή" title="Σχετικά">${PL.about.logo()}</button><div class="hdt" id="hdt"></div><button id="hqr" data-go="card" aria-label="Η κάρτα μου (QR)" title="Η κάρτα μου"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg></button><button id="hset" data-go="data" aria-label="Ρυθμίσεις" title="Ρυθμίσεις"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div><button id="hdue" class="duec"></button><div id="hmatch"></div><div class="hg"><button id="hc2" class="tl"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1m3 0v16"/><path d="M13 8h2M13 12h2"/></svg><span>Πελατολόγιο</span><span class="ts" id="hcnt"></span></button><button id="hp" class="tl"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M16 3v4M8 3v4M4 11h16"/><path d="M8 15h2v2H8z"/></svg><span>Πρόγραμμα</span><span class="ts" id="hps">Πού να πας και τι να πεις</span></button><button id="hbal" class="tl"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M14.8 9a2 2 0 0 0-1.8-1h-.5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h.5a2 2 0 0 0 1.8-1"/><path d="M7 10h4M7 14h4"/></svg><span>Υπόλοιπα</span><span class="ts" id="hbs">Ανοιχτά υπόλοιπα</span></button><button id="htech" class="tl tech" title="Τεχνικός · Σεμινάρια · Καμπάνιες"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10h3V7L6.5 3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1-3 3l-6-6a6 6 0 0 1-8-8L7 10"/></svg><span>Ενέργειες</span><span class="ts" id="htc"></span></button><button id="hwb" class="tl"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4v3h-4z"/><path d="M9 5h6l1 3v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8z"/><path d="M8 12h8"/></svg><span>Προϊόντα</span></button><button id="hdl" class="tl" style="background:rgba(122,63,184,.08);border-color:#b48ce0"><svg style="stroke:#7a3fb8!important" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#7a3fb8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12l4-4 4 3 3-3 7 6"/><path d="M7 8 3 12l5 5 2-2"/><path d="M21 14l-6 5-3-2"/><path d="M12 17l-2-2"/></svg><span style="color:#7a3fb8">Συμφωνίες</span><span class="ts" id="hdlc"></span></button></div>`;
-  const NAV = { hc2: 'clients', hp: 'plan', hbal: 'balances', htech: 'tech', hwb: 'products', hdl: 'deals' };
+  const NAV = { hc2: 'clients', hp: 'plan', hbal: 'balances', htech: 'tech', hwb: 'products', hdl: 'deals', htr: 'treqs' };
+  /* πλακίδια ανά ρόλο (PL.can): ο τεχνικός δεν έχει Πρόγραμμα, Προϊόντα, Συμφωνίες· στη θέση των Υπολοίπων «Αιτήματα» */
+  const OFF = { hp: 'plans', hwb: 'products', hdl: 'deals' };
+  const TREQ = '<button id="htr" class="tl"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--ac)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>Αιτήματα</span><span class="ts" id="htrs"></span></button>';
 
   PL.register('home', {
     title: 'Αρχική',
@@ -13,8 +16,10 @@
       const $ = (s) => el.querySelector(s);
       const t = new Date().toLocaleDateString('el-GR', { weekday: 'long', day: 'numeric', month: 'long' });
       $('#hdt').textContent = t.charAt(0).toUpperCase() + t.slice(1);
+      Object.entries(OFF).forEach(([id, k]) => { if (!PL.can(k)) $('#' + id).remove(); });
+      if (!PL.can('money')) $('#hbal').outerHTML = TREQ;
       /* τα πλακίδια έχουν ως data-go το id της σελίδας */
-      Object.entries(NAV).forEach(([id, page]) => { $('#' + id).dataset.go = page; });
+      Object.entries(NAV).forEach(([id, page]) => { const b = $('#' + id); if (b) b.dataset.go = page; });
       $('#hdue').dataset.go = 'tasks';
       el.addEventListener('click', async (e) => {
         if (e.target.closest('#hlogo')) { PL.about.open(); return; }
@@ -29,7 +34,7 @@
       });
       const S = PL.store, M = PL.model;
       /* settings: για να ανοίγει αμέσως «Η κάρτα μου» (QR) */
-      ['clients', 'prospects', 'notes', 'tasks', 'plans', 'balances', 'tech', 'seminars', 'campaigns', 'deals', 'settings'].forEach((c) => S.use(c));
+      ['clients', 'prospects', 'notes', 'tasks', 'plans', 'balances', 'tech', 'seminars', 'campaigns', 'deals', 'settings', 'treq'].forEach((c) => S.use(c));
       const setCnt = () => { const n = S.loaded('clients') ? M.live().length : 0; if (n) $('#hcnt').textContent = n + ' πελάτες'; };
       const setDue = () => {
         const n = S.loaded('notes') ? M.dueList().length : 0, G = S.loaded('clients') ? PL.names.celebrants(PL.names.today()) : { list: [] };
@@ -38,12 +43,17 @@
           (G.list.length ? '<span class="dnd">🎉 Γιορτάζουν ' + G.list.length + ' · ' + G.feasts.map((f) => f.s).join(', ') + '</span>' : '') + '</span>';
       };
       const setPlans = () => {
-        if (!S.loaded('plans')) return;
+        if (!S.loaded('plans') || !$('#hps')) return;
         const L = PL.plans.activeList();
         $('#hps').textContent = L.length ? (L.length === 1 ? '1 ενεργό πρόγραμμα' : L.length + ' ενεργά προγράμματα') : 'Πού να πας και τι να πεις';
       };
       const setBits = () => {
         /* Ενέργειες: 🔧 τεχνικός · 🎓 ενεργά σεμινάρια · % ενεργές καμπάνιες (μία γραμμή, χωράει και στο μικρό πλακίδιο) */
+        if (!PL.can('money')) {   /* τεχνικός: ανοιχτά αιτήματα και σεμινάρια */
+          if (S.loaded('treq')) { const n = PL.treq.list().filter(([, r]) => PL.treq.open(r)).length; $('#htrs').textContent = n ? n + (n === 1 ? ' ανοιχτό' : ' ανοιχτά') : 'Κανένα ανοιχτό'; }
+          if (S.loaded('seminars')) $('#htc').textContent = '🎓 ' + PL.actions.seminar.active() + ' σεμινάρια';
+          return;
+        }
         if (S.loaded('tech') && S.loaded('seminars') && S.loaded('campaigns')) $('#htc').innerHTML = '🔧 ' + Object.keys(S.all('tech')).filter((id) => M.byId(id)).length + ' · 🎓 ' + PL.actions.seminar.active() + ' · ' + PL.pct + ' ' + PL.actions.campaign.active();
         if (S.loaded('balances')) {
           const { v: bv, big } = M.bal;
@@ -66,7 +76,7 @@
       all();
       /* δοκιμαστικά (φάκελος lab/, μόνο στη δοκιμαστική έκδοση): PL.labActs με page 'home' και mount(#home) → καθάρισμα */
       const labs = (PL.labActs || []).filter((x) => x.page === 'home' && x.mount).map((x) => x.mount($('#home') || el));
-      const offs = ['clients', 'prospects', 'plans', 'tech', 'seminars', 'campaigns', 'balances', 'deals', 'xout'].map((c) => S.on(c, all));
+      const offs = ['clients', 'prospects', 'plans', 'tech', 'seminars', 'campaigns', 'balances', 'deals', 'xout', 'treq'].map((c) => S.on(c, all));
       offs.push(PL.bus.on('due', setDue));
       return () => { document.body.classList.remove('home'); offs.concat(labs).forEach((f) => f && f()); };
     },
