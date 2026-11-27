@@ -1,0 +1,230 @@
+<!doctype html><html lang="el"><head><meta name="robots" content="noindex"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Δείγμα · Προφίλ τεχνικού</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/tech.css">
+<style>
+/* Δείγμα μόνο: οθόνες του προφίλ τεχνικού. Τίποτα δεν αποθηκεύεται. */
+body { border: 0; color: var(--tx); }
+.wrap { max-width: 460px; margin: 0 auto; padding: calc(10px + env(safe-area-inset-top,0px)) 14px 40px; }
+.dg { font-size: calc(12.5 * var(--u)); color: var(--mu); text-align: center; margin: 0 0 8px; }
+.prof { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--bd); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+.prof button { border: 0; border-radius: 0; padding: 9px 6px; font-weight: 600; background: var(--card); color: var(--mu); }
+.prof button.on { background: var(--ac); color: #fff; }
+.prof button.on.t { background: var(--tech); color: #1f2421; }
+.sub { margin-bottom: 10px; }
+.scr { display: none; }
+.scr.on { display: block; }
+.stripe { height: 8px; border-radius: 4px; background: repeating-linear-gradient(-45deg,#f2c94c 0 11px,#2b2b2b 11px 22px); margin: -4px 0 12px; }
+.note { margin-top: 8px; padding: 9px 11px; border-radius: 10px; background: var(--techbg); border-left: 3px solid var(--tech); font-size: calc(14.5 * var(--u)); line-height: 1.4; }
+.note b { display: block; font-size: calc(12 * var(--u)); color: var(--tech); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; }
+.st { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 99px; font-size: calc(12.5 * var(--u)); font-weight: 600; white-space: nowrap; background: var(--ac2); color: var(--ac); }
+.st.dr { background: transparent; border: 1px dashed var(--bd); color: var(--mu); }
+.st.ap { background: var(--techbg); color: var(--tech); }
+.st.pp { background: rgba(179,64,46,.10); color: var(--rd); }
+/* πρόοδος: Στάλθηκε → Αποδοχή → Ραντεβού → Ολοκλήρωση */
+.steps { display: flex; gap: 4px; margin-top: 10px; }
+.steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--bd); }
+.steps i.d { background: var(--tech); }
+.stl { display: flex; justify-content: space-between; font-size: calc(11 * var(--u)); color: var(--mu); margin-top: 3px; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.acts button { padding: 8px 12px; }
+.tb { background: var(--tech); border-color: var(--tech); color: #1f2421; font-weight: 600; }
+.rep { margin-top: 8px; padding: 9px 11px; border-radius: 10px; background: var(--ac2); font-size: calc(14.5 * var(--u)); }
+.rep b { display: block; font-size: calc(12 * var(--u)); color: var(--ac); margin-bottom: 2px; }
+.ann { margin: 4px 0 14px; padding: 8px 10px; border: 1px dashed var(--bd); border-radius: 10px; font-size: calc(13 * var(--u)); color: var(--mu); }
+.ann::before { content: "Δείγμα · "; font-weight: 700; }
+.cats { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: calc(14.5 * var(--u)); }
+.cats th { font-size: calc(12 * var(--u)); color: var(--mu); font-weight: 600; text-align: center; padding: 4px; }
+.cats th:first-child, .cats td:first-child { text-align: left; }
+.cats td { padding: 7px 4px; border-top: 1px solid var(--bd); text-align: center; }
+.ok { color: var(--ac); font-weight: 700; }
+.no { color: var(--bd); }
+.lost { color: var(--tech); font-size: calc(12 * var(--u)); font-weight: 600; }
+.grp { font-size: calc(13 * var(--u)); color: var(--mu); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin: 16px 0 6px; }
+.cty { font-size: calc(12.5 * var(--u)); font-weight: 700; color: var(--tx); margin: 8px 0 4px; }
+.tog { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--bd); color: var(--tx); font-size: calc(15 * var(--u)); margin: 0; }
+.tog:first-of-type { border-top: 0; }
+.tog input { width: 22px; height: 22px; margin: 0; accent-color: var(--ac); flex: none; }
+.when { display: none; gap: 6px; margin-top: 8px; }
+.when.on { display: flex; }
+.mic { position: relative; }
+.mic button { position: absolute; right: 6px; bottom: 8px; padding: 6px 9px; border-radius: 99px; }
+.hd { display: flex; align-items: center; gap: 8px; }
+.who { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: calc(14 * var(--u)); }
+.av { width: 30px; height: 30px; border-radius: 50%; background: var(--techbg); color: var(--tech); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+.dim .card { opacity: .72; }
+</style></head><body><div class="wrap">
+
+<p class="dg">Δείγμα · δεν αποθηκεύεται τίποτα · ψεύτικα ονόματα</p>
+<div class="prof" id="prof"><button class="on" data-p="s">Πωλητής</button><button data-p="t" class="t">Τεχνικός</button></div>
+<p class="ann">Αυτό το κουμπί θα υπάρχει μόνο στο demo, για να δείχνεις γρήγορα και τα δύο προφίλ.</p>
+
+<!-- ===================== ΠΩΛΗΤΗΣ ===================== -->
+<div id="P-s">
+<div class="chips sub" data-sub="s"><button class="chip on" data-s="s1">Τεχνική υποστήριξη</button><button class="chip" data-s="s2">Ρυθμίσεις</button></div>
+
+<section class="scr on" id="s1">
+<h2 class="hd">🧰 Τεχνική υποστήριξη</h2><div class="stripe"></div>
+
+<div class="card" style="cursor:default">
+  <div class="row"><span class="nm">Κομμωτήριο Ηλιάνα</span><span class="st dr">Πρόχειρο</span></div>
+  <div class="mu">Σέρρες · Μεραρχίας 14</div>
+  <label for="n1">Σημείωμα για τον τεχνικό</label>
+  <textarea id="n1" rows="3">Ξεκινάει Elumen. Θέλει εκπαίδευση στις αποχρώσεις και πώς να το πουλήσει σε πελάτισσες με λευκά.</textarea>
+  <p class="mu" style="margin:6px 0 0">Ο τεχνικός δεν το βλέπει ακόμα.</p>
+  <div class="acts"><button class="pri" id="send1">✓ Ολοκληρώθηκε – Στείλε στον τεχνικό</button></div>
+</div>
+
+<div class="card" style="cursor:default">
+  <div class="row"><span class="nm">Hair Studio Μαρίνα</span><span class="st ap">📅 Τρ 2/12, 11:00</span></div>
+  <div class="mu">Θεσσαλονίκη · Καλαμαριά</div>
+  <div class="note"><b>Σημείωμα</b>Παράπονο για Topchic 6N που βγαίνει πιο σκούρο. Να δει την τεχνική της.</div>
+  <div class="steps"><i class="d"></i><i class="d"></i><i class="d"></i><i></i></div>
+  <div class="stl"><span>Στάλθηκε</span><span>Αποδοχή</span><span>Ραντεβού</span><span>Ολοκλήρωση</span></div>
+</div>
+
+<div class="card" style="cursor:default">
+  <div class="row"><span class="nm">Κουρείο Στέλιος</span><span class="st pp">Αναβολή</span></div>
+  <div class="mu">Δράμα</div>
+  <div class="note"><b>Σημείωμα</b>Δεύτερη επίσκεψη για Silklift, την πρώτη φορά δεν πρόλαβαν.</div>
+  <div class="steps"><i class="d"></i><i class="d"></i><i></i><i></i></div>
+  <div class="stl"><span>Στάλθηκε</span><span>Αποδοχή</span><span>Ραντεβού</span><span>Ολοκλήρωση</span></div>
+</div>
+
+<div class="card" style="cursor:default">
+  <div class="row"><span class="nm">Salon Ροδάνθη</span><span class="st">Στάλθηκε 27/11</span></div>
+  <div class="mu">Κατερίνη</div>
+  <div class="note"><b>Σημείωμα</b>Νέος πελάτης, θέλει παρουσίαση Colorance.</div>
+  <div class="steps"><i class="d"></i><i></i><i></i><i></i></div>
+  <div class="stl"><span>Στάλθηκε</span><span>Αποδοχή</span><span>Ραντεβού</span><span>Ολοκλήρωση</span></div>
+</div>
+
+<p class="grp">Ολοκληρώθηκαν</p>
+<div class="dim"><div class="card" style="cursor:default">
+  <div class="row"><span class="nm">Κομμωτήριο Άλφα</span><span class="st">✓ 24/11</span></div>
+  <div class="mu">Σέρρες</div>
+  <div class="rep"><b>Αναφορά τεχνικού · Νίκος Τ.</b>Δείξαμε Silklift με 2 πελάτισσες. Το έπιασαν. Θέλουν και Bond pro, να τους το πεις στην επόμενη επίσκεψη.</div>
+  <p class="mu" style="margin:6px 0 0">Μπήκε και στο ιστορικό της καρτέλας.</p>
+</div></div>
+
+<h3>Πρόσθεσε πελάτη</h3><input placeholder="Όνομα πελάτη…">
+<p class="ann">Όπως σήμερα: γράφεις πελάτη και σημείωμα. Μένει «Πρόχειρο» μέχρι να πατήσεις «Ολοκληρώθηκε – Στείλε στον τεχνικό».</p>
+</section>
+
+<section class="scr" id="s2">
+<h2>⚙️ Ρυθμίσεις</h2>
+<div class="card" style="cursor:default;margin-bottom:10px"><b>🧰 Συνεργαζόμενος τεχνικός</b>
+  <p class="mu">Όλα τα αιτήματά σου πάνε σε αυτόν.</p>
+  <select><option>Νίκος Τ.</option><option>Γιώργος Κ.</option><option>Ελένη Μ.</option></select></div>
+<div class="card" style="cursor:default;margin-bottom:10px"><b>🔔 Ειδοποιήσεις από τον τεχνικό</b>
+  <p class="mu">Να χτυπάει το κινητό όταν ο τεχνικός:</p>
+  <label class="tog">αποδεχτεί αίτημα <input type="checkbox" checked></label>
+  <label class="tog">κλείσει ραντεβού <input type="checkbox" checked></label>
+  <label class="tog">αναβάλει <input type="checkbox" checked></label>
+  <label class="tog">ολοκληρώσει (με την αναφορά) <input type="checkbox" checked></label></div>
+<p class="ann">Οι υπόλοιπες Ρυθμίσεις (θέμα, γράμματα, κάδος…) μένουν όπως είναι.</p>
+</section>
+</div>
+
+<!-- ===================== ΤΕΧΝΙΚΟΣ ===================== -->
+<div id="P-t" hidden>
+<div class="chips sub" data-sub="t"><button class="chip on" data-s="t1">Αιτήματα</button><button class="chip" data-s="t2">Καρτέλα</button><button class="chip" data-s="t3">Αναφορά</button><button class="chip" data-s="t4">Ρυθμίσεις</button></div>
+
+<section class="scr on" id="t1">
+<h2 class="hd">🧰 Οι επισκέψεις μου</h2><div class="stripe"></div>
+
+<p class="grp">Νέα (1)</p>
+<div class="card" data-go="t2">
+  <div class="row"><span class="nm">Salon Ροδάνθη</span><span class="st">Νέο</span></div>
+  <div class="mu">Κατερίνη · από Πασχάλη Π. · 27/11</div>
+  <div class="note"><b>Σημείωμα</b>Νέος πελάτης, θέλει παρουσίαση Colorance.</div>
+</div>
+
+<p class="grp">Ραντεβού (2)</p>
+<div class="cty">Θεσσαλονίκη</div>
+<div class="card" data-go="t2">
+  <div class="row"><span class="nm">Hair Studio Μαρίνα</span><span class="st ap">📅 Τρ 2/12, 11:00</span></div>
+  <div class="mu">Καλαμαριά · από Πασχάλη Π.</div>
+</div>
+<div class="cty">Σέρρες</div>
+<div class="card" data-go="t2">
+  <div class="row"><span class="nm">Κομμωτήριο Νεφέλη</span><span class="st ap">📅 Πε 4/12, 10:00</span></div>
+  <div class="mu">από Γιάννη Δ.</div>
+</div>
+
+<p class="grp">Σε αναμονή (1)</p>
+<div class="card" data-go="t2">
+  <div class="row"><span class="nm">Κουρείο Στέλιος</span><span class="st pp">Αναβολή</span></div>
+  <div class="mu">Δράμα · από Πασχάλη Π.</div>
+</div>
+<p class="ann">Ο τεχνικός βλέπει μόνο τα αιτήματα που του έστειλαν, από όλους τους πωλητές που τον έχουν διαλέξει. Στα ραντεβού, ομαδοποίηση ανά πόλη.</p>
+</section>
+
+<section class="scr" id="t2">
+<h2>Salon Ροδάνθη</h2>
+<div class="mu">Κατερίνη · 25ης Μαρτίου 8</div>
+<div class="acts" style="margin-top:8px"><a class="btn" href="#" onclick="return false">📞 Κλήση</a><a class="btn" href="#" onclick="return false">🗺 Χάρτης</a></div>
+<div class="who"><span class="av">ΠΠ</span><span>Από <b>Πασχάλη Π.</b> · 27/11</span></div>
+<div class="note"><b>Σημείωμα πωλητή</b>Νέος πελάτης, θέλει παρουσίαση Colorance. Δουλεύει ήδη Topchic. Πέρσι είχε και Elumen, να δεις γιατί σταμάτησε.</div>
+
+<h3>Τι δουλεύει</h3>
+<table class="cats"><tr><th></th><th>Φέτος</th><th>Πέρσι</th></tr>
+<tr><td>Topchic</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+<tr><td>Colorance</td><td class="no">—</td><td class="no">—</td></tr>
+<tr><td>Elumen <span class="lost">σταμάτησε</span></td><td class="no">—</td><td class="ok">✓</td></tr>
+<tr><td>Silklift</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+<tr><td>Dualsenses</td><td class="ok">✓</td><td class="no">—</td></tr>
+</table>
+
+<div class="acts" style="margin-top:14px">
+  <button class="tb" id="acc">✓ Αποδοχή</button>
+  <button id="rdv">📅 Ραντεβού</button>
+  <button id="pst">Αναβολή</button>
+  <button class="pri" data-go="t3">✓ Ολοκληρώθηκε</button>
+</div>
+<div class="when" id="when"><input type="date" value="2026-12-03"><input type="time" value="10:30" style="max-width:120px"><button class="tb" id="rdvok">OK</button></div>
+<p class="mu" id="msg" style="margin-top:8px"></p>
+<p class="ann">Δεν φαίνονται ποσά, υπόλοιπα, παραγγελίες ή άλλες σημειώσεις. Αυτά δεν φτάνουν καθόλου στο κινητό του τεχνικού: τα κόβει ο server, δεν τα κρύβει απλώς η σελίδα.</p>
+</section>
+
+<section class="scr" id="t3">
+<h2>Τι έγινε στην επίσκεψη</h2>
+<div class="mu">Salon Ροδάνθη · Κατερίνη</div>
+<div class="mic" style="margin-top:10px"><textarea id="rep" rows="6" placeholder="Γράψε ή υπαγόρευσε τι είπατε, τι δείξατε, τι χρειάζεται…"></textarea><button type="button" aria-label="Υπαγόρευση">🎙</button></div>
+<p class="mu" style="margin:6px 0 0">Υποχρεωτικό. Το βλέπει ο πωλητής και μένει στο ιστορικό του πελάτη.</p>
+<div class="acts"><button class="pri" id="repok" disabled>Αποθήκευση και ολοκλήρωση</button></div>
+</section>
+
+<section class="scr" id="t4">
+<h2>⚙️ Ρυθμίσεις</h2>
+<div class="card" style="cursor:default;margin-bottom:10px"><b>🔔 Ειδοποιήσεις</b>
+  <p class="mu">Να χτυπάει το κινητό όταν:</p>
+  <label class="tog">μου στέλνουν νέο αίτημα <input type="checkbox" checked></label>
+  <label class="tog">ο πωλητής ακυρώνει αίτημα <input type="checkbox" checked></label>
+  <label class="tog">πλησιάζει ραντεβού (1 ώρα πριν) <input type="checkbox" checked></label></div>
+<p class="ann">Ο τεχνικός έχει μόνο θέμα, γράμματα και ειδοποιήσεις. Όχι κάδο, συγχρονισμό ή άλλα.</p>
+</section>
+</div>
+
+</div>
+<script>
+(function(){
+  const $=(s)=>document.querySelector(s), $$=(s)=>document.querySelectorAll(s);
+  const show=(p,s)=>{ $$('#P-'+p+' .scr').forEach(x=>x.classList.toggle('on',x.id===s)); $$('[data-sub="'+p+'"] .chip').forEach(b=>b.classList.toggle('on',b.dataset.s===s)); scrollTo(0,0); };
+  $('#prof').onclick=(e)=>{ const b=e.target.closest('[data-p]'); if(!b) return; $$('#prof button').forEach(x=>x.classList.toggle('on',x===b)); $('#P-s').hidden=b.dataset.p!=='s'; $('#P-t').hidden=b.dataset.p!=='t'; };
+  document.addEventListener('click',(e)=>{
+    const c=e.target.closest('.sub .chip'); if(c){ show(c.closest('.sub').dataset.sub,c.dataset.s); return; }
+    const g=e.target.closest('[data-go]'); if(g){ show('t',g.dataset.go); }
+  });
+  $('#send1').onclick=function(){ const card=this.closest('.card'); card.querySelector('.st').className='st'; card.querySelector('.st').textContent='Στάλθηκε 27/11'; card.querySelector('textarea').disabled=true; card.querySelector('p.mu').textContent='Στάλθηκε στον Νίκο Τ. Θα πάρεις ειδοποίηση σε κάθε βήμα.'; this.remove(); };
+  $('#acc').onclick=()=>{ $('#msg').textContent='✓ Αποδέχτηκες. Ο Πασχάλης ειδοποιήθηκε.'; };
+  $('#rdv').onclick=()=>{ $('#when').classList.toggle('on'); };
+  $('#rdvok').onclick=()=>{ $('#when').classList.remove('on'); $('#msg').textContent='📅 Ραντεβού Τε 3/12, 10:30. Ο Πασχάλης ειδοποιήθηκε.'; };
+  $('#pst').onclick=()=>{ $('#msg').textContent='Αναβλήθηκε. Ο Πασχάλης ειδοποιήθηκε.'; };
+  $('#rep').oninput=(e)=>{ $('#repok').disabled=!e.target.value.trim(); };
+  $('#repok').onclick=()=>{ $('#repok').textContent='✓ Ολοκληρώθηκε'; $('#repok').disabled=true; };
+  /* ?s=t2 ανοίγει κατευθείαν μια οθόνη (για έλεγχο) */
+  const q=new URLSearchParams(location.search).get('s');
+  if(q&&document.getElementById(q)){ const p=q[0]; document.querySelector('#prof [data-p="'+p+'"]').click(); show(p,q); }
+})();
+</script>
+</body></html>
