@@ -189,6 +189,7 @@
           }
           else if (t.closest('#techb')) {
             if (S.get('tech', id)) { if (!await D.confirm('Να αφαιρεθεί ο «' + (c ? c.name : '') + '» από τη λίστα τεχνικής υποστήριξης;', 'Ναι, αφαίρεση')) return; await db().remove('tech/' + id); D.toast('Αφαιρέθηκε από τη λίστα τεχνικού'); }
+            else if (!PL.treq.canAdd()) D.toast(PL.treq.NEED_MATE);
             else { await db().set('tech/' + id, { d: u.today(), note: '' }); D.toast('Μπήκε στη λίστα τεχνικής υποστήριξης'); }
           }
           else if (t.closest('#semb')) await PL.actions.seminar.pick(id);

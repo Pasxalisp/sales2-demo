@@ -1,7 +1,6 @@
-/* ΜΕΤΡΗΣΗ / ΕΞΑΓΩΓΗ / ΕΙΣΑΓΩΓΗ δεδομένων — ένα αρχείο JSON όπως το dedomena.json.
-   Η σελίδα «Ρυθμίσεις» χρησιμοποιεί μόνο τη μέτρηση. Εξαγωγή και εισαγωγή δεν έχουν κουμπί (τα αντίγραφα ασφαλείας
-   τα κρατά η βάση δεδομένων): μένουν για τα τεστ και για μεταφορά δεδομένων από το Claude. Τα δεδομένα του orders τα γράφει το Claude απευθείας.
-   Μιλάει μόνο με PL.adapter (δεν ξέρει πού ζει η βάση). */
+/* ΕΞΑΓΩΓΗ / ΕΙΣΑΓΩΓΗ δεδομένων — ένα αρχείο JSON όπως το dedomena.json.
+   Δεν έχουν κουμπί (τα αντίγραφα ασφαλείας τα κρατά η βάση δεδομένων· η «Μέτρηση» των Ρυθμίσεων αφαιρέθηκε 28/11/2026):
+   μένουν για τα τεστ και για μεταφορά δεδομένων από το Claude. Μιλάει μόνο με PL.adapter (δεν ξέρει πού ζει η βάση). */
 (function () {
   const PL = window.PL;
   const COLS = ['balances','balnotes','brands','campaigns','cats','deals','dealmsg','extra','flash','items','manual','month','ndfix','notes','ocat','orders','pdrafts','plans','prospects','route','seminars','settings','sos','tasks','tech','trash','visits','wish','xout','zskip'];
@@ -54,17 +53,6 @@
         if (!failed.length) await retry(() => db.set('sys/import', { at: new Date().toISOString(), source: (data._meta && data._meta.source) || '', backupDate: (data._meta && data._meta.date) || '', owner, docs: want.length }));
         return { total: want.length, already: want.length - todo.length, written, failed };
       } finally { PL.dataio.busy--; }
-    },
-
-    /* Μέτρηση ζωντανά από τη βάση. */
-    async count() {
-      const db = PL.adapter.db, out = { cols: {}, docs: 0, collections: 0, clients: 0 };
-      out.clients = (await db.list('clients')).length;
-      for (const col of COLS) {
-        const n = (await db.list(col)).length;
-        out.cols[col] = n; out.docs += n; if (n) out.collections++;
-      }
-      return out;
     },
 
     async exportAll() {

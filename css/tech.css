@@ -319,3 +319,17 @@
   flex: none;
   accent-color: var(--ac);
 }
+/* συνεργαζόμενος τεχνικός πάνω-πάνω στην «Τεχνική υποστήριξη» (28/11/2026)· χωρίς επιλογή, κίτρινο πλαίσιο */
+.trmate {
+  margin-bottom: 12px;
+}
+.trmate select {
+  margin-top: 6px;
+}
+.trmate p {
+  margin: 6px 0 0;
+}
+.trmate.need {
+  border-color: var(--tech);
+  background: var(--techbg);
+}

@@ -10,7 +10,9 @@
   function sync() {
     const L = act(), cur = PL.nav.current();
     const inPlan = cur && (cur.id === 'planview' || cur.id === 'dictate') && (cur.id !== 'planview' || L.some(([id]) => id === (cur.params || {}).id));
-    const on = L.length > 0 && !inPlan && !document.querySelector('#nav.off');
+    /* στο Ημερολόγιο τη θέση του την παίρνει το + (νέα εκκρεμότητα, js/pages/tasks.js) */
+    const inCal = cur && (cur.id === 'tasks' || (PL.WIDE.matches && PL.nav.trail().includes('tasks')));
+    const on = L.length > 0 && !inPlan && !inCal && !document.querySelector('#nav.off');
     b.style.display = on ? 'flex' : 'none';
     if (L.length) { const st = L[0][1].stops || []; b.querySelector('#nvoc').textContent = L.length > 1 ? L.length + ' ανοιχτά' : st.filter((x) => x.done).length + '/' + st.length; }
     if (on && !shown) { shown = true; b.classList.add('hint'); setTimeout(() => b.classList.remove('hint'), 2600); }

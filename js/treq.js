@@ -38,6 +38,9 @@
       return (s && L.find((x) => x.id === s.tid)) || null;
     },
     techs: () => { const o = org(); return o && o.techs ? o.techs() : []; },
+    /* χωρίς συνεργαζόμενο τεχνικό δεν μπαίνει πελάτης στη λίστα (Τεχνική υποστήριξη, καρτέλα, Υπαγόρευση): μήνυμα αντί για προσθήκη */
+    NEED_MATE: 'Διάλεξε πρώτα συνεργαζόμενο τεχνικό, πάνω-πάνω στην «Τεχνική υποστήριξη».',
+    canAdd: () => !PL.treq.on() || PL.treq.isTech() || !!PL.treq.mate(),
     async setMate(tid) { const d = { tid }; await db().set('settings/techmate', d); S.put('settings', 'techmate', d); },
     get: (id) => all()[id] || null,
     /* όλα [id, αίτημα], πιο πρόσφατα πρώτα */

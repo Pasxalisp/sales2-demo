@@ -1,6 +1,7 @@
 /* «Ενέργειες»: αρχική με τρεις κάρτες (Επίσκεψη τεχνικού, Σεμινάρια, Καμπάνιες), και η λίστα «Τεχνική υποστήριξη» (πελάτες που χρειάζονται τεχνικό).
-   Με λογαριασμούς (27/11/2026, js/treq.js): ο πωλητής γράφει σημείωμα και πατά «Ολοκληρώθηκε – Στείλε στον τεχνικό» → αίτημα στον
-   συνεργαζόμενο τεχνικό· στη λίστα φαίνονται τα βήματα και η αναφορά. Ο τεχνικός έχει εδώ μόνο «Αιτήματα» και «Σεμινάρια».
+   Με λογαριασμούς (27/11/2026, js/treq.js): πάνω-πάνω ο συνεργαζόμενος τεχνικός (χωρίς αυτόν δεν μπαίνει πελάτης)· ο πωλητής γράφει
+   σημείωμα και πατά «Ολοκληρώθηκε – Στείλε στον τεχνικό» → αίτημα στον τεχνικό· στη λίστα φαίνονται τα βήματα και η αναφορά.
+   Ο τεχνικός έχει εδώ μόνο «Αιτήματα» και «Σεμινάρια».
    Τάμπλετ: στη λίστα, δεξιά το φύλλο τεχνικού (techreq.js) ή, χωρίς πάτημα, οι πελάτες ανά πόλη. */
 (function () {
   const PL = window.PL, u = PL.u, M = PL.model, S = PL.store, D = PL.dlg, esc = u.esc, db = () => PL.adapter.db;
@@ -50,19 +51,22 @@
       const row = ([id, t]) => {
         const c = M.byId(id), tel = PL.call.first(c), r = on && t.rid ? TR.get(t.rid) : null;
         const head = `<div class="row"><span class="nm">${PL.prospects.tag(c)}${esc(c.name)}</span>${r ? `<span class="trp ${TR.cls(r)}">${esc(TR.label(r))}</span>` : on ? '<span class="trp dr">Πρόχειρο</span>' : `<span class="mu" style="white-space:nowrap">από ${esc(t.d || '')}</span>`}</div><div class="mu">${esc(c.city)}${c.addr ? ' · ' + esc(c.addr) : ''}</div>`;
-        const btns = (x) => `<div style="margin-top:6px">${tel ? PL.call.btn(tel, c.name) : ''}<button data-open="${esc(id)}" style="margin:0 6px 6px 0">Καρτέλα</button>${x}</div>`;
-        if (!on) return `<div class="card" data-tro="${esc(id)}" style="cursor:${PL.WIDE.matches ? 'pointer' : 'default'}">${head}${t.note ? `<div style="margin-top:4px"><b>Χρειάζεται:</b> ${esc(t.note)}</div>` : ''}${btns(`<button data-tdone="${esc(id)}" style="margin:0 0 6px 0">✓ Έγινε</button>`)}</div>`;
-        if (!r) return `<div class="card" style="cursor:default">${head}<label for="tn${esc(id)}">Σημείωμα για τον τεχνικό</label><textarea id="tn${esc(id)}" rows="3" placeholder="Τι χρειάζεται ο πελάτης…">${esc(t.note || '')}</textarea>` +
+        const btns = (x) => `<div style="margin-top:6px">${tel ? PL.call.btn(tel, c.name) : ''}${x}</div>`;
+        if (!on) return `<div class="card" data-tro="${esc(id)}">${head}${t.note ? `<div style="margin-top:4px"><b>Χρειάζεται:</b> ${esc(t.note)}</div>` : ''}${btns(`<button data-tdone="${esc(id)}" style="margin:0 0 6px 0">✓ Έγινε</button>`)}</div>`;
+        if (!r) return `<div class="card" data-tro="${esc(id)}">${head}<label for="tn${esc(id)}">Σημείωμα για τον τεχνικό</label><textarea id="tn${esc(id)}" rows="3" placeholder="Τι χρειάζεται ο πελάτης…">${esc(t.note || '')}</textarea>` +
           '<p class="mu" style="margin:4px 0 0">Ο τεχνικός δεν το βλέπει ακόμα.</p>' + `<div class="tracts"><button class="pri" data-tsend="${esc(id)}">✓ Ολοκληρώθηκε – Στείλε στον τεχνικό</button></div>` + btns(`<button data-tdone="${esc(id)}" style="margin:0 0 6px 0">Αφαίρεση</button>`) + '</div>';
-        return `<div class="card" style="cursor:default">${head}${r.note ? `<div class="trnote"><b>Σημείωμα</b>${esc(r.note)}</div>` : ''}${TR.steps(r)}` +
+        return `<div class="card" data-tro="${esc(id)}">${head}${r.note ? `<div class="trnote"><b>Σημείωμα</b>${esc(r.note)}</div>` : ''}${TR.steps(r)}` +
           (r.rep ? `<div class="trrep"><b>Αναφορά τεχνικού · ${esc(r.tname || '')}</b>${esc(r.rep.t)}</div>` : '') +
           btns(`<button data-treq="${esc(t.rid)}" style="margin:0 6px 6px 0">Αίτημα</button>` + (TR.open(r) ? '' : `<button data-tdone="${esc(id)}" style="margin:0 0 6px 0">✓ Έγινε</button>`)) + '</div>';
       };
       const paint = () => {
         const L = Object.entries(S.all('tech')).filter(([id]) => M.byId(id)).sort((a, b) => ((a[1].d || '') < (b[1].d || '') ? -1 : 1));
         const keep = {}; el.querySelectorAll('#tl textarea').forEach((x) => { keep[x.id] = x.value; });
-        /* χωρίς συνεργαζόμενο τεχνικό δεν στέλνεται τίποτα: πρώτα οι Ρυθμίσεις */
-        $('#tmate').innerHTML = on && !TR.mate() ? '<div class="warn" style="margin:0 0 10px"><b>Διάλεξε συνεργαζόμενο τεχνικό</b>Για να στέλνεις πελάτες στον τεχνικό, διάλεξέ τον μία φορά στις Ρυθμίσεις.<p style="margin:8px 0 0"><button class="pri" data-go="data">Ρυθμίσεις</button></p></div>' : '';
+        /* πάνω-πάνω ο συνεργαζόμενος τεχνικός· χωρίς αυτόν δεν μπαίνει πελάτης στη λίστα */
+        const m = TR.mate();
+        if (on && !el.querySelector('#tmsel:focus')) $('#tmate').innerHTML = `<div class="card trmate${m ? '' : ' need'}" style="cursor:default"><label for="tmsel"><b>Συνεργαζόμενος τεχνικός</b></label>` +
+          `<select id="tmsel"><option value=""${m ? '' : ' selected'} disabled>Διάλεξε τεχνικό</option>${TR.techs().map((x) => `<option value="${esc(x.id)}"${m && m.id === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` +
+          `<p class="mu">${m ? 'Όλα τα αιτήματά σου πάνε σε αυτόν.' : 'Διάλεξε τεχνικό για να μπορείς να βάζεις πελάτες στη λίστα.'}</p></div>`;
         $('#tl').innerHTML = L.length ? L.map(row).join('') : '<p class="mu">Κανένας πελάτης δεν χρειάζεται τεχνικό αυτή τη στιγμή.</p>';
         Object.entries(keep).forEach(([k, v]) => { const x = el.querySelector('#' + k); if (x) x.value = v; });
         $('#dclh').innerHTML = PL.dcl();
@@ -73,9 +77,7 @@
       el.addEventListener('click', async (ev) => {
         const t = ev.target;
         try {
-          if (t.dataset.open) PL.nav.push('client', { id: t.dataset.open });
-          else if (t.dataset.go) PL.nav.push(t.dataset.go);
-          else if (t.dataset.treq) PL.nav.push('treq', { id: t.dataset.treq });
+          if (t.dataset.treq) PL.nav.push('treq', { id: t.dataset.treq });
           else if (t.dataset.tsend) {
             const id = t.dataset.tsend, n = (el.querySelector('#tn' + id) || {}).value || '';
             if (!n.trim()) { D.toast('Γράψε πρώτα τι χρειάζεται ο πελάτης'); return; }
@@ -83,8 +85,8 @@
             try { await PL.treq.send(id, n.trim()); D.toast('✓ Στάλθηκε στον τεχνικό ' + (PL.treq.mate() || {}).name + '. Θα βλέπεις κάθε βήμα.'); }
             catch (e) { t.disabled = false; D.toast((e && e.message) || 'Δεν στάλθηκε'); }
           }
-          /* τάμπλετ: πάτημα στο κουτί → φύλλο τεχνικού δεξιά */
-          else if (PL.WIDE.matches && t.closest('.card[data-tro]') && !t.closest('button,input,a')) PL.nav.push('techreq', { id: t.closest('.card[data-tro]').dataset.tro });
+          /* πάτημα οπουδήποτε στο κουτί (όχι σε κουμπί/πεδίο): τάμπλετ → φύλλο τεχνικού δεξιά, κινητό → καρτέλα (28/11/2026) */
+          else if (t.closest('.card[data-tro]') && !t.closest('button,input,a,label,select,textarea')) PL.nav.push(PL.WIDE.matches ? 'techreq' : 'client', { id: t.closest('.card[data-tro]').dataset.tro });
           else if (t.dataset.tdone) {
             const id = t.dataset.tdone, c = M.byId(id);
             const tt = S.get('tech', id) || {}, msg = tt.rid ? 'Ολοκληρώθηκε η τεχνική επίσκεψη στον «' + (c ? c.name : '') + '»; Θα φύγει από τη λίστα (η αναφορά μένει στην καρτέλα).'
@@ -92,12 +94,18 @@
             if (!(await D.confirm(msg, tt.rid || !PL.treq.on() ? 'Ναι, ολοκληρώθηκε' : 'Ναι, αφαίρεση'))) return;
             await db().remove('tech/' + id); S.drop('tech', id); paint();
           } else if (t.id === 'taddb') {
+            if (!TR.canAdd()) { D.toast(TR.NEED_MATE); $('#tmsel').focus(); return; }
             const id = PL.dclId($('#tadd').value);
             if (!M.byId(id)) { D.toast('Διάλεξε πελάτη από τη λίστα'); return; }
             const doc = { d: u.today(), note: $('#tnote0').value.trim() };
             await db().set('tech/' + id, doc); S.put('tech', id, doc); $('#tadd').value = ''; $('#tnote0').value = ''; paint();
           }
         } catch (e) { D.toast('Δεν αποθηκεύτηκε'); }
+      });
+      $('#tmate').addEventListener('change', async (e) => {
+        if (e.target.id !== 'tmsel') return;
+        try { await TR.setMate(e.target.value); e.target.blur(); D.toast('🧰 Συνεργαζόμενος τεχνικός: ' + (TR.mate() || {}).name); paint(); }
+        catch (x) { D.toast('Δεν αποθηκεύτηκε'); }
       });
       return () => offs.forEach((f) => f());
     },

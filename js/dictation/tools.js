@@ -78,7 +78,7 @@
 
     { name: 'add_tech', description: "Βάζει τον πελάτη στη λίστα Τεχνικής υποστήριξης, με σύντομη σημείωση τι χρειάζεται. Όταν ο πωλητής λέει «χρειάζεται τεχνικό».",
       inputSchema: { type: 'object', properties: { customer_id: str, note: str }, required: ['customer_id'] },
-      execute: async ({ customer_id, note }) => { const c = cust(customer_id); await put('tech', c.i, { d: u.today(), note: String(note || '').trim() }); act('🔧 Τεχνικός: ' + c.name); return 'ok'; } },
+      execute: async ({ customer_id, note }) => { if (!PL.treq.canAdd()) throw new Error(PL.treq.NEED_MATE); const c = cust(customer_id); await put('tech', c.i, { d: u.today(), note: String(note || '').trim() }); act('🔧 Τεχνικός: ' + c.name); return 'ok'; } },
 
     { name: 'add_temporary_customer', description: "Δημιουργεί προσωρινό πελάτη για κάποιον που ΔΕΝ υπάρχει στη λίστα (έλεγξε πρώτα με find_customers). Επιστρέφει το νέο customer_id για να γράψεις μετά add_note.",
       inputSchema: { type: 'object', properties: { name: str, city: str, phone: str, address: str }, required: ['name'] },

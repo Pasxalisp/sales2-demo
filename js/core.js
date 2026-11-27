@@ -185,8 +185,16 @@
      Δεν μπαίνει στην Αρχική ή όταν δεν έχει τίποτα από τα δύο· noTop: η σελίδα έχει δικό της «Πίσω» (Υπαγόρευση).
      topTitle: ο τίτλος μικρός στη μέση της ίδιας γραμμής και κρύβεται το h2 (σελίδες χωρίς κύλιση, π.χ. «Η κάρτα μου»). */
   const backName = (b) => (b.id === 'client' && PL.model && PL.model.byId(b.params.id) ? PL.model.byId(b.params.id).name : PL.pageTitle(b.id));
+  /* οι επιλογές του «•••» μιας σελίδας: ό,τι δίνει η ίδια (nova) και στο τέλος «Οδηγίες» αν υπάρχουν (js/help.js) */
+  function moreOf(e) {
+    const def = pages[e.id], L = (def.nova && def.nova(e.params)) || [];
+    if (!PL.help || !PL.help.has(e.id) || e.id === 'help') return L;
+    const M2 = PL.menu(L.title || def.title, L.slice());
+    M2.push({ e: 'ℹ️', label: 'Οδηγίες', d: 'πώς δουλεύει αυτή η σελίδα', fn: () => PL.help.open(e.id) });
+    return M2;
+  }
   function topNav(el, e) {
-    const def = pages[e.id], i = stack.indexOf(e), prev = i > 0 ? stack[i - 1] : null, nova = def.nova ? def.nova(e.params) : null;
+    const def = pages[e.id], i = stack.indexOf(e), prev = i > 0 ? stack[i - 1] : null, nova = moreOf(e);
     if (def.noTop || (!prev && !(nova && nova.length))) return null;
     const nav = document.createElement('div');
     nav.className = 'pnav' + (def.topTitle ? ' ptt' : '');
@@ -197,7 +205,7 @@
     nav.addEventListener('click', (ev) => {
       const b = ev.target.closest('button'); if (!b) return;
       if (b.dataset.a === 'pback') PL.nav.backFrom(e);
-      else { const items = def.nova(e.params) || []; if (items.length === 1) items[0].fn(); else if (items.length) openMenu(items); }
+      else { const items = moreOf(e); if (items.length === 1) items[0].fn(); else if (items.length) openMenu(items); }
     });
     const put = () => { if (el.firstChild !== nav) el.prepend(nav); };
     put();

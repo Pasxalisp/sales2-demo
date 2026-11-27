@@ -1,5 +1,5 @@
 /* Σελίδα «Πρόγραμμα»: τέσσερα πλακίδια (στο ύφος της Αρχικής). Μεγάλο το «Πρόγραμμα ημέρας» (το πιο συχνό),
-   από κάτω «Πρόγραμμα μήνα» και «Εκτός προγράμματος», τέλος «Τα προγράμματά μου».
+   από κάτω «Πρόγραμμα μήνα» και «Εκτός προγράμματος», μετά τα δοκιμαστικά (π.χ. «Χάρτης πελατών») και τέλος «Τα προγράμματά μου».
    Κάθε πλακίδιο κρατά το χρώμα της σελίδας του (ημέρας πράσινο, μήνα μπλε, εκτός προγράμματος πορτοκαλί)
    και δείχνει ζωντανά πού βρίσκεσαι (ανοιχτό πρόγραμμα, σημερινές επισκέψεις/ραντεβού, ανοιχτά/πρόχειρα). */
 (function () {
@@ -28,8 +28,9 @@
       E.use(); S.use('pdrafts');
       const paint = () => {
         const ok = S.loaded('plans');
-        /* + δοκιμαστικά πλακίδια (lab/, μόνο στη δοκιμαστική έκδοση): PL.labActs = [{page: 'plan', tile: {id, k, i, t, s}}] */
-        const opts = OPT.concat((PL.labActs || []).filter((x) => x.page === 'plan').map((x) => x.tile));
+        /* + δοκιμαστικά πλακίδια (lab/, μόνο στη δοκιμαστική έκδοση): PL.labActs = [{page: 'plan', tile: {id, k, i, t, s}}],
+           πάνω από το «Τα προγράμματά μου» (αίτημα Πασχάλη 28/11/2026) */
+        const opts = OPT.slice(0, -1).concat((PL.labActs || []).filter((x) => x.page === 'plan').map((x) => x.tile), OPT.slice(-1));
         el.querySelector('.pgo').innerHTML = opts.map((o) => { const l = ok && live[o.k] ? live[o.k]() : '';
           return `<button class="pgt ${o.k}" data-go="${o.id}"><span class="pgi">${PL.icon[o.i]}</span><span class="pgx"><span class="pgn">${o.t}</span><span class="pgs">${o.s}</span>${l ? `<span class="pgl">${l}</span>` : ''}</span><span class="pgc" aria-hidden="true">›</span></button>`; }).join('');
       };
