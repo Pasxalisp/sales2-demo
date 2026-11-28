@@ -531,11 +531,11 @@ main>.page>h2:first-of-type {
   background: var(--ac2);
 }
 :root[data-theme="dark"] .gv {
-  --g1: #1c5cab;
-  --g2: #3987e5;
-  --gu: #3987e5;
-  --gd: #e66767;
+  --g1: color-mix(in srgb, #5fb39a 35%, var(--card));
+  --g2: #5fb39a;
+  --gu: #5fb39a;
   --gtr: #2c322f;
+  --gln: #bfe3d6;
 }
 .ol .oc {
   background: var(--card);

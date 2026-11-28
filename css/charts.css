@@ -1,19 +1,21 @@
 /* charts.css — Τζίρος (σελίδα charts) και FLASH.
    Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+/* χρώματα (28/11/2026): κυπαρισσί πράσινο, κόκκινο μόνο για πτώσεις· --gln η γραμμή του στόχου στους μήνες του FLASH */
 .gv {
-  --g1: #86b6ef;
-  --g2: #2a78d6;
-  --gu: #2a78d6;
-  --gd: #e34948;
-  --gtr: #e9e6de;
+  --g1: color-mix(in srgb, #2f6f5e 30%, var(--card));
+  --g2: #2f6f5e;
+  --gu: #2f6f5e;
+  --gd: var(--rd);
+  --gtr: #ecebe5;
+  --gln: #1d4a3e;
 }
 @media (prefers-color-scheme:dark) {
   :root:not([data-theme="light"]) .gv {
-    --g1: #1c5cab;
-    --g2: #3987e5;
-    --gu: #3987e5;
-    --gd: #e66767;
+    --g1: color-mix(in srgb, #5fb39a 35%, var(--card));
+    --g2: #5fb39a;
+    --gu: #5fb39a;
     --gtr: #2c322f;
+    --gln: #bfe3d6;
   }
 }
 .gv .gcard {
@@ -47,28 +49,11 @@
   vertical-align: -1px;
   margin-right: 5px;
 }
-/* Τζίρος (εμφάνιση 28/11/2026): κυπαρισσί πράσινο, κόκκινο μόνο για πτώσεις. Οι μπλε τιμές του .gv μένουν για το FLASH. */
-.tzv {
-  --g1: color-mix(in srgb, #2f6f5e 30%, var(--card));
-  --g2: #2f6f5e;
-  --gu: #2f6f5e;
-  --gd: var(--rd);
-}
-:root[data-theme="dark"] .tzv {
-  --g1: color-mix(in srgb, #5fb39a 35%, var(--card));
-  --g2: #5fb39a;
-  --gu: #5fb39a;
-}
-@media (prefers-color-scheme:dark) {
-  :root:not([data-theme="light"]) .tzv {
-    --g1: color-mix(in srgb, #5fb39a 35%, var(--card));
-    --g2: #5fb39a;
-    --gu: #5fb39a;
-  }
-}
-.tzv .gcard {
+.gv .gcard {
   border-radius: 18px;
   box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.tzv .gcard {
   scroll-margin-top: 64px;
 }
 .tzv .tzhd {
@@ -543,20 +528,78 @@
   display: none;
   box-shadow: 0 6px 18px rgba(0,0,0,.25);
 }
-/* FLASH πωλήσεων & εισπράξεων (σελίδα flash, κουμπί στο Πελατολόγιο) */
+/* FLASH πωλήσεων & εισπράξεων (σελίδα flash, κουμπί στο Πελατολόγιο· εμφάνιση 28/11/2026) */
+.gv .flps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0,1fr));
+  gap: 6px;
+  margin: 4px 0 12px;
+}
+.gv .flps .chip {
+  margin: 0;
+  padding: 7px 0;
+  text-align: center;
+}
+.gv .flps .chip.on {
+  background: #2f6f5e;
+  border-color: #2f6f5e;
+  font-weight: 600;
+}
+.gv .flps .fly {
+  grid-column: span 2;
+}
+.gv .fltop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.gv .fltop .gsub {
+  margin: 2px 0 0;
+}
+.gv .flrk {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--g2) 12%, transparent);
+  font-size: calc(13 * var(--u));
+  line-height: 1.25;
+}
+.gv .flrk b {
+  font-weight: 500;
+}
+.gv .flrk span {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  color: var(--g2);
+}
+.gv .flrk svg,
+.gv .flgi svg,
+.gv .flhi svg,
+.gv .flok svg,
+.gv .flwarn svg {
+  width: 100%;
+  height: 100%;
+}
 .gv .flhero {
-  font-size: calc(26 * var(--u));
+  font-size: calc(30 * var(--u));
   font-weight: 800;
-  margin: 2px 0 8px;
+  letter-spacing: -.5px;
+  margin: 6px 0 10px;
 }
 .gv .flhero .mu {
-  font-size: calc(15 * var(--u));
+  font-size: calc(16 * var(--u));
   font-weight: 500;
+  letter-spacing: 0;
 }
 .gv .flbar {
   position: relative;
   height: 12px;
-  border-radius: 6px;
+  border-radius: 99px;
   background: var(--gtr);
   overflow: hidden;
 }
@@ -566,7 +609,7 @@
   top: 0;
   bottom: 0;
   background: var(--g2);
-  border-radius: 6px;
+  border-radius: 99px;
 }
 .gv .flbar b {
   position: absolute;
@@ -577,56 +620,163 @@
 .gv .flrow {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 8px;
-  font-size: calc(14 * var(--u));
+  font-size: calc(15 * var(--u));
 }
+.gv .flpl {
+  font-size: calc(12.5 * var(--u));
+}
+.gv .flpl i {
+  display: inline-block;
+  width: 12px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 3px;
+  background: var(--g1);
+}
+/* στοιχεία σε δύο στήλες με εικονίδιο, χωρισμένα με λεπτές γραμμές */
 .gv .flgrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 14px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 .gv .flgrid > div {
   display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 10px 10px 0;
+  border-top: 1px solid var(--bd);
+}
+.gv .flgrid > div:nth-child(2n) {
+  padding-left: 12px;
+  border-left: 1px solid var(--bd);
+}
+.gv .flgi {
+  flex: none;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  color: var(--g2);
+}
+.gv .flgt {
+  display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
   font-size: calc(13 * var(--u));
+  line-height: 1.25;
 }
-.gv .flgrid b {
-  font-size: calc(16 * var(--u));
+.gv .flgt b {
+  font-size: calc(17 * var(--u));
+  font-weight: 700;
 }
+.gv .fllist {
+  margin-top: 6px;
+}
+.gv .fllist > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--bd);
+  font-size: calc(14.5 * var(--u));
+}
+.gv .fllist .flgi {
+  margin-top: 0;
+}
+.gv .fllist .mu {
+  flex: 1;
+  min-width: 0;
+}
+.gv .fllist b {
+  font-size: calc(16.5 * var(--u));
+  white-space: nowrap;
+}
+.gv .flwarn,
+.gv .flok {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: calc(14 * var(--u));
+  line-height: 1.35;
+}
+.gv .flwarn {
+  background: color-mix(in srgb, var(--rd) 9%, transparent);
+}
+.gv .flok {
+  background: color-mix(in srgb, var(--g2) 11%, transparent);
+}
+.gv .flwarn > span:first-child,
+.gv .flok > span:first-child {
+  flex: none;
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+}
+.gv .flwarn > span:first-child {
+  color: var(--rd);
+}
+.gv .flok > span:first-child {
+  color: var(--g2);
+}
+.gv .flhd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+.gv .flhd h3 {
+  margin: 0;
+  font-size: calc(18 * var(--u));
+}
+.gv .flhi {
+  flex: none;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  color: var(--g2);
+}
+/* μήνα με μήνα: μπάρα πωλήσεων ανοιχτή πράσινη, σκούρα όπου πιάστηκε ο στόχος· γραμμή = στόχος */
 .gv .flmon {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   align-items: flex-end;
+  margin-top: 8px;
 }
 .gv .flm {
   flex: 1;
   min-width: 0;
+  margin: 0;
   padding: 0;
   border: none;
   background: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .gv .flc {
   position: relative;
   display: block;
   width: 100%;
-  height: 110px;
-  border-radius: 6px;
+  height: 120px;
+  border-radius: 8px;
   background: var(--gtr);
 }
 .gv .flc i {
   position: absolute;
-  left: 18%;
-  right: 18%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  border-radius: 4px 4px 0 0;
+  border-radius: 8px;
   background: var(--g1);
 }
 .gv .flc i.ok {
@@ -634,23 +784,37 @@
 }
 .gv .flc b {
   position: absolute;
-  left: 4%;
-  right: 4%;
-  height: 2px;
-  background: var(--gd);
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--gln);
+  box-shadow: 0 0 0 1px var(--card);   /* να φαίνεται και πάνω στη σκούρα μπάρα */
 }
 .gv .fll {
-  font-size: calc(11 * var(--u));
+  font-size: calc(12 * var(--u));
   color: var(--mu);
 }
 .gv .flm.on .fll {
   color: var(--tx);
-  font-weight: 700;
+  font-weight: 800;
+}
+.gv .flm.on .flc {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--g2) 45%, transparent);
 }
 /* μελλοντικοί μήνες: μόνο στόχος, πιο αχνά */
 .gv .flm.fut .flc,
 .gv .chip.fut:not(.on) {
   opacity: .55;
+}
+.gv .flsort {
+  margin: -4px 0 8px;
+  padding-top: 0;
+}
+.gv .flsort .chip.on {
+  background: #2f6f5e;
+  border-color: #2f6f5e;
+  font-weight: 600;
 }
 .gv .fltw {
   overflow-x: auto;
@@ -659,11 +823,11 @@
 .gv .fltab {
   width: 100%;
   border-collapse: collapse;
-  font-size: calc(12 * var(--u));
+  font-size: calc(12.5 * var(--u));
 }
 .gv .fltab th,
 .gv .fltab td {
-  padding: 6px 3px;
+  padding: 9px 3px;
   text-align: right;
   white-space: nowrap;
   border-bottom: 1px solid var(--bd);
@@ -672,20 +836,33 @@
 .gv .fltab td:first-child {
   text-align: left;
   white-space: normal;
-  min-width: 92px;
+  min-width: 80px;
 }
 .gv .fltab th {
   color: var(--mu);
   font-weight: 600;
+  border-bottom-width: 2px;
+}
+.gv .fltab td.up,
+.gv .fltab td.dn {
+  font-weight: 700;
 }
 .gv .fltab tr.me td {
-  background: var(--ac2);
+  background: color-mix(in srgb, var(--g2) 12%, transparent);
   font-weight: 700;
 }
 .gv .fltab tfoot td {
   font-weight: 800;
   border-top: 2px solid var(--bd);
   border-bottom: none;
+}
+.gv .flall {
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid color-mix(in srgb, var(--g2) 55%, transparent);
+  background: var(--card);
+  color: var(--g2);
+  font-weight: 600;
 }
 
 /* ---- Μπάρες που μεγαλώνουν όταν ανοίγει η σελίδα (js/enter.js βάζει .pgnew στη σελίδα· απόφαση 18/11) ---- */
