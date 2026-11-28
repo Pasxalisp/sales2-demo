@@ -131,3 +131,22 @@
   flex-wrap: wrap;
   margin: 6px 0;
 }
+
+/* Σελίδα «Προϊόντα» (28/11/2026): τίτλος με εικονίδιο, πράσινη μπάρα «Νέα παραγγελία», κάρτες εργαλείων */
+.prh { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.prhi { flex: none; width: 40px; height: 40px; border-radius: 12px; background: #2f6f5e; color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+.prhi svg { width: 22px; height: 22px; }
+.prn { width: 100%; display: flex; align-items: center; gap: 16px; padding: 18px 18px; margin: 0 0 12px; border: 0; border-radius: 16px; background: #2f6f5e; color: #fff; text-align: left; }
+.prn b { flex: 1; font-size: calc(18 * var(--u)); font-weight: 700; }
+.prni { flex: none; display: inline-flex; padding-right: 16px; border-right: 1px solid rgba(255, 255, 255, .35); }
+.prni svg { width: 30px; height: 30px; }
+.prv { flex: none; display: inline-flex; width: 22px; height: 22px; }
+.prv svg { width: 22px; height: 22px; }
+.prk { margin: -4px 0 12px; }
+.prc { width: 100%; display: flex; align-items: center; gap: 16px; padding: 16px; margin: 0 0 12px; border: 1px solid var(--bd); border-radius: 16px; background: var(--card); color: var(--tx); text-align: left; }
+.pri2 { flex: none; width: 56px; height: 56px; border-radius: 14px; background: color-mix(in srgb, var(--ac) 13%, transparent); color: var(--ac); display: inline-flex; align-items: center; justify-content: center; margin-right: 0; position: relative; }
+.pri2 svg { width: 28px; height: 28px; }
+.prt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-left: 16px; border-left: 1px solid var(--bd); }
+.prt b { font-size: calc(17 * var(--u)); font-weight: 700; line-height: 1.25; }
+.prt span { font-size: calc(14 * var(--u)); color: var(--mu); line-height: 1.35; }
+.prc .prv { color: var(--mu); }
