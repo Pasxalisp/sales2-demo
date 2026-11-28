@@ -1,0 +1,51 @@
+/* balances.css — Υπόλοιπα.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+/* εμφάνιση 28/11/2026: τίτλος με εικονίδιο, κάρτα συνόλων, φίλτρα, κάρτα πελάτη (κόκκινη όταν έχει υπέρβαση), κουτάκι ενημέρωσης */
+.bhd { display: flex; align-items: center; gap: 10px; }
+.bhi { display: inline-flex; width: 34px; height: 34px; border-radius: 10px; background: var(--ac); color: #fff; align-items: center; justify-content: center; flex: none; }
+.bhi svg { width: 20px; height: 20px; }
+.bsum { background: color-mix(in srgb, var(--ac) 13%, var(--card)); border: 1px solid color-mix(in srgb, var(--ac) 22%, transparent); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
+.bsg { display: flex; align-items: flex-start; }
+.bsg > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bsg span { font-size: calc(14 * var(--u)); color: var(--tx); }
+.bsg b { font-size: calc(26 * var(--u)); font-weight: 800; letter-spacing: -.3px; white-space: nowrap; }
+.bsg .bsr { border-left: 1px solid color-mix(in srgb, var(--ac) 25%, transparent); padding-left: 14px; }
+.bsg .bsr b { font-size: calc(21 * var(--u)); }
+.bsb { margin-top: 6px; font-size: calc(14 * var(--u)); }
+.bsf { margin-top: 8px; font-size: calc(13.5 * var(--u)); color: var(--mu); }
+.bchips { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -14px 10px; padding: 0 14px; }
+.bchips::-webkit-scrollbar { display: none; }
+.bchips .chip { flex: none; padding: 6px 10px; font-size: calc(13.5 * var(--u)); white-space: nowrap; }
+.bsrch { position: relative; margin-bottom: 10px; }
+.bsrch > span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--mu); display: inline-flex; pointer-events: none; }
+.bsrch > span svg { width: 18px; height: 18px; }
+.bsrch input { padding-left: 38px; border-radius: 999px; margin: 0; }
+#bl .bcd { border-radius: 16px; padding: 14px; }
+#bl .bcd.bover { border-color: color-mix(in srgb, var(--rd) 45%, transparent); background: color-mix(in srgb, var(--rd) 6%, var(--card)); }
+.bct { display: flex; align-items: flex-start; gap: 10px; }
+.bcl { flex: 1; min-width: 0; }
+.bcd .nm { font-size: calc(16.5 * var(--u)); font-weight: 700; line-height: 1.25; }
+.bci { display: flex; align-items: center; gap: 6px; color: var(--mu); font-size: calc(14 * var(--u)); margin-top: 4px; }
+.bcv { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.bcv b { font-size: calc(18 * var(--u)); font-weight: 800; color: var(--ac); white-space: nowrap; }
+.bcv b.dn { color: var(--rd); }
+.bcv small { font-size: calc(12.5 * var(--u)); color: var(--mu); white-space: nowrap; }
+.bcv small.dn { color: var(--rd); }
+.bni { flex: none; display: inline-flex; width: 16px; height: 16px; }
+.bni svg { width: 16px; height: 16px; }
+.bnrow { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.bnrow > :first-child { flex: 1; min-width: 0; }
+.bnn { background: color-mix(in srgb, var(--ac) 11%, transparent); border-radius: 12px; padding: 8px 10px; font-size: calc(14 * var(--u)); line-height: 1.35; display: flex; flex-direction: column; gap: 4px; }
+.bnn .bni { color: var(--ac); margin-top: 1px; }
+.bnn.late { background: color-mix(in srgb, var(--rd) 12%, transparent); }
+.bnn.late .bni { color: var(--rd); }
+.bnn.soon { background: color-mix(in srgb, #e3a21a 16%, transparent); }
+.bnn.soon .bni { color: #b07a0c; }
+.bnl { display: flex; align-items: flex-start; gap: 8px; white-space: pre-wrap; }
+.bnm { font-size: calc(12 * var(--u)); color: var(--mu); }
+.bnm.bnerr { color: var(--rd); font-weight: 600; }
+.bnb { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border-color: var(--ac); color: var(--ac); font-size: calc(14 * var(--u)); font-weight: 600; }
+.bnb svg { width: 16px; height: 16px; }
+.bned { margin-top: 8px; cursor: default; }
+.bned label { margin: 6px 0 3px; }
+.bned .bnr { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
