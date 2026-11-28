@@ -172,10 +172,11 @@
 .tzv .tznav button.on svg {
   color: #fff;
 }
-/* σύνοψη: αριστερά ο τζίρος σε πράσινο, δεξιά ο στόχος (ή το περσινό σύνολο) */
+/* σύνοψη: πάνω ο τζίρος σε πράσινο, κάτω ο στόχος (ή το περσινό σύνολο)· στο τάμπλετ δίπλα-δίπλα (αίτημα Πασχάλη 28/11/2026:
+   στο κινητό δίπλα-δίπλα μίκραιναν τα γράμματα) */
 .tzv .tzs {
   display: grid;
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  grid-template-columns: 1fr;
   margin-bottom: 8px;
   border: 1px solid var(--bd);
   border-radius: 18px;
@@ -285,10 +286,9 @@
   margin: 0 4px 10px;
   font-size: calc(12.5 * var(--u));
 }
-/* πολύ στενή οθόνη ή μεγάλα γράμματα: τα δύο μισά το ένα κάτω από το άλλο */
-@media (max-width: 370px) {
+@media (min-width: 700px) {
   .tzv .tzs {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
   }
 }
 .tzv .tzx {
