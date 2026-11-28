@@ -577,13 +577,13 @@ main>.page>h2:first-of-type {
 .ndbar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 8px 0 0;
-  padding: 7px 10px;
-  border-radius: 10px;
-  background: rgba(217,169,31,.1);
-  border: 1px solid rgba(217,169,31,.45);
-  font-size: calc(14 * var(--u));
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ac) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ac) 28%, transparent);
+  font-size: calc(14.5 * var(--u));
 }
 .ndbar[data-ndbar] {
   cursor: pointer;
@@ -674,7 +674,45 @@ main>.page>h2:first-of-type {
   z-index: 2;
   background: var(--bg);
   padding: 4px 0 8px;
-  border-bottom: 1px solid var(--bd);
+}
+/* εμφάνιση 28/11/2026: «Μήνας | Εβδομάδα» σαν διακόπτης, ο μήνας σε κάρτα */
+.calseg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+}
+.calseg button {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--tx);
+  font-size: calc(15 * var(--u));
+}
+.calseg button svg {
+  width: 18px;
+  height: 18px;
+}
+.calseg button.on {
+  background: #2f6f5e;
+  color: #fff;
+  font-weight: 600;
+}
+.calcd {
+  padding: 10px 10px 12px;
+  border-radius: 18px;
+  background: var(--card);
+  border: 1px solid var(--bd);
 }
 html.big .cal {
   position: static;
@@ -751,18 +789,9 @@ html.big .cal {
 .cmk .g { background: #2e9a68; }
 .cmk .y { background: #dca321; }
 .cmk .p { background: #8a5cc8; }
-/* εβδομάδα ↔ μήνας (28/11/2026): μέρες άλλου μήνα στην εβδομάδα αχνές· κουμπί «▾ Μήνας / ▴ Εβδομάδα» κάτω από τις μέρες */
+/* εβδομάδα (28/11/2026): μέρες άλλου μήνα αχνές */
 .cday.o span:first-child {
   opacity: .5;
-}
-.calwk {
-  display: block;
-  margin: 4px auto 0;
-  padding: 4px 14px;
-  border: 0;
-  background: none;
-  color: var(--mu);
-  font-size: calc(13 * var(--u));
 }
 .cdh {
   margin: 12px 0 6px;
@@ -771,6 +800,29 @@ html.big .cal {
   margin: 8px 0 4px;
   font-weight: 600;
   font-size: calc(13.5 * var(--u));
+}
+/* «Καθυστερημένες (N)» σε κόκκινο κουτάκι με ρολόι, «από ΗΗ/ΜΜ» σε κόκκινο κουτάκι (28/11/2026) */
+.cdlate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd) 13%, transparent);
+  color: var(--rd);
+  font-weight: 700;
+  font-size: calc(14.5 * var(--u));
+}
+.cdlate svg {
+  width: 20px;
+  height: 20px;
+}
+.duel {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd) 13%, transparent);
+  font-weight: 700;
 }
 /* καρτέλα: αλλαγή γιορτής· μικρό κουμπί με αόρατο select από πάνω (ανοίγει τη λίστα του κινητού) */
 .ndbtn {

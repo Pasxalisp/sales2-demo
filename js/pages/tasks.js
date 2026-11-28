@@ -46,7 +46,7 @@
 
   function dueCard(x, showDate) {
     const { c, e, tid, pay, appt, treq } = x, t = u.today(), SOS = S.all('sos'), tel = c ? PL.call.first(c) : '', dd = e.next.split('-').reverse().slice(0, 2).join('/');
-    const when = `<span class="${e.next < t || (e.next === t && e.nt && e.nt <= nowHM()) ? 'dn' : 'up'}" style="white-space:nowrap">${e.next < t ? 'από ' + dd : e.next === t ? 'σήμερα' : (showDate ? dd : '')}${e.nt ? ' ' + esc(e.nt) : ''}</span>`;
+    const when = `<span class="${e.next < t ? 'dn duel' : e.next === t && e.nt && e.nt <= nowHM() ? 'dn' : 'up'}" style="white-space:nowrap">${e.next < t ? 'από ' + dd : e.next === t ? 'σήμερα' : (showDate ? dd : '')}${e.nt ? ' ' + esc(e.nt) : ''}</span>`;
     return `<div class="card" data-tk="${esc(keyOf(x))}"><div class="row"><span class="nm">${c ? (SOS[c.i] ? '⭐ ' : '') + PL.prospects.tag(c) + esc(c.name) : '📝 ' + esc(e.todo)}</span>${when}</div>` +
       (c ? `<div class="mu">${esc(c.city)}${tel ? ' · ' + PL.call.btn(tel, c.name, true) : ''}</div>${e.todo ? `<div style="margin-top:4px"><b>${pay ? '💶 Πληρωμή' : appt ? '🕐 Ραντεβού' : treq ? '🧰 Τεχνικός' : tid ? 'Εκκρεμότητα' : 'Να πω'}:</b> ${esc(e.todo)}</div>` : ''}${!tid && e.text ? `<div class="mu">Τελευταία (${esc(e.d)}): ${esc(e.text)}</div>` : ''}` : '') +
       (e.w ? `<div class="mu">📍 ${esc(e.w)}</div>` : '') +
@@ -110,17 +110,20 @@
       for (let d = 1; d <= days; d++) g += cell(new Date(y, m, d));
     }
     const away = st.calSel !== t || y !== +t.slice(0, 4) || m !== +t.slice(5, 7) - 1, w = st.wk ? 'Προηγούμενη εβδομάδα' : 'Προηγούμενος μήνας';
-    return `<div class="calh"><button data-cnav="-1" aria-label="${w}">‹</button><b>${MN[m]} ${y}</b>${away ? '<button class="chip" data-ctoday="1">Σήμερα</button>' : ''}<button data-cnav="1" aria-label="${st.wk ? 'Επόμενη εβδομάδα' : 'Επόμενος μήνας'}">›</button></div>
+    /* εμφάνιση 28/11/2026 (εικόνα Πασχάλη): «Μήνας | Εβδομάδα» σαν διακόπτης πάνω, ο μήνας σε κάρτα */
+    const SG = (wk, ic, t) => `<button data-cwk="${wk ? 'w' : 'm'}" class="${!!st.wk === wk ? 'on' : ''}" aria-pressed="${!!st.wk === wk}">${ic}${t}</button>`;
+    const ICM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/></svg>';
+    const ICW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>';
+    return `<div class="calseg">${SG(false, ICM, 'Μήνας')}${SG(true, ICW, 'Εβδομάδα')}</div><div class="calcd"><div class="calh"><button data-cnav="-1" aria-label="${w}">‹</button><b>${MN[m]} ${y}</b>${away ? '<button class="chip" data-ctoday="1">Σήμερα</button>' : ''}<button data-cnav="1" aria-label="${st.wk ? 'Επόμενη εβδομάδα' : 'Επόμενος μήνας'}">›</button></div>
  <div class="calg calw">${['Δε', 'Τρ', 'Τε', 'Πε', 'Πα', 'Σα', 'Κυ'].map((x) => `<div>${x}</div>`).join('')}</div>
- <div class="calg">${g}</div>
- <button class="calwk" data-cwk="1" aria-expanded="${!st.wk}">${st.wk ? '▾ Μήνας' : '▴ Εβδομάδα'}</button>`;
+ <div class="calg">${g}</div></div>`;
   }
   const semCard = ([id, x]) => `<div class="card" data-semopen="${esc(id)}"><div class="row"><span class="nm">🎓 ${esc(x.title)}</span><span class="up">${esc(x.time || '')}</span></div><div class="mu">${(x.cust || []).length} πελάτες${x.notes ? ' · ' + esc(x.notes) : ''}</div></div>`;
   /* ό,τι έχει η μέρα k: (σήμερα: καθυστερημένες) → ραντεβού, εκκρεμότητες, «να πω», πληρωμές (με τη σειρά της ώρας) → σεμινάρια */
   function dayView(k, extra) {
     const t = u.today(), all = M.openTasks(t), late = k === t ? all.filter((x) => x.e.next < t) : [], dl = all.filter((x) => x.e.next === k), sms = semOn(k);
     let h = `<h3 class="cdh">${esc(dayTitle(k))}</h3>` + (extra || '');
-    if (late.length) h += `<div class="cdsub dn">Καθυστερημένες (${late.length})</div>${late.map((x) => dueCard(x, true)).join('')}` + (dl.length || sms.length ? '<div class="cdsub">Σήμερα</div>' : '');
+    if (late.length) h += `<div class="cdlate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Καθυστερημένες (${late.length})</div>${late.map((x) => dueCard(x, true)).join('')}` + (dl.length || sms.length ? '<div class="cdsub">Σήμερα</div>' : '');
     h += dl.map((x) => dueCard(x, false)).join('') + sms.map(semCard).join('');
     if (!late.length && !dl.length && !sms.length) h += `<p class="mu">${k === t ? 'Δεν υπάρχουν εκκρεμότητες για σήμερα. 👌' : 'Τίποτα αυτή τη μέρα.'}</p>`;
     return h;
@@ -138,7 +141,7 @@
     const t = ev.target.closest('[data-ndbar],[data-cnav],[data-ctoday],[data-cwk],[data-cday],[data-semopen],[data-ddone],[data-tedit],[data-treq],[data-open],[data-callc],a,button,[data-tk]'); if (!t) return;
     if (t.dataset.ndbar) { st.ndOpen = !st.ndOpen; toDay(); }
     else if (t.dataset.ctoday) { st.calSel = null; st.calM = null; st.ndOpen = false; toDay(); }
-    else if (t.dataset.cwk) { st.wk = !st.wk; st.calM = null; repaint(); }
+    else if (t.dataset.cwk) { const w = t.dataset.cwk === 'w'; if (w !== !!st.wk) { st.wk = w; st.calM = null; repaint(); } }
     /* ‹ ›: εβδομάδα → η ίδια μέρα της άλλης εβδομάδας· μήνας → άλλος μήνας */
     else if (t.dataset.cnav && st.wk) { const d = new Date(+st.calSel.slice(0, 4), +st.calSel.slice(5, 7) - 1, +st.calSel.slice(8, 10) + 7 * (+t.dataset.cnav)); st.calSel = ymd(d); st.calM = null; st.ndOpen = false; toDay(); }
     else if (t.dataset.cnav) { st.calM = new Date(st.calM.getFullYear(), st.calM.getMonth() + (+t.dataset.cnav), 1); repaint(); }
