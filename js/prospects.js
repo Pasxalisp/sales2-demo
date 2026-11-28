@@ -105,7 +105,7 @@
     Object.entries(S.all('orders')).forEach(([id, x]) => { if (x.cid === pid) W.push(put('orders', id, Object.assign({}, x, { cid, code: c.code || '', name: c.name }))); });
     Object.entries(S.all('extra')).forEach(([id, x]) => { if (x.cid === pid) W.push(put('extra', id, Object.assign({}, x, { cid, cname: c.name }))); });
     /* σεμινάρια */
-    Object.entries(S.all('seminars')).forEach(([id, x]) => { if (!(x.cust || []).includes(pid) && !(x.conf || []).includes(pid)) return; W.push(put('seminars', id, Object.assign({}, x, { cust: swap(x.cust, pid, cid), conf: swap(x.conf, pid, cid) }))); });
+    Object.entries(S.all('seminars')).forEach(([id, x]) => { if (!(x.cust || []).includes(pid) && !(x.conf || []).includes(pid)) return; const n = Object.assign({}, x.n); if (pid in n) { if (!(cid in n)) n[cid] = n[pid]; delete n[pid]; } W.push(put('seminars', id, Object.assign({}, x, { cust: swap(x.cust, pid, cid), conf: swap(x.conf, pid, cid), n }))); });
     /* καμπάνιες: η κατάσταση του προσωρινού περνά στον κανονικό (αν ο κανονικός είναι ήδη μέσα, μένει η δική του) */
     Object.entries(S.all('campaigns')).forEach(([id, x]) => { const cu = x.cust || {}; if (!cu[pid]) return; const n = Object.assign({}, cu); if (!n[cid]) n[cid] = n[pid]; delete n[pid]; W.push(put('campaigns', id, Object.assign({}, x, { cust: n }))); });
     await Promise.all(W);

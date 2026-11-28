@@ -12,13 +12,15 @@
   const str = { type: 'string' };
   const put = async (col, id, doc) => { await db().set(col + '/' + id, doc); S.put(col, id, doc); };
 
-  /* σεμινάριο: βρίσκει με τίτλο (ακριβές ή που περιέχεται), αλλιώς δημιουργεί */
+  /* σεμινάριο: βρίσκει με τίτλο (ακριβές ή που περιέχεται), αλλιώς δημιουργεί — μόνο όποιος φτιάχνει σεμινάρια (PL.can('semnew')·
+     οι υπόλοιποι παίρνουν μήνυμα ότι δεν υπάρχει, 28/11/2026) */
   const semFind = (title) => { const t = u.nn(title).trim(); if (!t) return null; const L = Object.entries(S.all('seminars'));
     return (L.find(([, x]) => u.nn(x.title) === t) || L.find(([, x]) => u.nn(x.title).includes(t) || t.includes(u.nn(x.title))) || [null])[0]; };
   async function semAdd(title, cid, date) {
     let id = semFind(title), created = false;
-    if (!id) { id = 's' + Date.now() + Math.floor(Math.random() * 1000); await put('seminars', id, { title: String(title).trim(), date: date || '', cust: [], created: u.today() }); created = true; }
-    const x = Object.assign({}, S.get('seminars', id)); x.cust = [...new Set((x.cust || []).concat(cid ? [cid] : []))]; if (date && !x.date) x.date = date;
+    if (!id && !PL.can('semnew')) throw new Error('Δεν υπάρχει σεμινάριο «' + String(title).trim() + '». ' + PL.actions.seminar.K.maker());
+    if (!id) { id = 's' + Date.now() + Math.floor(Math.random() * 1000); await put('seminars', id, { title: String(title).trim(), date: date || '', cust: [], conf: [], n: {}, created: u.today() }); created = true; }
+    const x = Object.assign({}, S.get('seminars', id)); x.cust = [...new Set((x.cust || []).concat(cid ? [cid] : []))]; if (date && !x.date && PL.can('semnew')) x.date = date;
     await put('seminars', id, x); return { id, created };
   }
   /* ανοιχτά προγράμματα, το πιο πρόσφατο πρώτο */

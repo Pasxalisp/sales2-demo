@@ -235,3 +235,21 @@ button.tmmore { display: block; width: 100%; margin: 12px 0 0; padding: 11px; bo
   color: var(--ac);
   font-weight: 600;
 }
+
+/* οθόνη εισόδου: δημιουργός και πνευματικά δικαιώματα (js/about.js, 28/11/2026) */
+.tmcopy {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: calc(11 * var(--u));
+  color: var(--mu);
+}
+/* Δικαιώματα και Διόρθωση πελάτη (28/11/2026) */
+.pmcard { margin-bottom: 12px; }
+.pmcard > h3 { text-transform: none; font-size: calc(15 * var(--u)); color: var(--tx); letter-spacing: 0; }
+.pmcard select { width: 100%; margin-top: 4px; }
+.pmcard label { display: block; color: var(--mu); font-size: calc(13 * var(--u)); }
+.pmlist { display: flex; flex-direction: column; gap: 6px; }
+.pmlist label.tmck { display: flex; align-items: center; gap: 8px; color: var(--tx); font-size: calc(15 * var(--u)); }
+.pmlist input { width: 20px; height: 20px; flex: none; }
+.fxbal { font-size: calc(17 * var(--u)); margin: 0 0 8px; }
+.admv-fixc .tmcard, .admv-perms .tmcard { margin-top: 12px; }

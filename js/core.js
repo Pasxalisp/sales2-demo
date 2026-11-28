@@ -293,10 +293,14 @@
   const hideReasons = new Set();
   /* Ρόλος του συνδεδεμένου (μόνο με λογαριασμούς· στο claude.ai πάντα πωλητής) και τι ΔΕΝ βλέπει κάθε ρόλος.
      Τεχνικός (27/11/2026): χωρίς ποσά, παραγγελίες, προγράμματα, SOS, καμπάνιες, συμφωνίες, προϊόντα, Υπαγόρευση. Ο server
-     ούτως ή άλλως δεν του δίνει αυτά τα δεδομένα· εδώ κρύβονται τα κουμπιά και οι σελίδες τους. */
+     ούτως ή άλλως δεν του δίνει αυτά τα δεδομένα· εδώ κρύβονται τα κουμπιά και οι σελίδες τους.
+     Νέα σεμινάρια (28/11): PL.can('semnew') = ο server το επιτρέπει (δικαίωμα «Δημιουργία σεμιναρίων», διευθυντής, διαχειριστής). */
   const NO = { tech: new Set(['money', 'orders', 'plans', 'sos', 'campaigns', 'deals', 'products', 'dictate', 'techlist', 'actedit']) };
+  NO.techlead = NO.tech;   /* υπεύθυνος τεχνικών (28/11): ό,τι και ο τεχνικός, με όλα τα αιτήματα όλων των τεχνικών */
   PL.role = () => { const o = PL.adapter && PL.adapter.org; return (o && o.me && o.me.role) || 'sales'; };
-  PL.can = (k) => !(NO[PL.role()] && NO[PL.role()].has(k));
+  PL.can = (k) => { if (NO[PL.role()] && NO[PL.role()].has(k)) return false;
+    if (k === 'semnew') { const o = PL.adapter && PL.adapter.org; return !(o && o.semOk) || o.semOk(); }
+    return true; };
   /* κουμπιά της κάτω μπάρας: [σελίδα, κείμενο, aria-label, εικονίδιο]· ο τεχνικός έχει «Αιτήματα» στη θέση των «Υπόλοιπα» */
   const TREQS = ['treqs', 'Αιτήματα', 'Αιτήματα τεχνικού', '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'];
   const tabs = () => TABS.map((t) => (t[0] === 'balances' && !PL.can('money') ? TREQS : t));

@@ -4,6 +4,7 @@
    Ο τεχνικός: Αποδοχή → Ραντεβού (μέρα/ώρα) / Αναβολή → Ολοκληρώθηκε με υποχρεωτική αναφορά. Ο πωλητής βλέπει κάθε βήμα.
    treq/{id} = {sid, sname, tid, tname, cid, st, sent, note, c: στοιχεία πελάτη ΧΩΡΙΣ ποσά (snap), appt 'ΕΕΕΕ-ΜΜ-ΗΗTΩΩ:ΛΛ',
    rep: {t, at}, log: [{st, at, by}], upd, by}. Τι επιτρέπεται σε ποιον το ελέγχει ο server (lab/team/session.js treqOk, βάση).
+   Υπεύθυνος τεχνικών (28/11, ρόλος techlead, πάντα ένας): βλέπει ΟΛΑ τα αιτήματα ανά τεχνικό, μόνο ανάγνωση (isLead).
    Χωρίς λογαριασμούς (Sales 2.0 στο claude.ai) δεν υπάρχει τεχνικός: PL.treq.on() = false και οι σελίδες δείχνουν τη λίστα όπως πριν. */
 (function () {
   const PL = window.PL, u = PL.u, S = PL.store, esc = u.esc, db = () => PL.adapter.db;
@@ -32,6 +33,9 @@
     /* υπάρχει τεχνικός μόνο όταν ο server τον υποστηρίζει (λογαριασμοί + org.techs: demo· η βάση μόλις αποκτήσει τους κανόνες) */
     on: () => !!me() && typeof org().techs === 'function',
     isTech: () => !!me() && me().role === 'tech',
+    isLead: () => !!me() && me().role === 'techlead',
+    /* τεχνικός ή υπεύθυνος τεχνικών: βλέπουν τα αιτήματα «από τη μεριά του τεχνικού» (χωρίς λίστα πωλητή, χωρίς ποσά) */
+    techSide: () => PL.treq.isTech() || PL.treq.isLead(),
     /* ο συνεργαζόμενος τεχνικός του πωλητή: {id, name} ή null */
     mate() {
       const o = org(), s = S.get('settings', 'techmate'), L = (o && o.techs) ? o.techs() : [];
@@ -40,7 +44,7 @@
     techs: () => { const o = org(); return o && o.techs ? o.techs() : []; },
     /* χωρίς συνεργαζόμενο τεχνικό δεν μπαίνει πελάτης στη λίστα (Τεχνική υποστήριξη, καρτέλα, Υπαγόρευση): μήνυμα αντί για προσθήκη */
     NEED_MATE: 'Διάλεξε πρώτα συνεργαζόμενο τεχνικό, πάνω-πάνω στην «Τεχνική υποστήριξη».',
-    canAdd: () => !PL.treq.on() || PL.treq.isTech() || !!PL.treq.mate(),
+    canAdd: () => !PL.treq.on() || PL.treq.techSide() || !!PL.treq.mate(),
     async setMate(tid) { const d = { tid }; await db().set('settings/techmate', d); S.put('settings', 'techmate', d); },
     get: (id) => all()[id] || null,
     /* όλα [id, αίτημα], πιο πρόσφατα πρώτα */
@@ -53,7 +57,7 @@
       if (!r) return '';
       if (r.st === 'appt') return '📅 ' + when(r.appt);
       if (r.st === 'done') return '✓ ' + u.fd(((r.rep && r.rep.at) || r.upd || '').slice(0, 10)).slice(0, 5);
-      if (r.st === 'new') return PL.treq.isTech() ? 'Νέο' : 'Στάλθηκε ' + u.fd(r.sent).slice(0, 5);
+      if (r.st === 'new') return PL.treq.techSide() ? 'Νέο' : 'Στάλθηκε ' + u.fd(r.sent).slice(0, 5);
       return ST[r.st] || r.st;
     },
     cls: (r) => (!r ? '' : r.st === 'appt' || r.st === 'acc' ? 'ap' : r.st === 'post' || r.st === 'cancel' ? 'pp' : r.st === 'done' ? 'ok' : ''),
@@ -97,15 +101,18 @@
     seen() { try { return localStorage.getItem(PL.treq.seenKey()) || ''; } catch (e) { return ''; } },
     markSeen() { try { localStorage.setItem(PL.treq.seenKey(), nowIso()); } catch (e) { /* τίποτα */ } PL.treq.badge(); },
     fresh() { const my = me(); if (!my) return []; const s = PL.treq.seen(); return PL.treq.list().filter(([, r]) => r.by && r.by !== my.id && (r.upd || '') > s); },
-    /* σήμα στη μπάρα: τεχνικός στα «Αιτήματα», πωλητής στις «Ενέργειες» */
-    badge() { if (!PL.treq.on()) return; PL.bar.setBadge(PL.treq.fresh().length, PL.treq.isTech() ? 'treqs' : 'tech'); },
+    /* σήμα στη μπάρα: τεχνικός και υπεύθυνος τεχνικών στα «Αιτήματα», πωλητής στις «Ενέργειες» */
+    badge() { if (!PL.treq.on()) return; PL.bar.setBadge(PL.treq.fresh().length, PL.treq.techSide() ? 'treqs' : 'tech'); },
     /* ρυθμίσεις ειδοποιήσεων (settings/tnotify· τις χρησιμοποιεί και η αποστολή στο κινητό με βάση) */
-    NOTIFY: { sales: [['acc', 'το δει'], ['appt', 'κλείσει ραντεβού'], ['post', 'αναβάλει'], ['done', 'ολοκληρώσει (με την αναφορά)']], tech: [['new', 'μου στέλνουν νέο αίτημα'], ['cancel', 'ο πωλητής ακυρώνει αίτημα'], ['soon', 'πλησιάζει ραντεβού (1 ώρα πριν)']] },
+    NOTIFY: { sales: [['acc', 'το δει'], ['appt', 'κλείσει ραντεβού'], ['post', 'αναβάλει'], ['done', 'ολοκληρώσει (με την αναφορά)']], tech: [['new', 'μου στέλνουν νέο αίτημα'], ['cancel', 'ο πωλητής ακυρώνει αίτημα'], ['soon', 'πλησιάζει ραντεβού (1 ώρα πριν)']],
+      lead: [['new', 'στέλνεται νέο αίτημα'], ['appt', 'κλείνεται ραντεβού'], ['post', 'γίνεται αναβολή'], ['done', 'ολοκληρώνεται (με την αναφορά)'], ['cancel', 'ακυρώνεται αίτημα']] },
+    notifyKind: () => (PL.treq.isLead() ? 'lead' : PL.treq.isTech() ? 'tech' : 'sales'),
     notifyOn: (k) => { const s = S.get('settings', 'tnotify') || {}; return s[k] !== false; },
     async setNotify(k, on) { const d = Object.assign({}, S.get('settings', 'tnotify') || {}, { [k]: !!on }); await db().set('settings/tnotify', d); S.put('settings', 'tnotify', d); },
     /* μήνυμα για ό,τι άλλαξε ο άλλος: «🧰 Στέλιος: Ραντεβού Τρι 2/12, 11:00 · ΒΑΣΙΛΕΙΑΔΟΥ» */
     say(r) {
-      const who = PL.treq.isTech() ? (r.sname || 'Πωλητής') : (r.tname || 'Τεχνικός'), first = who.split(' ')[0];
+      const first0 = (n, d) => (n || d).split(' ')[0];
+      const first = PL.treq.isLead() ? first0(r.by === r.sid ? r.sname : r.tname, 'Τεχνικός') : first0(PL.treq.isTech() ? r.sname : r.tname, PL.treq.isTech() ? 'Πωλητής' : 'Τεχνικός');
       const what = r.st === 'appt' ? 'ραντεβού ' + when(r.appt) : r.st === 'new' ? 'νέο αίτημα' : r.st === 'acc' ? 'το είδε' : r.st === 'done' ? 'ολοκληρώθηκε' : (ST[r.st] || '').toLowerCase();
       return '🧰 ' + first + ': ' + what + ' · ' + ((r.c && r.c.name) || '');
     },

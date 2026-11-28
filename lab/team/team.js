@@ -174,6 +174,7 @@
   }
   /* όλες τις ομάδες τις βλέπουν ο διευθυντής και ο διαχειριστής (απόφαση 18/11)· ο υπεύθυνος μόνο τη δική του */
   const ALL = !!me && (me.role === 'director' || !!me.admin);
+  const TECHR = new Set(['tech', 'techlead']);   // χωρίς ομάδα, κωδικό πωλητή, πελάτες
   const canTeam = (tid) => ALL || (!!me && me.role === 'lead' && me.team === tid);
 
   /* εικονίδια των επικεφαλίδων (ομάδα, όλες οι ομάδες, χρήστες) */
@@ -319,8 +320,8 @@
       el.innerHTML = `<div class="tmhead"><h2>${ICON.users}Χρήστες και ρόλοι</h2><p class="mu">${U.filter((x) => x.active).length} ενεργοί χρήστες · ${O.teams().length} ομάδες</p></div>` +
         `<div class="tmgrid"><section class="tmcard tmwide2"><h3>Ποιος βλέπει τι</h3><div class="tmrl"><b>Πωλητής</b><span>Τους δικούς του πελάτες: όσους έχουν τον κωδικό πωλητή του στο orders.</span></div><div class="tmrl"><b>Υπεύθυνος ομάδας</b><span>Τους δικούς του πελάτες, και τα νούμερα και τις σημειώσεις των πωλητών της ομάδας του, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διευθυντής</b><span>Όλες τις ομάδες, μόνο για ανάγνωση.</span></div><div class="tmrl"><b>Διαχειριστής</b><span>Προσθέτει χρήστες και αλλάζει ρόλους και ομάδες. Είναι και πωλητής.</span></div><div class="tmrl"><b>Τεχνικός</b><span>Μόνο τους πελάτες που του έστειλαν οι πωλητές για επίσκεψη: στοιχεία, σημειώματα και κατηγορίες ✓ φέτος/πέρσι. Κανένα ποσό.</span></div></section></div>` +
         `<p><button class="pri" id="tmnew">+ Νέος χρήστης</button></p>` +
-        grp('Διεύθυνση', U.filter((x) => x.role === 'director')) + O.teams().map((t) => grp(t.name, U.filter((x) => x.role !== 'director' && x.role !== 'tech' && x.team === t.id).sort((a, b) => (a.role === 'lead' ? -1 : b.role === 'lead' ? 1 : 0)))).join('') +
-        grp('Τεχνικοί', U.filter((x) => x.role === 'tech')) +
+        grp('Διεύθυνση', U.filter((x) => x.role === 'director')) + O.teams().map((t) => grp(t.name, U.filter((x) => x.role !== 'director' && !TECHR.has(x.role) && x.team === t.id).sort((a, b) => (a.role === 'lead' ? -1 : b.role === 'lead' ? 1 : 0)))).join('') +
+        grp('Τεχνικοί', U.filter((x) => TECHR.has(x.role)).sort((a, b) => (a.role === 'techlead' ? -1 : b.role === 'techlead' ? 1 : 0))) +
         (orphan ? `<p class="warn">${orphan} πελάτες έχουν κωδικό πωλητή που δεν ανήκει σε ενεργό χρήστη· δεν τους βλέπει κανείς.</p>` : '') +
         (O.db ? '<p class="mu tmfoot">Οι αλλαγές γράφονται στη βάση και ισχύουν σε όλες τις συσκευές.</p>'
           : '<p class="mu tmfoot">Δοκιμαστική έκδοση: οι αλλαγές μένουν σε αυτή τη συσκευή. Στην κανονική μένουν στον server.</p><p><button id="tmrst">Επαναφορά αρχικών χρηστών</button></p>');
@@ -373,11 +374,15 @@
         if (!v.name) return err('Γράψε όνομα.');
         if (!/^\S+@\S+\.\S+$/.test(v.email)) return err('Το email δεν φαίνεται σωστό.');
         if (U.some((z) => z.id !== x.id && z.email.toLowerCase() === v.email)) return err('Υπάρχει ήδη χρήστης με αυτό το email.');
-        if (v.role === 'director' || v.role === 'tech') v.team = '';
-        if (v.role === 'tech') { v.code = ''; v.admin = false; }   /* ο τεχνικός δεν έχει πελάτες με κωδικό ούτε διαχείριση */
-        if (v.role !== 'director' && v.role !== 'tech' && !v.code) return err('Ο πωλητής χρειάζεται κωδικό πωλητή.');
+        if (v.role === 'director' || TECHR.has(v.role)) v.team = '';
+        if (TECHR.has(v.role)) { v.code = ''; v.admin = false; }   /* τεχνικός και υπεύθυνος τεχνικών: χωρίς πελάτες με κωδικό, χωρίς διαχείριση */
+        if (v.role !== 'director' && !TECHR.has(v.role) && !v.code) return err('Ο πωλητής χρειάζεται κωδικό πωλητή.');
         if (v.code && U.some((z) => z.id !== x.id && z.active && z.code === v.code)) return err('Ο κωδικός ' + v.code + ' ανήκει ήδη σε άλλο χρήστη.');
         if (v.role === 'lead' && U.some((z) => z.id !== x.id && z.active && z.role === 'lead' && z.team === v.team)) return err('Η ομάδα έχει ήδη υπεύθυνο. Άλλαξε πρώτα τον άλλον σε πωλητή.');
+        /* υπεύθυνος τεχνικών: πάντα ένας (28/11)· ο προηγούμενος γίνεται τεχνικός, αφού το επιβεβαιώσεις */
+        const tl = v.role === 'techlead' && v.active && U.find((z) => z.id !== x.id && z.active && z.role === 'techlead');
+        if (tl && !(await PL.dlg.confirm('Υπεύθυνος τεχνικών είναι ο/η ' + tl.name + '. Να γίνει ο/η ' + v.name + ' στη θέση του/της; Ο/Η ' + tl.name + ' γίνεται Τεχνικός.', 'Ναι, αλλαγή'))) return;
+        if (tl) O.saveUser(Object.assign({}, tl, { role: 'tech' }));
         if (ACC && isNew) {   // με βάση: λογαριασμός στον server + προσωρινός κωδικός
           const b = ev.target; b.disabled = true; err('');
           let r; try { r = await O.accounts.create(v); } catch (e) { b.disabled = false; return err(e.message); }
@@ -387,6 +392,101 @@
         O.saveUser(Object.assign({}, x, v));
         PL.dlg.toast(isNew ? 'Ο χρήστης προστέθηκε' : 'Αποθηκεύτηκε');
         if (self) setTimeout(() => location.reload(), 900); else PL.nav.back();
+      });
+    },
+  });
+
+  /* ---------- Δικαιώματα (28/11/2026): τα δίνουν ο διευθυντής και ο διαχειριστής ----------
+     Κάθε δικαίωμα με ποιος το έχει. «Ένας» (π.χ. Δημιουργία σεμιναρίων): λίστα επιλογής· αν το έχει ήδη άλλος, ρωτά πριν
+     περάσει στον νέο (ο server το βγάζει από τον προηγούμενο). Τα άλλα: σημάδι ανά χρήστη. Ο κανόνας είναι του server (setPerm). */
+  PL.register('perms', {
+    title: 'Δικαιώματα',
+    render(el) {
+      if (!ALL || !O.PERMS) return deny(el, 'Δικαιώματα δίνουν ο διευθυντής και ο διαχειριστής.');
+      el.classList.add('tmpage');
+      const opt = (v, t, on) => `<option value="${esc(v)}"${on ? ' selected' : ''}>${esc(t)}</option>`;
+      const paint = () => {
+        const U = O.permUsers().sort((a, b) => a.name.localeCompare(b.name, 'el')), has = (x, k) => (x.perms || []).includes(k);
+        const who = (x) => esc(x.name) + ' <small class="mu">' + esc(x.admin ? 'Διαχειριστής' : O.ROLES[x.role]) + (O.team(x.team) ? ' · ' + esc(O.team(x.team).name) : '') + '</small>';
+        el.innerHTML = `<div class="tmhead"><h2>Δικαιώματα</h2><p class="mu">Ποιος κάνει τι, πέρα από τον ρόλο του. Τα δίνουν ο διευθυντής και ο διαχειριστής.</p></div>` +
+          O.PERMS.map((P) => { const H = U.filter((x) => has(x, P.k));
+            return `<section class="tmcard pmcard"><h3>${esc(P.t)}${P.one ? ' <span class="tmtag">ένας</span>' : ''}</h3><p class="mu">${esc(P.d)}</p>` +
+              (P.one ? `<label>Το έχει<select data-one="${esc(P.k)}">${opt('', '— κανείς —', !H.length)}${U.map((x) => opt(x.id, x.name + ' · ' + (x.admin ? 'Διαχειριστής' : O.ROLES[x.role]), has(x, P.k))).join('')}</select></label>` +
+                (P.k === 'sem' ? '<p class="mu">Ο διευθυντής και ο διαχειριστής μπορούν πάντα.</p>' : '')
+              : `<div class="pmlist">${U.map((x) => `<label class="tmck"><input type="checkbox" data-many="${esc(P.k)}" data-uid="${esc(x.id)}"${has(x, P.k) ? ' checked' : ''}> ${who(x)}</label>`).join('')}</div>`) + '</section>'; }).join('') +
+          (O.db ? '' : '<p class="mu tmfoot">Δοκιμαστική έκδοση: οι αλλαγές μένουν σε αυτή τη συσκευή.</p>');
+      };
+      paint();
+      el.addEventListener('change', async (ev) => {
+        const t = ev.target, U = O.permUsers();
+        try {
+          if (t.dataset.one) {
+            const k = t.dataset.one, P = O.PERMS.find((z) => z.k === k), old = U.find((x) => (x.perms || []).includes(k)), nu = U.find((x) => x.id === t.value);
+            if (old && nu && !(await PL.dlg.confirm('«' + P.t + '» το έχει ο/η ' + old.name + '. Να περάσει στον/στην ' + nu.name + '; Ο/Η ' + old.name + ' δεν θα το έχει πια.', 'Ναι, να περάσει'))) { paint(); return; }
+            if (nu) O.setPerm(nu.id, k, true); else if (old) O.setPerm(old.id, k, false);
+            PL.dlg.toast(nu ? P.t + ': ' + nu.name : P.t + ': κανείς');
+          } else if (t.dataset.many) O.setPerm(t.dataset.uid, t.dataset.many, t.checked);
+        } catch (e) { PL.dlg.toast(e.message || 'Δεν αποθηκεύτηκε'); }
+        paint();
+      });
+    },
+  });
+
+  /* ---------- Διόρθωση πελάτη (28/11/2026, μόνο διαχειριστής) ----------
+     Κανόνας Πασχάλη: τα στοιχεία πελάτη δεν τα αλλάζει κανείς· μόνο ο διαχειριστής για λάθος, και αυτόματα το λογιστήριο.
+     Πωλητής → πελάτης → στοιχεία (όνομα, διεύθυνση, πόλη, περιοχή, Τ.Κ., τηλέφωνα) και υπόλοιπο. Στη δοκιμαστική και
+     «Κατάθεση» όπως θα την περνούσε το λογιστήριο: μειώνει το υπόλοιπο και ο πωλητής παίρνει ειδοποίηση (js/deposit.js). */
+  const FIXF = [['name', 'Επωνυμία'], ['addr', 'Διεύθυνση'], ['city', 'Πόλη'], ['area', 'Περιοχή'], ['zip', 'Τ.Κ.'], ['t1', 'Τηλέφωνο'], ['t2', 'Κινητό']];
+  const fixSel = { uid: '', cid: '' };
+  PL.register('fixc', {
+    title: 'Διόρθωση πελάτη',
+    render(el) {
+      if (!me || !me.admin || !O.fixClient) return deny(el, 'Μόνο ο διαχειριστής.');
+      el.classList.add('tmpage');
+      const S0 = O.sellers().filter((x) => x.code).sort((a, b) => a.name.localeCompare(b.name, 'el'));
+      if (!S0.some((x) => x.id === fixSel.uid)) fixSel.uid = (S0[0] || {}).id || '';
+      const opt = (v, t, on) => `<option value="${esc(v)}"${on ? ' selected' : ''}>${esc(t)}</option>`, m2 = (n) => (+n || 0).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const paint = () => {
+        const src = O.data(fixSel.uid), C = src ? Object.entries(src.all('clients')).map(([i, c]) => Object.assign({ i }, c)).sort((a, b) => String(a.name).localeCompare(String(b.name), 'el')) : [];
+        if (!C.some((c) => c.i === fixSel.cid)) fixSel.cid = '';
+        const c = C.find((z) => z.i === fixSel.cid), b = c ? src.get('balances', c.i) || {} : {};
+        el.innerHTML = `<div class="tmhead"><h2>Διόρθωση πελάτη</h2><p class="mu">Τα στοιχεία των πελατών δεν τα αλλάζει κανείς άλλος. Εδώ μόνο για διόρθωση λάθους· τα υπόλοιπα τα ενημερώνει αυτόματα το λογιστήριο.</p></div>` +
+          `<div class="tmform"><label>Πωλητής<select id="fxu">${S0.map((x) => opt(x.id, x.name + ' · κωδ. ' + x.code, x.id === fixSel.uid)).join('')}</select></label>` +
+          `<label>Πελάτης<input id="fxq" list="fxl" placeholder="Γράψε όνομα ή κωδικό…" value="${esc(c ? c.name : '')}"><datalist id="fxl">${C.map((z) => `<option value="${esc(z.name)}">${esc(z.code || '')} · ${esc(z.city || '')}</option>`).join('')}</datalist></label></div>` +
+          (c ? `<section class="tmcard"><h3>${esc(c.name)} <small class="mu">${esc(c.code || '')}</small></h3><div class="tmform">` +
+            FIXF.map(([k, l]) => `<label>${esc(l)}<input data-fx="${k}" value="${esc(c[k] || '')}"></label>`).join('') +
+            `<p><button class="pri" id="fxsave">Αποθήκευση διόρθωσης</button></p></div></section>` +
+            `<section class="tmcard"><h3>Υπόλοιπο</h3><p class="fxbal"><b>${m2(b.amount)} €</b>${+b.over ? ` · υπέρβαση ${m2(b.over)} €` : ''}${b.d ? ` <span class="mu">· ${esc(u.fd(b.d))}</span>` : ''}</p>` +
+            `<div class="tmform"><label>Διόρθωση υπολοίπου (€)<input id="fxamt" inputmode="decimal" value="${esc(String(+b.amount || 0))}"></label><p><button id="fxbal">Αποθήκευση υπολοίπου</button></p>` +
+            (O.db ? '' : `<label>Δοκιμή: κατάθεση από το λογιστήριο (€)<input id="fxdep" inputmode="decimal" placeholder="π.χ. 500"></label><p><button id="fxdepb">Καταχώριση κατάθεσης</button></p><p class="mu">Στην κανονική έκδοση την περνά αυτόματα το λογιστήριο. Ο πωλητής παίρνει ειδοποίηση «κατάθεση».</p>`) +
+            '</div></section>' : (C.length ? '<p class="mu">Διάλεξε πελάτη.</p>' : '<p class="mu">Ο πωλητής δεν έχει πελάτες.</p>'));
+      };
+      paint();
+      const num = (v) => { const n = parseFloat(String(v).replace(/\./g, '').replace(',', '.')); return isFinite(n) ? Math.round(n * 100) / 100 : null; };
+      el.addEventListener('change', (ev) => {
+        if (ev.target.id === 'fxu') { fixSel.uid = ev.target.value; fixSel.cid = ''; paint(); }
+        else if (ev.target.id === 'fxq') { const src = O.data(fixSel.uid), v = ev.target.value.trim(), f = Object.entries(src.all('clients')).find(([, c]) => c.name === v || c.code === v); if (f) { fixSel.cid = f[0]; paint(); } }
+      });
+      el.addEventListener('click', async (ev) => {
+        const id = ev.target.id; if (!['fxsave', 'fxbal', 'fxdepb'].includes(id)) return;
+        const src = O.data(fixSel.uid), c = src && src.get('clients', fixSel.cid), b = (src && src.get('balances', fixSel.cid)) || {}; if (!c) return;
+        try {
+          if (id === 'fxsave') {
+            const p = {}; el.querySelectorAll('[data-fx]').forEach((i) => { if ((c[i.dataset.fx] || '') !== i.value.trim()) p[i.dataset.fx] = i.value.trim(); });
+            if (!Object.keys(p).length) { PL.dlg.toast('Δεν άλλαξε τίποτα'); return; }
+            if (!p.name && 'name' in p) { PL.dlg.toast('Η επωνυμία δεν μένει κενή'); return; }
+            if (!(await PL.dlg.confirm('Να διορθωθούν τα στοιχεία του «' + c.name + '»; Θα τα δει έτσι ο πωλητής.', 'Ναι, διόρθωση'))) return;
+            O.fixClient(fixSel.uid, fixSel.cid, { client: p }); PL.dlg.toast('Διορθώθηκε');
+          } else {
+            const dep = id === 'fxdepb', v = num(el.querySelector(dep ? '#fxdep' : '#fxamt').value);
+            if (v == null || (dep && v <= 0)) { PL.dlg.toast('Γράψε ποσό'); return; }
+            const amount = dep ? Math.round(((+b.amount || 0) - v) * 100) / 100 : v, over = Math.max(0, Math.round(((+b.over || 0) - (dep ? v : (+b.amount || 0) - v)) * 100) / 100);
+            if (!dep && !(await PL.dlg.confirm('Να γίνει το υπόλοιπο του «' + c.name + '» ' + m2(amount) + ' €;', 'Ναι, διόρθωση'))) return;
+            O.fixClient(fixSel.uid, fixSel.cid, { balance: { amount, over, d: u.today() } });
+            PL.dlg.toast(dep ? 'Κατάθεση ' + m2(v) + ' € · υπόλοιπο ' + m2(amount) + ' €' : 'Το υπόλοιπο διορθώθηκε');
+          }
+        } catch (e) { PL.dlg.toast(e.message || 'Δεν αποθηκεύτηκε'); }
+        paint();
       });
     },
   });
@@ -424,7 +524,7 @@
 
   /* ---------- Οθόνη εισόδου ---------- */
   if (!me && !O.busy) {
-    const LBL = { director: ['🏢', 'Διευθυντής'], lead: ['👥', 'Υπεύθυνος ομάδας'], sales: ['🧑‍💼', 'Πωλητής'], tech: ['🧰', 'Τεχνικός'] };
+    const LBL = { director: ['🏢', 'Διευθυντής'], lead: ['👥', 'Υπεύθυνος ομάδας'], sales: ['🧑‍💼', 'Πωλητής'], tech: ['🧰', 'Τεχνικός'], techlead: ['🧑‍🔧', 'Υπεύθυνος τεχνικών'] };
     const o = document.createElement('div'); o.id = 'tmlogin'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', 'Είσοδος');
     o.innerHTML = `<form class="tmlb" autocomplete="on"><div class="tmlogo"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2f6f5e"/><rect x="8" y="19" width="5" height="8" rx="1.5" fill="#fff"/><rect x="14.5" y="14" width="5" height="13" rx="1.5" fill="#fff"/><rect x="21" y="8" width="5" height="19" rx="1.5" fill="#8fe3c6"/></svg><span>Sales<small>2.0</small></span></div>` +
       `<p class="mu">Δοκιμαστική έκδοση · ψεύτικα δεδομένα</p>` +
@@ -434,7 +534,7 @@
       (O.resetPassword ? '<button type="button" class="shlink" id="tmfg">Ξέχασα τον κωδικό</button>' : '') +
       (O.quick().length ? `<div class="tmq"><h3>Γρήγορη είσοδος</h3>${O.quick().map((x) => { const [i, r] = x.admin ? ['🛠', 'Διαχειριστής'] : LBL[x.role]; const t = O.team(x.team);
         return `<button type="button" data-quick="${esc(x.id)}"><span class="tmqi">${i}</span><span><b>${r}</b><small>${esc(x.name)}${t && !x.admin ? ' · ' + esc(t.name) : ''}</small></span></button>`; }).join('')}</div>` : '') +
-      `<p class="mu tmhint">${O.hint}</p></form>`;
+      `<p class="mu tmhint">${O.hint}</p><p class="tmcopy">${esc(PL.about.line())}</p></form>`;
     document.body.appendChild(o); document.body.classList.add('tmlock');
     /* ο έλεγχος μπορεί να ρωτά τον server (βάση): περιμένουμε την απάντηση */
     o.querySelector('form').addEventListener('submit', async (ev) => {

@@ -1,6 +1,9 @@
 /* Ενέργειες με πελάτες: ΣΕΜΙΝΑΡΙΑ και ΚΑΜΠΑΝΙΕΣ. Ένας κώδικας για τα δύο· κάθε είδος δίνει μόνο την «ταυτότητά» του (KINDS).
    Τα δεδομένα μένουν σε δύο συλλογές, όπως πάντα:
-   - seminars/{id} = {title, date, time, notes, cust: [πελάτες], conf: [επιβεβαιωμένοι], created}
+   - seminars/{id} = {title, date, time, notes, cust: [πελάτες], conf: [επιβεβαιωμένοι], n: {πελάτης: άτομα}, created,
+     others: [{name, n, sname, (full: city, t, st)}]}. Με λογαριασμούς (28/11/2026) τα σεμινάρια είναι ΚΟΙΝΑ για όλους: ο server
+     δίνει σε κάθε πωλητή cust/conf/n για τους δικούς του και others για των άλλων (μόνο όνομα, άτομα, πωλητής· πλήρη στον
+     υπεύθυνο για την ομάδα του και στον διευθυντή). Νέο, αλλαγή στοιχείων, διαγραφή: μόνο με PL.can('semnew').
    - campaigns/{id} = {title, until, products, notes, cust: {πελάτης: 'int'|'won'|'no'}, created}
    Σελίδες: semlist/seminar και camplist/campaign (λίστα και λεπτομέρεια), smpick (κοινή «Επιλογή πελατών», και για το πρόγραμμα).
    Καρτέλα πελάτη: PL.actions.<είδος>.{state, line, pick}. Ενεργή = δεν έχει περάσει η ημερομηνία· οι άλλες στις «Ολοκληρωμένες». */
@@ -23,9 +26,14 @@
       info: (x) => [],
       sub: (x) => x.notes || '',
       get: (x, id) => (has(x.conf, id) && has(x.cust, id) ? 'conf' : has(x.cust, id) ? 'pend' : null),
-      set: (x, id, s) => { const cu = (x.cust || []).filter((v) => v !== id), cf = (x.conf || []).filter((v) => v !== id); if (s) cu.push(id); if (s === 'conf') cf.push(id); x.cust = cu; x.conf = cf; },
+      set: (x, id, s) => { const cu = (x.cust || []).filter((v) => v !== id), cf = (x.conf || []).filter((v) => v !== id), n = Object.assign({}, x.n);
+        if (s) cu.push(id); else delete n[id]; if (s === 'conf') cf.push(id); x.cust = cu; x.conf = cf; x.n = n; },
       ids: (x) => x.cust || [],
-      blank: () => ({ cust: [], conf: [] }),
+      blank: () => ({ cust: [], conf: [], n: {} }),
+      /* κοινά (28/11): ποιος φτιάχνει σεμινάρια, άτομα ανά κομμωτήριο, δηλώσεις των άλλων πωλητών */
+      mayCreate: () => PL.can('semnew'),
+      maker: () => { const o = PL.adapter.org, n = o && o.semBy ? o.semBy() : ''; return 'Νέα σεμινάρια φτιάχνει ' + (n ? 'ο/η ' + n : 'ο διευθυντής') + '. Εσύ δηλώνεις τα κομμωτήριά σου και πόσα άτομα έρχονται.'; },
+      ppl: true,
       none: 'Δεν υπάρχουν σεμινάρια ακόμα. Πάτα «+ Νέο σεμινάριο» ή πες στην υπαγόρευση π.χ. «ο Ζαμουρίδης ενδιαφέρεται για το σεμινάριο ξανοίγματος».',
     },
     campaign: {
@@ -44,6 +52,7 @@
       set: (x, id, s) => { const c = Object.assign({}, x.cust); if (s) c[id] = s; else delete c[id]; x.cust = c; },
       ids: (x) => Object.keys(x.cust || {}),
       blank: () => ({ cust: {} }),
+      mayCreate: () => true,
       none: 'Καμία ενεργή καμπάνια. Πάτα «+ Νέα καμπάνια».',
     },
   };
@@ -60,13 +69,17 @@
     const members = (x) => K.ids(x).filter((i) => M.byId(i)).map((i) => [i, K.get(x, i)]);
     const tally = (x) => { const n = {}; members(x).forEach(([, s]) => { n[s] = (n[s] || 0) + 1; });
       return K.ST.filter(([k]) => n[k]).map(([k, e]) => e + ' ' + n[k] + ' ' + K.count[k][n[k] === 1 ? 0 : 1]).join(' · '); };
+    /* σεμινάρια: άτομα ανά κομμωτήριο (1 αν δεν γράφτηκε) και σύνολο μαζί με των άλλων πωλητών */
+    const ppl = (x, id) => Math.max(1, +((x.n || {})[id]) || 1);
+    const sumTxt = (x) => { if (!K.ppl) return ''; const O = x.others || [], mine = members(x), k = mine.length + O.length, a = mine.reduce((t, [i]) => t + ppl(x, i), 0) + O.reduce((t, o) => t + (+o.n || 1), 0);
+      return k ? '👥 ' + k + (k === 1 ? ' κομμωτήριο' : ' κομμωτήρια') + ' · ' + a + (a === 1 ? ' άτομο' : ' άτομα') + (O.length ? ' (μαζί με των άλλων πωλητών)' : '') : ''; };
     const field = (f, pre, v) => `<div style="${f.w ? 'flex:none;width:' + f.w + 'px' : 'flex:1;min-width:0'}"><label>${f.label}</label><input id="${pre}${f.id}" type="${f.type}"${f.ph ? ` placeholder="${esc(f.ph)}"` : ''}${v != null ? ` value="${esc(v)}"` : ''}></div>`;
     const fieldsHtml = (pre) => (K.fields.every((f) => f.type !== 'text') ? `<div style="display:flex;gap:6px">${K.fields.map((f) => field(f, pre)).join('')}</div>` : K.fields.map((f) => field(f, pre)).join(''));
     const read = (el, pre) => { const o = {}; K.fields.forEach((f) => { o[f.k] = el.querySelector('#' + pre + f.id).value.trim(); }); return o; };
 
     /* ο τεχνικός (PL.can('actedit') = false) βλέπει μόνο: χωρίς νέο, αλλαγές, προσθήκη/αφαίρεση πελατών, κατάσταση */
     const ro = () => !PL.can('actedit');
-    const nova = () => (ro() ? null : PL.menu(K.title, [{ e: K.mEmoji || K.ic(), label: K.newL, d: '', fn: () => {
+    const nova = () => (ro() || !K.mayCreate() ? null : PL.menu(K.title, [{ e: K.mEmoji || K.ic(), label: K.newL, d: '', fn: () => {
       while (PL.nav.current().id !== K.list && PL.nav.depth() > 1) PL.nav.back();
       if (PL.nav.current().id !== K.list) PL.nav.push(K.list);
       setTimeout(() => { const b = document.getElementById(K.p + 'open'); if (b) b.click(); }, 30);
@@ -83,10 +96,10 @@
 <label>Παρατηρήσεις</label><textarea id="${p}n" rows="2" placeholder="${esc(K.nph)}"></textarea>
 <p style="display:flex;gap:6px"><button class="pri" id="${p}new">Δημιουργία</button><button id="${p}cancel">Άκυρο</button></p><div id="${p}st" class="mu"></div></div><div id="${p}l"></div>`;
         const $ = (s) => el.querySelector(s);
-        if (ro()) $('#' + p + 'open').remove();
+        if (ro() || !K.mayCreate()) $('#' + p + 'open').outerHTML = ro() || !K.maker ? '' : `<p class="mu acmk">${esc(K.maker())}</p>`;
         COLS.forEach((c) => S.use(c));
-        const row = ([id, x]) => { const n = members(x).length, sb = K.sub(x), tl = tally(x);
-          return `<div class="card" data-${K.row}="${esc(id)}"><div class="row"><span class="nm">${K.ic()} ${esc(x.title || '')}</span><span class="tz">${pel(n)}</span></div><div class="mu">📅 ${esc(K.when(x))}${sb ? ' · ' + esc(sb) : ''}</div>${tl ? `<div class="mu">${tl}</div>` : ''}</div>`; };
+        const row = ([id, x]) => { const n = members(x).length, sb = K.sub(x), tl = tally(x), sm = sumTxt(x);
+          return `<div class="card" data-${K.row}="${esc(id)}"><div class="row"><span class="nm">${K.ic()} ${esc(x.title || '')}</span><span class="tz">${K.ppl ? (n ? 'δικοί σου ' + n : '') : pel(n)}</span></div><div class="mu">📅 ${esc(K.when(x))}${sb ? ' · ' + esc(sb) : ''}</div>${tl ? `<div class="mu">${tl}</div>` : ''}${sm ? `<div class="mu">${sm}</div>` : ''}</div>`; };
         const paint = () => {
           const L = Object.entries(all()).sort((a, b) => String(K.key(a[1])).localeCompare(String(K.key(b[1]))) || String(a[1].title).localeCompare(String(b[1].title), 'el'));
           const on = L.filter(([, x]) => K.on(x)), off = L.filter(([, x]) => !K.on(x)).reverse();
@@ -95,7 +108,7 @@
         };
         paint();
         const offs = COLS.map((c) => S.on(c, paint));
-        if (!ro()) $('#' + p + 'open').onclick = () => { $('#' + p + 'form').hidden = false; $('#' + p + 'open').hidden = true; $('#' + p + 't').focus(); };
+        if (!ro() && K.mayCreate()) $('#' + p + 'open').onclick = () => { $('#' + p + 'form').hidden = false; $('#' + p + 'open').hidden = true; $('#' + p + 't').focus(); };
         $('#' + p + 'cancel').onclick = () => { $('#' + p + 'form').hidden = true; $('#' + p + 'open').hidden = false; $('#' + p + 'st').textContent = ''; };
         $('#' + p + 'l').addEventListener('click', (ev) => { const c = ev.target.closest('[data-' + K.row + ']'); if (c) PL.nav.push(K.page, { id: c.dataset[K.row] }); });
         $('#' + p + 'new').onclick = async () => {
@@ -114,47 +127,55 @@
     PL.register(K.page, {
       title: K.page1, nova,
       render(el, params) {
-        const id = params.id, p = K.p, pe = p + 'e', RO = ro(); let gone = false;
+        const id = params.id, p = K.p, pe = p + 'e', RO = ro(), MK = !RO && K.mayCreate(); let gone = false;
         el.innerHTML = `<h2 id="${p}h"></h2><div id="${p}i" class="warn"></div>
 <details id="${p}edit" style="margin-bottom:10px"><summary style="cursor:pointer;color:var(--ac);font-weight:600">✏️ Αλλαγή στοιχείων</summary><label>Τίτλος</label><input id="${pe}t">${fieldsHtml(pe)}
 <label>Παρατηρήσεις</label><textarea id="${pe}n" rows="2"></textarea><p><button class="pri" id="${p}esave">Αποθήκευση</button></p></details>
 <button class="pri" id="${p}pick" style="width:100%;padding:12px;font-size:calc(16*var(--u))">+ Πρόσθεσε πελάτες από το πελατολόγιο</button>
 <div style="display:flex;gap:6px;margin-top:8px"><input id="${p}add" list="dcl" placeholder="ή γράψε όνομα πελάτη…" style="flex:1;min-width:0"><button id="${p}addb">Προσθήκη</button></div>
-<div id="${p}dl" style="margin-top:8px"></div><p style="margin-top:18px"><button id="${p}del">🗑 ${K.delL}</button></p><span id="dclh"></span>`;
+<div id="${p}dl" style="margin-top:8px"></div><div id="${p}ot"></div><p style="margin-top:18px"><button id="${p}del">🗑 ${K.delL}</button></p><span id="dclh"></span>`;
         const $ = (s) => el.querySelector(s);
         if (RO) { [p + 'edit', p + 'pick', p + 'del'].forEach((k) => $('#' + k).closest(k === p + 'del' ? 'p' : '#' + k).remove()); $('#' + p + 'add').parentNode.remove(); }
+        else if (!MK) { $('#' + p + 'edit').remove(); $('#' + p + 'del').closest('p').remove(); }   /* στοιχεία και διαγραφή: μόνο όποιος φτιάχνει σεμινάρια */
         COLS.forEach((c) => S.use(c));
         const paint = () => {
           const x = all()[id]; if (!x) { if (!gone) { gone = true; PL.nav.back(); } return; }
           const n = members(x).length, tl = tally(x);
           $('#' + p + 'h').innerHTML = K.ic() + ' ' + esc(x.title || '');
-          $('#' + p + 'i').innerHTML = `<div>📅 ${esc(K.when(x))}${K.on(x) ? '' : ' · <b>ολοκληρώθηκε</b>'}</div>${K.info(x).map((l) => `<div style="margin-top:4px">${esc(l)}</div>`).join('')}${x.notes ? `<div style="margin-top:4px;white-space:pre-wrap">${esc(x.notes)}</div>` : ''}<div style="margin-top:4px;font-weight:600">${pel(n)}${tl ? ' · ' + tl : ''}</div>`;
-          if (!RO && !$('#' + p + 'edit').open) { $('#' + pe + 't').value = x.title || ''; K.fields.forEach((f) => { $('#' + pe + f.id).value = x[f.k] || ''; }); $('#' + pe + 'n').value = x.notes || ''; }
+          $('#' + p + 'i').innerHTML = `<div>📅 ${esc(K.when(x))}${K.on(x) ? '' : ' · <b>ολοκληρώθηκε</b>'}</div>${K.info(x).map((l) => `<div style="margin-top:4px">${esc(l)}</div>`).join('')}${x.notes ? `<div style="margin-top:4px;white-space:pre-wrap">${esc(x.notes)}</div>` : ''}<div style="margin-top:4px;font-weight:600">${K.ppl ? 'Δικοί σου: ' : ''}${pel(n)}${tl ? ' · ' + tl : ''}</div>${sumTxt(x) ? `<div style="margin-top:4px">${sumTxt(x)}</div>` : ''}`;
+          if (MK && !$('#' + p + 'edit').open) { $('#' + pe + 't').value = x.title || ''; K.fields.forEach((f) => { $('#' + pe + f.id).value = x[f.k] || ''; }); $('#' + pe + 'n').value = x.notes || ''; }
           const L = members(x).map(([i, s]) => [M.byId(i), s]).sort((a, b) => String(a[0].city).localeCompare(String(b[0].city), 'el') || String(a[0].name).localeCompare(String(b[0].name), 'el'));
           /* κατάσταση: μικρά κουμπιά σε μία σειρά· το τρέχον χρωματισμένο */
           const seg = (c, s) => '<div class="acseg">' + K.ST.map(([k, e, l]) => `<button data-${p}st="${esc(c.i)}" data-v="${k}" class="${s === k ? 'on' : ''}" aria-pressed="${s === k}"><span>${e}</span>${l}</button>`).join('') + '</div>';
-          const card = ([c, s]) => { const tel = PL.call.first(c); return `<div class="card" style="cursor:default"><div class="row"><span class="nm acnm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)} <span class="mu">›</span></span>${RO ? '' : `<button data-${p}rm="${esc(c.i)}" aria-label="Αφαίρεση" style="padding:2px 10px">✕</button>`}</div><div class="mu">${esc(c.addr || '')}${tel ? ` · ${PL.call.btn(tel, c.name, true)}` : ''}</div>${RO ? '' : seg(c, s)}</div>`; };
+          const card = ([c, s]) => { const tel = PL.call.first(c); return `<div class="card" style="cursor:default"><div class="row"><span class="nm acnm" data-open="${esc(c.i)}">${PL.prospects.tag(c)}${esc(c.name)} <span class="mu">›</span></span>${RO ? '' : `<button data-${p}rm="${esc(c.i)}" aria-label="Αφαίρεση" style="padding:2px 10px">✕</button>`}</div><div class="mu">${esc(c.addr || '')}${tel ? ` · ${PL.call.btn(tel, c.name, true)}` : ''}</div>${RO ? '' : seg(c, s)}${K.ppl && !RO ? pplBox(x, c.i) : K.ppl ? `<div class="mu">👥 ${ppl(x, c.i)}</div>` : ''}</div>`; };
           const sec = ([k]) => { const arr = L.filter(([, s]) => s === k); let cc = ''; return arr.length ? `<h3 style="margin-top:16px">${stTxt(k)} (${arr.length})</h3>` + arr.map((r) => { const hd = r[0].city !== cc ? (cc = r[0].city, `<div class="mu" style="font-weight:600;margin:8px 0 2px">${esc(cc)}</div>`) : ''; return hd + card(r); }).join('') : ''; };
           $('#' + p + 'dl').innerHTML = L.length ? K.ST.map(sec).join('') : '<p class="mu">Κανένας πελάτης ακόμα.</p>';
+          /* δηλώσεις των άλλων πωλητών: όνομα, άτομα, πωλητής (πλήρη: + πόλη, τηλέφωνο, κατάσταση) */
+          const O = x.others || [];
+          $('#' + p + 'ot').innerHTML = !O.length ? '' : `<h3 style="margin-top:18px">Από άλλους πωλητές (${O.length})</h3>` + O.map((o) => `<div class="acoth"><div class="row"><b>${esc(o.name)}</b><span class="tz">👥 ${+o.n || 1}</span></div>` +
+            `<div class="mu">${esc(o.sname || '')}${o.full ? (o.city ? ' · ' + esc(o.city) : '') + (o.st ? ' · ' + stTxt(o.st) : '') + (o.t ? ' · ' + PL.call.btn(o.t, o.name, true) : '') : ''}</div></div>`).join('');
           $('#dclh').innerHTML = PL.dcl();
         };
         paint();
         const offs = COLS.map((c) => S.on(c, paint));
+        /* άτομα ανά κομμωτήριο: − αριθμός + */
+        function pplBox(x, cid) { const v = ppl(x, cid); return `<div class="acppl"><span>Άτομα</span><button data-${p}pp="${esc(cid)}" data-d="-1" aria-label="Λιγότερα"${v <= 1 ? ' disabled' : ''}>−</button><b>${v}</b><button data-${p}pp="${esc(cid)}" data-d="1" aria-label="Περισσότερα">+</button></div>`; }
         const upd = async (fn) => { const x = Object.assign({}, all()[id]); fn(x); try { await save(id, x); } catch (e) { D.toast('Δεν αποθηκεύτηκε'); } paint(); };
         if (!RO) $('#' + p + 'pick').onclick = () => PL.nav.push('smpick', {
           title: 'Για: ' + (all()[id] || {}).title, inSet: () => new Set(K.ids(all()[id] || {})),
           onOk: async (ids) => { const x = Object.assign({}, all()[id]); ids.forEach((i) => { if (!K.get(x, i)) K.set(x, i, K.ST[0][0]); }); await save(id, x); },
         });
-        if (!RO) $('#' + p + 'esave').onclick = async () => {
+        if (MK) $('#' + p + 'esave').onclick = async () => {
           const t = $('#' + pe + 't').value.trim(); if (!t) { D.toast('Γράψε τίτλο'); return; }
           await upd((x) => Object.assign(x, { title: t }, read(el, pe), { notes: $('#' + pe + 'n').value.trim() })); $('#' + p + 'edit').open = false; paint();
         };
         el.addEventListener('click', async (ev) => {
           const x = all()[id]; if (!x) return;
-          const t = ev.target.closest('[data-open],[data-' + p + 'st],[data-' + p + 'rm],button') || ev.target, d = t.dataset;
+          const t = ev.target.closest('[data-open],[data-' + p + 'st],[data-' + p + 'rm],[data-' + p + 'pp],button') || ev.target, d = t.dataset;
           if (d.open) PL.nav.push('client', { id: d.open });
           else if (RO) return;
           else if (d[p + 'st']) { if (K.get(x, d[p + 'st']) !== d.v) await upd((y) => K.set(y, d[p + 'st'], d.v)); }
+          else if (d[p + 'pp']) { const c = d[p + 'pp'], v = Math.min(99, Math.max(1, ppl(x, c) + (+d.d))); if (v !== ppl(x, c)) await upd((y) => { y.n = Object.assign({}, y.n, { [c]: v }); }); }
           else if (d[p + 'rm']) {
             const c = M.byId(d[p + 'rm']);
             if (!(await D.confirm('Να αφαιρεθεί ο «' + (c ? c.name : '') + '» από ' + K.the + ';', 'Ναι, αφαίρεση'))) return;
@@ -162,7 +183,7 @@
           } else if (t.id === p + 'addb') {
             const c = PL.dclId($('#' + p + 'add').value); if (!M.byId(c)) { D.toast('Διάλεξε πελάτη από τη λίστα'); return; }
             await upd((y) => { if (!K.get(y, c)) K.set(y, c, K.ST[0][0]); }); $('#' + p + 'add').value = '';
-          } else if (t.id === p + 'del') {
+          } else if (t.id === p + 'del' && MK) {
             if (!(await D.confirm('Να διαγραφεί ' + K.the + ' «' + x.title + '»; Οι πελάτες δεν επηρεάζονται.'))) return;
             gone = true;
             try { await PL.trash.doc(K.col + '/' + id, K.one[0].toUpperCase() + K.one.slice(1) + ' · ' + (x.title || '')); } catch (e) { gone = false; D.toast('Δεν διαγράφηκε. Έλεγξε τη σύνδεση.'); return; }

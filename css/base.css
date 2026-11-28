@@ -1806,3 +1806,10 @@ html.big .sha > :last-child:nth-child(odd) {
 .hlp li {
   margin-bottom: 10px;
 }
+/* Σεμινάρια κοινά (28/11/2026): άτομα ανά κομμωτήριο, δηλώσεις άλλων πωλητών, ποιος φτιάχνει σεμινάρια */
+.acppl { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: calc(14 * var(--u)); color: var(--mu); }
+.acppl button { min-width: 38px; padding: 4px 0; font-size: calc(18 * var(--u)); line-height: 1; }
+.acppl b { min-width: 22px; text-align: center; color: var(--tx); font-size: calc(16 * var(--u)); }
+.acoth { border-bottom: 1px solid var(--bd); padding: 8px 2px; }
+.acoth:last-child { border-bottom: 0; }
+.acmk { background: var(--card); border: 1px dashed var(--bd); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }

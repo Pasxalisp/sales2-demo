@@ -333,3 +333,32 @@
   border-color: var(--tech);
   background: var(--techbg);
 }
+/* Υπεύθυνος τεχνικών (28/11/2026): ένα κουτί ανά τεχνικό με μετρητές· πάτημα = μόνο τα αιτήματα αυτού */
+.trtechs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.trtk {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+.trtk span {
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+}
+.trtk em {
+  font-style: normal;
+  color: #b7791f;
+  font-weight: 700;
+}
+.trtk.on {
+  border-color: var(--ac);
+  box-shadow: inset 0 0 0 1px var(--ac);
+}

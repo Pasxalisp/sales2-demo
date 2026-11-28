@@ -1,5 +1,5 @@
 /* Σελίδα «Ρυθμίσεις» (κουμπί ⚙️ πάνω δεξιά στην Αρχική), σε ενότητες (28/11/2026):
-   Εμφάνιση (θέμα, μέγεθος γραμμάτων) · Ειδοποιήσεις (αιτήματα τεχνικού, settings/tnotify· και ό,τι βάζουν τα δοκιμαστικά lab/,
+   Εμφάνιση (θέμα, μέγεθος γραμμάτων) · Ειδοποιήσεις (κατάθεση πελάτη, settings/notify, js/deposit.js· αιτήματα τεχνικού, settings/tnotify· και ό,τι βάζουν τα δοκιμαστικά lab/,
    π.χ. ειδοποιήσεις με κλειστή εφαρμογή) · Δεδομένα (κάδος, js/trash.js). Ενότητα χωρίς περιεχόμενο δεν φαίνεται.
    Ο «συνεργαζόμενος τεχνικός» διαλέγεται στην «Τεχνική υποστήριξη» (js/pages/tech.js). Τα δεδομένα του orders τα περνά το Claude. */
 (function () {
@@ -18,7 +18,7 @@
              <label class="fsauto"><input type="checkbox" id="fsa"> Όπως το κινητό</label>
              <div class="fsbox" id="fsb"><span class="fsa" aria-hidden="true">A</span><input type="range" id="fsr" min="1" max="7" step="1" aria-label="Μέγεθος γραμμάτων"><span class="fsa big" aria-hidden="true">A</span>
                <div class="fsdots" aria-hidden="true">${'<i></i>'.repeat(7)}</div></div></div></section>
-         <section class="dsec" id="dnot"><h3>Ειδοποιήσεις</h3><div id="dtech"></div><div id="dlabs"></div></section>
+         <section class="dsec" id="dnot"><h3>Ειδοποιήσεις</h3><div id="ddep"></div><div id="dtech"></div><div id="dlabs"></div></section>
          <section class="dsec"><h3>Δεδομένα</h3>
            <div class="card" id="trgo" style="margin-bottom:10px"><div class="row"><b>🗑 Κάδος</b><span class="mu" id="trn"></span></div>
              <p class="mu">Ό,τι διαγράφεις μένει εδώ ${PL.trash.DAYS} μέρες και επαναφέρεται με ένα πάτημα.</p></div></section>`;
@@ -33,18 +33,28 @@
       $('#fsa').onchange = (e) => { PL.fontSize.set(e.target.checked ? '' : String(PL.fontSize.step())); fsShow(); };
       fsShow();
       /* η ενότητα «Ειδοποιήσεις» φαίνεται μόνο όταν έχει κάτι μέσα */
-      const showNot = () => { $('#dnot').hidden = !$('#dtech').children.length && !$('#dlabs').children.length; };
+      const showNot = () => { $('#dnot').hidden = !$('#ddep').children.length && !$('#dtech').children.length && !$('#dlabs').children.length; };
+      /* Κατάθεση πελάτη (js/deposit.js): όποιος βλέπει ποσά */
+      const paintDep = () => {
+        if (PL.deposit && PL.can('money')) $('#ddep').innerHTML = `<div class="card" style="cursor:default;margin-bottom:10px"><b>💶 Πελάτες</b><p class="mu">Να σε ειδοποιεί όταν:</p>` +
+          `<label class="trtog">πελάτης κάνει κατάθεση (το περνά το λογιστήριο) <input type="checkbox" id="ddepc"${PL.deposit.on() ? ' checked' : ''}></label></div>`;
+        showNot();
+      };
+      $('#ddep').addEventListener('change', async (e) => {
+        if (e.target.id !== 'ddepc') return;
+        try { await PL.deposit.set(e.target.checked); } catch (x) { PL.dlg.toast('Δεν αποθηκεύτηκε'); paintDep(); }
+      });
       /* Αιτήματα τεχνικού (js/treq.js, μόνο με λογαριασμούς): για ποια βήματα θέλει ειδοποίηση ο πωλητής / ο τεχνικός */
       const TR = PL.treq;
       const paintTech = () => {
         if (TR.on()) {
-          const tech = TR.isTech(), esc = PL.u.esc;
-          const tog = TR.NOTIFY[tech ? 'tech' : 'sales'].map(([k, l]) => `<label class="trtog">${esc(l)} <input type="checkbox" data-tn="${k}"${TR.notifyOn(k) ? ' checked' : ''}></label>`).join('');
-          $('#dtech').innerHTML = `<div class="card" style="cursor:default;margin-bottom:10px"><b>🧰 ${tech ? 'Αιτήματα' : 'Από τον τεχνικό'}</b><p class="mu">${tech ? 'Να σε ειδοποιεί όταν:' : 'Να σε ειδοποιεί όταν ο τεχνικός:'}</p>${tog}</div>`;
+          const kind = TR.notifyKind(), side = kind !== 'sales', esc = PL.u.esc;
+          const tog = TR.NOTIFY[kind].map(([k, l]) => `<label class="trtog">${esc(l)} <input type="checkbox" data-tn="${k}"${TR.notifyOn(k) ? ' checked' : ''}></label>`).join('');
+          $('#dtech').innerHTML = `<div class="card" style="cursor:default;margin-bottom:10px"><b>🧰 ${side ? 'Αιτήματα' : 'Από τον τεχνικό'}</b><p class="mu">${side ? 'Να σε ειδοποιεί όταν:' : 'Να σε ειδοποιεί όταν ο τεχνικός:'}</p>${tog}</div>`;
         }
         showNot();
       };
-      PL.store.use('settings').then(paintTech);
+      PL.store.use('settings').then(() => { paintDep(); paintTech(); });
       $('#dtech').addEventListener('change', async (e) => {
         if (!e.target.dataset.tn) return;
         try { await TR.setNotify(e.target.dataset.tn, e.target.checked); } catch (x) { PL.dlg.toast('Δεν αποθηκεύτηκε'); paintTech(); }

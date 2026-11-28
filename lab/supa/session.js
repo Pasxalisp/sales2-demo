@@ -41,7 +41,7 @@
   const msg = (code) => MSG[code] || MSG.server;
   /* λάθος κωδικός: πόσες προσπάθειες μένουν (ο server μετρά ανά email, ίδιο μήνυμα για όλους) */
   const invalid = (left) => MSG.invalid + (left > 0 ? (left === 1 ? ' Μένει 1 προσπάθεια' : ' Μένουν ' + left + ' προσπάθειες') + ' πριν κλειδώσει ο λογαριασμός.' : '');
-  const ROLES = { director: 'Διευθυντής', lead: 'Υπεύθυνος ομάδας', sales: 'Πωλητής', tech: 'Τεχνικός' };
+  const ROLES = { director: 'Διευθυντής', lead: 'Υπεύθυνος ομάδας', sales: 'Πωλητής', tech: 'Τεχνικός', techlead: 'Υπεύθυνος τεχνικών' };
   const col = (p) => p.slice(0, p.lastIndexOf('/')), idOf = (p) => p.slice(p.lastIndexOf('/') + 1);
   /* γραμμή profiles → χρήστης της εφαρμογής (id = το id του demo, π.χ. u7· uuid = ο λογαριασμός στη βάση) */
   const toUser = (p) => ({ id: p.demo_id, uuid: p.id, name: p.name, email: p.email, role: p.role, team: p.team || '', code: p.code || '', admin: !!p.admin, active: p.active !== false });
@@ -73,7 +73,7 @@
   const cached = ls.get(NS + ':me'), me = cached && cached.active ? toUser(cached) : null;
   const users = () => PROFILES.map(toUser);
   /* ποιους πωλητές δείχνουμε: διευθυντής και διαχειριστής όλους, υπεύθυνος την ομάδα του (ίδιος κανόνας με τη βάση· η βάση ούτως ή άλλως δεν δίνει δεδομένα για άλλους) */
-  const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' && x.role !== 'tech' &&
+  const visible = () => (!me ? [] : users().filter((x) => x.active && x.role !== 'director' && x.role !== 'tech' && x.role !== 'techlead' &&
     (me.role === 'director' || me.admin || x.id === me.id || (me.role === 'lead' && x.team === me.team))));
 
   /* ---------- Τα δεδομένα, όπως τα κρατά η μνήμη της συσκευής (lab/supa/cache.js) ----------

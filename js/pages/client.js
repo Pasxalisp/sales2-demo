@@ -93,9 +93,9 @@
      Ο πωλητής: τα αιτήματα (βήμα, αναφορά) και οι σημειώσεις του τεχνικού για τον πελάτη (tnotes, μόνο ανάγνωση). */
   function techBox(id) {
     if (!PL.treq.on()) return '';
-    const TR = PL.treq, L = TR.ofClient(id), tech = TR.isTech(), tn = S.get('tnotes', id);
+    const TR = PL.treq, L = TR.ofClient(id), tech = TR.techSide(), lead = TR.isLead(), tn = S.get('tnotes', id);
     if (!L.length && !(tn && (tn.entries || []).length)) return '';
-    const req = L.map(([rid, r]) => `<div class="trli" data-treq="${esc(rid)}"><div class="row"><b>${esc(u.fd(r.sent).slice(0, 5))} · ${esc(tech ? 'από ' + (r.sname || '') : (r.tname || 'Τεχνικός'))}</b><span class="trp ${TR.cls(r)}">${esc(TR.label(r))}</span></div>` +
+    const req = L.map(([rid, r]) => `<div class="trli" data-treq="${esc(rid)}"><div class="row"><b>${esc(u.fd(r.sent).slice(0, 5))} · ${esc(lead ? (r.sname || '').split(' ')[0] + ' → ' + (r.tname || '').split(' ')[0] : tech ? 'από ' + (r.sname || '') : (r.tname || 'Τεχνικός'))}</b><span class="trp ${TR.cls(r)}">${esc(TR.label(r))}</span></div>` +
       (r.note ? `<div class="mu">${esc(r.note)}</div>` : '') + (r.rep ? `<div class="trrep"><b>Αναφορά · ${esc(u.fd(r.rep.at.slice(0, 10)).slice(0, 5))}</b>${esc(r.rep.t)}</div>` : '') + '</div>').join('');
     const notes = !tech && tn ? (tn.entries || []).map((x) => `<div class="ent"><b>${esc(x.d)}</b> ${x.products ? `<span class="pr">${esc(x.products)}</span>` : ''}<div>${esc(x.text)}</div>${x.todo ? `<div><b>Να πω:</b> ${esc(x.todo)}</div>` : ''}</div>`).join('') : '';
     return `<div class="cbox"><div class="cbh">🧰 ${tech ? 'Αιτήματα' : 'Τεχνικός'}</div>` + (tech && L[0] ? `<h3 style="margin-top:4px">Τι δουλεύει</h3>${TR.catsTable(L[0][1].c)}<h3>Αιτήματα</h3>` : '') + req +

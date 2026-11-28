@@ -50,7 +50,7 @@
   };
   PL.usage = { flush, seen, live, ACT };   // ACT: ονόματα συλλογών (και για το «Ιστορικό αλλαγών», lab/history)
 
-  if (!me.admin) return;
+  if (!me.admin && !(O.has && O.has('usage'))) return;   // διαχειριστής ή όποιος έχει το δικαίωμα «Χρήση εφαρμογής» (28/11)
 
   /* ---------- σελίδες διαχειριστή ---------- */
   const st = { per: 7 };
@@ -115,7 +115,7 @@
     return `<div class="ushm" style="--n:${cells.length}">` + U.map((x) => `<span class="ushn">${esc(x.name.split(' ')[0])}</span>` + cells.map((c) => { const s = secs(x.id, c); return `<i class="l${lv(s)}" title="${esc(u.fd(c[0]))}${wk ? '–' + esc(u.fd(c[1])) : ''} · ${dur(s)}"></i>`; }).join('')).join('') + '</div>' +
       `<div class="ushl"><i class="l0"></i>καθόλου <i class="l1"></i>${wk ? '&lt;50′' : '&lt;10′'} <i class="l2"></i>${wk ? '50′–2½ ώ' : '10–30′'} <i class="l3"></i>${wk ? '2½ ώ+' : '30′+'}${wk ? ' · ένα τετράγωνο = μία εβδομάδα' : ' · ανά μέρα'}</div>`; };
   const actList = (A) => (A.length ? `<div class="usacts">${A.map(([k, n]) => `<div><span>${esc(k)}</span><b>${n}</b></div>`).join('')}</div>` : '<p class="mu">Καμία ενέργεια.</p>');
-  const deny = (el) => { el.innerHTML = '<h2>Χωρίς πρόσβαση</h2><p class="mu">Αυτή η οθόνη είναι μόνο για τον διαχειριστή.</p>'; };
+  const deny = (el) => { el.innerHTML = '<h2>Χωρίς πρόσβαση</h2><p class="mu">Αυτή η οθόνη είναι για τον διαχειριστή και όποιον έχει το δικαίωμα «Χρήση εφαρμογής».</p>'; };
   const ICO = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
 
   PL.register('usage', {

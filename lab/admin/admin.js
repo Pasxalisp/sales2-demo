@@ -18,7 +18,8 @@
   const u = PL.u, esc = u.esc, TF = PL.teamFigures;
   const ROOM = matchMedia('(min-width: 760px)');   // τάμπλετ (όρθιο ή πλάγιο) και υπολογιστής
   const ADMIN = !!me.admin, ALL = me.role === 'director' || ADMIN, LEADS = me.role === 'lead' || ALL;   // ALL: όλες οι ομάδες (διευθυντής, διαχειριστής)
-  if (!LEADS && !ADMIN) return;
+  const USE = ADMIN || !!(O.has && O.has('usage'));   // «Χρήση εφαρμογής»: διαχειριστής ή όποιος έχει το δικαίωμα (28/11)
+  if (!LEADS && !USE) return;
   const m0 = (n) => Math.round(+n || 0).toLocaleString('el-GR') + ' €';
   const pct = (a, b) => (b ? Math.round(a / b * 100) : 0);
   const sum = (L, f) => L.reduce((a, x) => a + (+f(x) || 0), 0);
@@ -42,6 +43,8 @@
     clock: SV('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
     search: SV('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
     chev: SV('<path d="M9 6l6 6-6 6"/>'),
+    key: SV('<circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M17 6l3 3M14.5 8.5l2 2"/>'),
+    fix: SV('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
   };
 
   /* ---------- νούμερα: πωλητές που βλέπει ο συνδεδεμένος, με τα στοιχεία τους (μία φορά σε κάθε άνοιγμα) ---------- */
@@ -142,12 +145,17 @@
         g.L.forEach((r) => sub.push({ k: 'member', p: { id: r.x.id, scope: ALL ? '*' : g.t.id }, t: short(r.x.name), full: r.x.name, r: r.f.fl ? r.p + '%' : '—', c: r.st.lvl, dot: r.st.lvl })); });
       S.push({ k: 'sellers', t: 'Πωλητές', i: IC.seller, sub, search: true });
     }
+    const PERM = ALL && !!O.PERMS && !!PL.pages.perms;   // «Δικαιώματα»: διευθυντής και διαχειριστής (lab/team, όπου υπάρχουν)
+    if (ADMIN || PERM || USE) S.push({ h: 'Ρυθμίσεις' });
     if (ADMIN) {
-      S.push({ h: 'Ρυθμίσεις' });
       const U = O.users().slice().sort((a, b) => a.name.localeCompare(b.name, 'el'));
       S.push({ k: 'users', t: 'Χρήστες και ρόλοι', i: IC.users, search: true,
-        sub: [{ k: 'useredit', p: { id: '' }, t: '+ Νέος χρήστης', cls: 'admnew' }].concat(U.map((x) => ({ k: 'useredit', p: { id: x.id }, t: x.name, r: x.admin ? 'διαχ.' : { director: 'διευθ.', lead: 'υπεύθ.', sales: '' }[x.role] || '', off: !x.active }))) });
-      S.push({ k: 'usage', t: 'Χρήση εφαρμογής', i: IC.usage });
+        sub: [{ k: 'useredit', p: { id: '' }, t: '+ Νέος χρήστης', cls: 'admnew' }].concat(U.map((x) => ({ k: 'useredit', p: { id: x.id }, t: x.name, r: x.admin ? 'διαχ.' : { director: 'διευθ.', lead: 'υπεύθ.', sales: '', tech: 'τεχν.', techlead: 'υπ. τεχν.' }[x.role] || '', off: !x.active }))) });
+    }
+    if (PERM) S.push({ k: 'perms', t: 'Δικαιώματα', i: IC.key });
+    if (ADMIN && O.fixClient && PL.pages.fixc) S.push({ k: 'fixc', t: 'Διόρθωση πελάτη', i: IC.fix });
+    if (USE) S.push({ k: 'usage', t: 'Χρήση εφαρμογής', i: IC.usage });
+    if (ADMIN) {
       if (O.history) S.push({ k: 'history', t: 'Ιστορικό αλλαγών', i: IC.clock });   // μόνο με βάση (lab/history)
       if (O.errors) S.push({ k: 'errors', t: 'Σφάλματα', i: IC.alert });   // μόνο με βάση (lab/errors)
     }
@@ -218,7 +226,7 @@
 
   /* ---------- Το πρόγραμμα ---------- */
   const VIEWS = { overview, sellers: sellersView, teams: teamsView, member: sellerView, useredit: userView };
-  const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'errors', 'history', 'overview', 'sellers']);
+  const INNER = new Set(['team', 'teams', 'member', 'memcat', 'users', 'useredit', 'usage', 'usageuser', 'errors', 'history', 'overview', 'sellers', 'perms', 'fixc']);
   let swap = null;   // ανοιχτή Διαχείριση: άλλη σελίδα στη θέση της τωρινής, χωρίς να γεμίσει το «Πίσω» (προηγούμενος / επόμενος πωλητής)
 
   PL.register('admin', {
@@ -357,7 +365,7 @@
     /* με βάση οι πωλητές έρχονται λίγο μετά το άνοιγμα: «φορτώνω…» και ξαναγράφεται μόλις φτάσουν */
     const sub = () => { const D = LEADS && TF.ok() ? load() : { L: [], teams: [] };
       const who = ALL ? (D.teams.length > 1 ? D.teams.length + ' ομάδες · ' : '') : 'Η ομάδα μου · ';
-      return [LEADS ? (TF.ok() ? (D.L.length ? `${who}${D.L.length} πωλητές · στόχος ${groupPct(D.L)}%` : '') : 'φορτώνω…') : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : ''].filter(Boolean).join(' · '); };
+      return [LEADS ? (TF.ok() ? (D.L.length ? `${who}${D.L.length} πωλητές · στόχος ${groupPct(D.L)}%` : '') : 'φορτώνω…') : '', ADMIN ? O.users().filter((x) => x.active).length + ' χρήστες' : '', !LEADS && USE ? 'Χρήση εφαρμογής' : ''].filter(Boolean).join(' · '); };
     const b = document.createElement('button'); b.className = 'admentry'; b.type = 'button';
     b.innerHTML = `<span class="admei">${IC.overview}</span><span class="admet"><b>Διαχείριση</b><small>${esc(sub())}</small></span><span class="admec">${IC.chev}</span>`;
     if (!TF.ok()) O.teamReady.then(() => { const sm = b.querySelector('small'); if (b.isConnected && sm) sm.textContent = sub(); });

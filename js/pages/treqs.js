@@ -1,7 +1,8 @@
 /* Σελίδες αιτημάτων τεχνικού (27/11/2026, js/treq.js):
    «Αιτήματα» (treqs) = η λίστα του τεχνικού (κάτω μπάρα): Νέα · Ραντεβού ανά πόλη · Σε αναμονή · Ολοκληρωμένα.
    «Αίτημα» (treq) = ένα αίτημα, για τεχνικό και πωλητή: πελάτης (Κλήση, Οδηγίες), σημείωμα, κατηγορίες ✓ φέτος/πέρσι, πρόοδος.
-   Τεχνικός: Αποδοχή · Ραντεβού · Αναβολή · Ολοκληρώθηκε (με υποχρεωτική αναφορά). Πωλητής: βλέπει τα βήματα και την αναφορά, ακυρώνει. */
+   Τεχνικός: Αποδοχή · Ραντεβού · Αναβολή · Ολοκληρώθηκε (με υποχρεωτική αναφορά). Πωλητής: βλέπει τα βήματα και την αναφορά, ακυρώνει.
+   Υπεύθυνος τεχνικών (28/11): η ίδια λίστα για ΟΛΟΥΣ τους τεχνικούς, ανά τεχνικό (με μετρητές), μόνο ανάγνωση. */
 (function () {
   const PL = window.PL, u = PL.u, S = PL.store, D = PL.dlg, esc = u.esc, T = () => PL.treq;
   const COLS = ['treq', 'clients'];
@@ -9,10 +10,11 @@
   const pill = (r) => `<span class="trp ${T().cls(r)}">${esc(T().label(r))}</span>`;
   const short = (s, n) => { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
 
+  const first = (n) => String(n || '').split(' ')[0];
   function card(id, r) {
-    const c = r.c || {};
+    const c = r.c || {}, from = T().isLead() ? first(r.sname) + ' → ' + first(r.tname) : 'από ' + first(r.sname);
     return `<div class="card" data-tr="${esc(id)}"><div class="row"><span class="nm">${esc(c.name)}</span>${pill(r)}</div>` +
-      `<div class="mu">${esc(c.city)}${c.area ? ' · ' + esc(c.area) : ''} · από ${esc((r.sname || '').split(' ')[0])} · ${esc(u.fd(r.sent).slice(0, 5))}</div>` +
+      `<div class="mu">${esc(c.city)}${c.area ? ' · ' + esc(c.area) : ''} · ${esc(from)} · ${esc(u.fd(r.sent).slice(0, 5))}</div>` +
       (r.note ? `<div class="trnote"><b>Σημείωμα</b>${esc(short(r.note, 140))}</div>` : '') + '</div>';
   }
 
@@ -24,14 +26,22 @@
       el.innerHTML = `<h2 class="trh">${TI} Αιτήματα</h2><div class="trstripe"></div><div id="trl"></div>`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));
+      const lead = T().isLead(), sel = { t: '' };   /* υπεύθυνος: φίλτρο τεχνικού ('' = όλοι) */
       const paint = () => {
-        const L = T().list(), by = (st) => L.filter(([, r]) => st.includes(r.st)), lim = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+        const A = T().list(), L = sel.t ? A.filter(([, r]) => r.tid === sel.t) : A, by = (st) => L.filter(([, r]) => st.includes(r.st)), lim = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
         const nw = by(['new']), ap = by(['appt']).sort((a, b) => (a[1].appt < b[1].appt ? -1 : 1)), wt = by(['acc', 'post']);
         const dn = by(['done', 'cancel']).filter(([, r]) => (r.upd || '').slice(0, 10) >= lim);
         /* ραντεβού ανά πόλη (κανόνας Πασχάλη: ομαδοποίηση ανά πόλη), πόλεις με τη σειρά του πρώτου ραντεβού */
         const cities = []; ap.forEach(([, r]) => { const k = (r.c && r.c.city) || ''; if (!cities.includes(k)) cities.push(k); });
         const grp = (t, rows) => (rows.length ? `<p class="trg">${t} (${rows.length})</p>` + rows.map(([id, r]) => card(id, r)).join('') : '');
-        $('#trl').innerHTML = (L.length ? '' : '<p class="mu">Δεν σου έχουν στείλει ακόμα αίτημα. Μόλις σου στείλει ένας πωλητής, θα έρθει εδώ.</p>') +
+        /* υπεύθυνος: ένα κουτί ανά τεχνικό (ανοιχτά · ραντεβού · νέα), πάτημα = μόνο αυτού */
+        const techs = []; A.forEach(([, r]) => { if (!techs.some((t) => t.id === r.tid)) techs.push({ id: r.tid, name: r.tname || '' }); });
+        techs.sort((a, b) => a.name.localeCompare(b.name, 'el'));
+        const cnt = (tid, st) => A.filter(([, r]) => r.tid === tid && st.includes(r.st)).length;
+        const head = !lead ? '' : `<div class="trtechs">${techs.map((t) => `<button class="trtk${sel.t === t.id ? ' on' : ''}" data-tk="${esc(t.id)}"><b>${esc(t.name)}</b>` +
+          `<span>${cnt(t.id, ['new', 'acc', 'appt', 'post'])} ανοιχτά · ${cnt(t.id, ['appt'])} ραντεβού${cnt(t.id, ['new']) ? ' · <em>' + cnt(t.id, ['new']) + ' νέα</em>' : ''}</span></button>`).join('')}</div>` +
+          (sel.t ? '<p><button class="shlink" data-tk="">‹ Όλοι οι τεχνικοί</button></p>' : '');
+        $('#trl').innerHTML = head + (L.length ? '' : `<p class="mu">${lead ? 'Δεν υπάρχουν αιτήματα ακόμα.' : 'Δεν σου έχουν στείλει ακόμα αίτημα. Μόλις σου στείλει ένας πωλητής, θα έρθει εδώ.'}</p>`) +
           grp('Νέα', nw) +
           (ap.length ? `<p class="trg">Ραντεβού (${ap.length})</p>` + cities.map((k) => `<div class="trcity">${esc(k)}</div>` + ap.filter(([, r]) => ((r.c && r.c.city) || '') === k).map(([id, r]) => card(id, r)).join('')).join('') : '') +
           grp('Σε αναμονή', wt) +
@@ -40,7 +50,10 @@
       };
       paint();
       const offs = COLS.map((c) => S.on(c, paint));
-      el.addEventListener('click', (ev) => { const c = ev.target.closest('[data-tr]'); if (c) PL.nav.push('treq', { id: c.dataset.tr }); });
+      el.addEventListener('click', (ev) => {
+        const k = ev.target.closest('[data-tk]'); if (k) { sel.t = sel.t === k.dataset.tk ? '' : k.dataset.tk; paint(); return; }
+        const c = ev.target.closest('[data-tr]'); if (c) PL.nav.push('treq', { id: c.dataset.tr });
+      });
       return () => offs.forEach((f) => f());
     },
   });
@@ -54,8 +67,9 @@
       const paint = () => {
         const r = T().get(id);
         if (!r) { el.innerHTML = '<div class="warn"><b>Δεν βρέθηκε το αίτημα</b>Ίσως δεν έχουν φορτώσει ακόμα τα δεδομένα.</div>'; return; }
-        const tech = T().isTech(), c0 = r.c || {}, c = PL.model.byId(r.cid) || Object.assign({ i: r.cid }, c0), open = T().open(r);
-        const who = tech ? `Από <b>${esc(r.sname)}</b> · ${esc(u.fd(r.sent))}` : `Στον τεχνικό <b>${esc(r.tname)}</b> · στάλθηκε ${esc(u.fd(r.sent))}`;
+        const tech = T().isTech(), lead = T().isLead(), c0 = r.c || {}, c = PL.model.byId(r.cid) || Object.assign({ i: r.cid }, c0), open = T().open(r);
+        const who = lead ? `Από <b>${esc(r.sname)}</b> στον τεχνικό <b>${esc(r.tname)}</b> · ${esc(u.fd(r.sent))}`
+          : tech ? `Από <b>${esc(r.sname)}</b> · ${esc(u.fd(r.sent))}` : `Στον τεχνικό <b>${esc(r.tname)}</b> · στάλθηκε ${esc(u.fd(r.sent))}`;
         const log = (r.log || []).slice().reverse().map((x) => `<div class="mu">${esc(u.fd(x.at.slice(0, 10)).slice(0, 5))} ${esc(x.at.slice(11, 16))} · ${esc(x.st === 'new' ? 'Στάλθηκε' : T().ST[x.st] || x.st)}</div>`).join('');
         let acts = '';
         if (tech && open) {
@@ -69,7 +83,7 @@
           if (ui.form === 'rep') acts += '<div class="trform"><label for="trrep">Τι έγινε στην επίσκεψη</label><textarea id="trrep" rows="6" placeholder="Τι είπατε, τι δείξατε, τι χρειάζεται ο πελάτης…"></textarea>' +
             '<p class="mu" style="margin:4px 0 0">Υποχρεωτικό. Το βλέπει ο πωλητής και μένει στο ιστορικό του πελάτη.</p><p><button class="pri" id="trrepok">Αποθήκευση και ολοκλήρωση</button> <button id="trx">Άκυρο</button></p></div>';
         }
-        if (!tech && open) acts = '<div class="tracts"><button id="trcancel">Ακύρωση αιτήματος</button></div>';
+        if (!tech && !lead && open) acts = '<div class="tracts"><button id="trcancel">Ακύρωση αιτήματος</button></div>';
         const keep = el.querySelector('#trrep') && el.querySelector('#trrep').value;
         el.innerHTML = PL.sheet.head(c0, esc(c0.addr) + (c0.addr && c0.city ? ', ' : '') + esc(c0.city), pill(r)) +
           PL.sheet.acts(PL.sheet.call(c), PL.sheet.map(c)) +
