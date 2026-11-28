@@ -20,17 +20,28 @@ main>.page>header:first-child,
 main>.page>.pnav:first-child+header {
   margin: 0 -14px 10px;
 }
-/* «Να πω» στη λίστα: πράσινο όπως ο τζίρος, αλλά αναδιπλώνεται (το .tz δεν σπάει γραμμή). */
-.say {
-  color: var(--ac);
-  font-weight: 600;
-  font-size: calc(14 * var(--u));
-}
-.due {
-  color: var(--rd);
-  font-weight: 600;
-  font-size: calc(13 * var(--u));
-}
+/* Κάρτα πελάτη στη λίστα (28/11/2026, εκδοχή Α): όνομα/πόλη αριστερά, ποσό + κουτάκι ▲/▼% δεξιά, γραμμές με εικονίδιο, κατηγορίες σε κουτάκια */
+#list .ccd { padding: 14px 14px 12px; border-radius: 16px; }
+.ccr { display: flex; align-items: flex-start; gap: 10px; }
+.ccl { flex: 1; min-width: 0; }
+.ccd .nm { font-size: calc(16.5 * var(--u)); font-weight: 700; line-height: 1.25; }
+.ccv { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 1px; }
+.ccv .tz { font-size: calc(17 * var(--u)); font-weight: 700; color: var(--ac); }
+.ypill { font-size: calc(13 * var(--u)); font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.ypill.up { background: color-mix(in srgb, var(--ac) 14%, transparent); color: var(--ac); }
+.ypill.dn { background: color-mix(in srgb, var(--rd) 13%, transparent); color: var(--rd); }
+.ccs { flex: none; margin: -4px -6px 0 0; padding: 0 6px; border: 0; background: none; font-size: calc(22 * var(--u)); line-height: 1; color: var(--mu); }
+.ccs.on { color: #e3a21a; }
+.cci { display: flex; align-items: flex-start; gap: 7px; color: var(--mu); font-size: calc(14 * var(--u)); margin-top: 6px; line-height: 1.35; }
+.ccl .cci { margin-top: 4px; }
+.cci-i { flex: none; display: inline-flex; width: 16px; height: 16px; margin-top: 1px; }
+.cci-i svg { width: 16px; height: 16px; }
+/* «Να πω» πράσινο όπως ο τζίρος, «Επικοινωνία» που πέρασε κόκκινο· αναδιπλώνονται */
+.cci.say { color: var(--ac); font-weight: 600; }
+.cci.due { color: var(--rd); font-weight: 600; }
+.lchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.lch { font-size: calc(13 * var(--u)); padding: 4px 10px; border-radius: 999px; background: var(--bd); color: var(--tx); white-space: nowrap; }
+.lch.lost { background: color-mix(in srgb, var(--rd) 13%, transparent); color: var(--rd); font-weight: 600; }
 #cp {
   position: absolute;
   left: 0;

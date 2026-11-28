@@ -52,14 +52,22 @@
         const L = base.filter((c) => !onlyT || tz.get(c.i) > 0);
         L.sort((a, b) => (!!b.prospect - !!a.prospect) || (tz.get(b.i) - tz.get(a.i)) || a.name.localeCompare(b.name, 'el'));
         const SOS = S.all('sos'), TECH = S.all('tech'), today = u.today();
+        /* κάρτα πελάτη (εκδοχή Α του δείγματος, απόφαση Πασχάλη 28/11/2026): όνομα και πόλη αριστερά, ποσό με κουτάκι ▲/▼% δεξιά,
+           εικονίδια σε τελευταία επίσκεψη / «Να πω» / Επικοινωνία, κατηγορίες σε κουτάκια (όσες δουλεύει· κόκκινες όσες σταμάτησε) */
+        const CAT = M.catAll(), IC = (n) => `<span class="cci-i">${PL.icon[n]}</span>`;
+        const lost = (id) => { const d = CAT[id] || {}; return M.CATN.filter((k) => Array.isArray(d[k]) && (([a, b, f]) => a > 0 && f >= M.WORKED && b <= 0)(d[k].map((x) => +x || 0))).map((k) => M.CATL[k] || k); };
+        const chip = (l, x) => `<span class="lch${x ? ' lost' : ''}">${x ? '✕ ' : ''}${esc(l)}${x ? ' · σταμάτησε' : ''}</span>`;
         $('#list').innerHTML = L.map((c) => {
           const e = M.entries(c.i), nx = M.nextOf(c.i), due = nx && nx <= today, y = M.yoy(c), w = M.works(c.i), td = e.find((z) => z.todo), z = tz.get(c.i);
-          return `<div class="card" data-id="${esc(c.i)}"><div class="row"><span class="nm">${TECH[c.i] ? `<span class="ti">${PL.icon.tech16}</span> ` : ''}${PL.prospects.tag(c)}${esc(c.name)}</span>` +
-            `<span style="display:flex;align-items:center;gap:4px"><span class="tz">${z > 0 ? money(z) : ''}</span>${PL.can('sos') ? `<button data-star="${esc(c.i)}" aria-label="SOS" style="padding:0 4px;border:none;background:none;font-size:calc(22*var(--u));line-height:1">${SOS[c.i] ? '⭐' : '☆'}</button>` : ''}</span></div>` +
-            `<div class="mu">${esc(c.city)}</div>` + (M.out(c.i) ? `<div class="dn">🚫 ${esc(M.OUTL[M.out(c.i)])}</div>` : '') + (y ? `<div class="${y.cls}" style="font-size:calc(14*var(--u))">Goldwell ${y.txt} (${M.dd(y)}) σε σχέση με πέρσι</div>` : '') +
-            (w.length ? `<div class="mu">Δουλεύει: ${esc(w.join(', '))}</div>` : '') +
-            (e.length ? `<div class="mu">Τελευταία: ${esc(e[0].d)}${e[0].products ? ' · ' + esc(e[0].products) : ''}</div>` : '') +
-            (td ? `<div class="say">Να πω: ${esc(td.todo)}</div>` : '') + (due ? `<div class="due">Επικοινωνία: ${esc(nx)}</div>` : '') + '</div>';
+          const ls = MON ? lost(c.i) : [], chips = [...new Set(w.concat(ls))].map((l) => chip(l, ls.includes(l))).join('');
+          return `<div class="card ccd" data-id="${esc(c.i)}"><div class="ccr"><div class="ccl"><div class="nm">${TECH[c.i] ? `<span class="ti">${PL.icon.tech16}</span> ` : ''}${PL.prospects.tag(c)}${esc(c.name)}</div>` +
+            `<div class="cci">${IC('pin')}${esc(c.city)}</div></div>` +
+            `<div class="ccv">${z > 0 ? `<span class="tz">${money(z)}</span>` : ''}${y ? `<span class="ypill ${y.cls}">${esc(y.txt)}</span>` : ''}</div>` +
+            (PL.can('sos') ? `<button class="ccs${SOS[c.i] ? ' on' : ''}" data-star="${esc(c.i)}" aria-label="SOS">${SOS[c.i] ? '★' : '☆'}</button>` : '') + '</div>' +
+            (M.out(c.i) ? `<div class="dn">🚫 ${esc(M.OUTL[M.out(c.i)])}</div>` : '') +
+            (e.length ? `<div class="cci">${IC('cal')}Τελευταία επίσκεψη: ${esc(u.fd(e[0].d))}${e[0].products ? ' · ' + esc(e[0].products) : ''}</div>` : '') +
+            (td ? `<div class="cci say">${IC('msg')}Να πω: ${esc(td.todo)}</div>` : '') + (due ? `<div class="cci due">${IC('phone')}Επικοινωνία: ${esc(u.fd(nx))}</div>` : '') +
+            (chips ? `<div class="lchips">${chips}</div>` : '') + '</div>';
         }).join('');
         $('#cnt').textContent = L.length + ' πελάτες';
         const ct = $('#ct');
