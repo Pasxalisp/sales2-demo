@@ -1,0 +1,1891 @@
+/* base.css — Κοινά: θέμα (χρώματα ανοιχτό/σκούρο), βασικά στοιχεία, κουμπιά, κάρτες, πεδία, κάτω μπάρα, μενού «Νέο», παράθυρα, μηνύματα, κινήσεις.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+
+/* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ----
+   Αυτόματο = όπως το κινητό (prefers-color-scheme). Η επιλογή «Θέμα» στις Ρυθμίσεις βάζει data-theme="light"|"dark" στο <html>
+   (core.js, PL.theme). ΚΑΘΕ κανόνας σκούρου γράφεται δύο φορές: μέσα στο @media με :root:not([data-theme="light"]) και με
+   :root[data-theme="dark"]. Το color-scheme κάνει και τα πεδία, τις λίστες επιλογής και τις μπάρες κύλισης του browser να ακολουθούν. */
+:root {
+  color-scheme: light;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #171a18;
+    --card: #212623;
+    --tx: #ecefe9;
+    --mu: #9aa29b;
+    --ac: #6cc0a6;
+    --ac2: #25352f;
+    --bd: #333a36;
+    --rd: #ef8a77;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #171a18;
+  --card: #212623;
+  --tx: #ecefe9;
+  --mu: #9aa29b;
+  --ac: #6cc0a6;
+  --ac2: #25352f;
+  --bd: #333a36;
+  --rd: #ef8a77;
+}
+
+/* ---- Μέγεθος γραμμάτων ----
+   Όλα τα γράμματα γράφονται ως «N × --u» (π.χ. calc(14 * var(--u)) = 14 στιγμές στο κανονικό μέγεθος) και μεγαλώνουν μαζί.
+   --u ακολουθεί το κινητό: στο iPhone/iPad το «Μέγεθος κειμένου» των Ρυθμίσεων (font: -apple-system-body, κανονικό = 17),
+   αλλού το μέγεθος γραμμάτων του browser (κανονικό = 16). Η επιλογή «Μέγεθος γραμμάτων» στις Ρυθμίσεις της εφαρμογής
+   (data-fs 1–7 στο <html>, core.js) το αντικαθιστά: τα ίδια 7 σκαλιά με το iPhone (14, 15, 16, 17 = κανονικό, 19, 21, 23).
+   Όρια: από 0,82 έως 1,5 φορές (το 1,5 φτάνει μόνο με τα μεγάλα μεγέθη Προσβασιμότητας του κινητού).
+   --uc: για τα στοιχεία που έχουν σταθερή θέση (κάτω μπάρα, σήματα με αριθμό) μεγαλώνει ως 1,15 φορές.
+   Κανόνες (ενότητα 17ζ προδιαγραφών): κουτιά χωρίς σταθερό ύψος όταν έχουν κείμενο (min-height), σειρές που κατεβαίνουν
+   όταν δεν χωράνε (flex-wrap), μεγάλα κείμενα που αναδιπλώνονται ή κόβονται με «…». */
+:root {
+  --u: clamp(.82px, calc(1rem / 16), 1.5px);
+  --uc: min(var(--u), 1.15px);
+}
+/* μόνο iPhone/iPad (οθόνη αφής): στο Mac το -apple-system-body είναι 13 στιγμές και θα μίκραινε όλα τα γράμματα */
+@supports (font: -apple-system-body) and (-webkit-touch-callout: none) {
+  :root:not([data-fs]) {
+    font: -apple-system-body;
+    --u: clamp(.82px, calc(1rem / 17), 1.5px);
+  }
+}
+/* σκαλί N του iPhone (στιγμές X) → X/17 του κανονικού, σε μονάδες των 16 */
+:root[data-fs="1"] { font-size: 13.18px; }
+:root[data-fs="2"] { font-size: 14.12px; }
+:root[data-fs="3"] { font-size: 15.06px; }
+:root[data-fs="4"] { font-size: 16px; }
+:root[data-fs="5"] { font-size: 17.88px; }
+:root[data-fs="6"] { font-size: 19.76px; }
+:root[data-fs="7"] { font-size: 21.65px; }
+
+/* ---- Βασικά στοιχεία σελίδας ---- */
+* {
+  box-sizing: border-box;
+}
+/* Μεγέθη επικεφαλίδων για όλες τις σελίδες (κινητό πρώτα): τίτλος σελίδας h1/h2 = 20px, ενότητα h3 = 16px.
+   Χωρίς αυτά ο browser δίνει 24px/19px και ο τίτλος με τον υπότιτλο πιάνουν μισή οθόνη στο κινητό. */
+h1,
+h2 {
+  font-size: calc(20 * var(--u));
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+h2 {
+  margin-top: 4px;
+}
+h3 {
+  font-size: calc(16 * var(--u));
+  line-height: 1.25;
+  margin: 14px 0 6px;
+}
+input,
+textarea,
+select {
+  width: 100%;
+  font: inherit;
+  /* ποτέ κάτω από 16: αλλιώς το iPhone μεγεθύνει τη σελίδα όταν πατάς στο πεδίο */
+  font-size: max(16px, calc(16 * var(--u)));
+  color: var(--tx);
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  padding: 10px;
+}
+button {
+  font: inherit;
+  border-radius: 10px;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--tx);
+  padding: 10px 14px;
+}
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid var(--ac);
+  color: var(--ac);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 6px 6px 0;
+}
+label {
+  display: block;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  margin: 10px 0 4px;
+}
+input:not([type]),
+input[type=text],
+input[type=search],
+textarea {
+  padding-right: 38px !important;
+}
+html {
+  scroll-padding-top: env(safe-area-inset-top,0px);
+  overflow-x: hidden;
+  max-width: 100%;
+  overscroll-behavior-x: none;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font: calc(16 * var(--u))/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  overflow-x: clip;
+  max-width: 100%;
+  overscroll-behavior-x: none;
+}
+html,
+body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* ---- Κοινά κομμάτια (κάρτες, γραμμές, ετικέτες, κουμπιά) ---- */
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 0 2px;
+}
+/* Ρυθμίσεις → μέγεθος γραμμάτων: ρυθμιστικό με 7 σκαλιά όπως στο iPhone (μικρό Α … μεγάλο Α) */
+.fsbox {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 14px 16px 8px;
+  border-radius: 18px;
+  background: var(--ac2);
+}
+.fsbox .fsa {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mu);
+}
+.fsbox .fsa.big {
+  font-size: 26px;
+}
+.fsbox input[type="range"] {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--ac);
+}
+.fsbox .fsdots {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+.fsbox .fsdots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--mu);
+  opacity: .5;
+}
+.fsbox.auto {
+  opacity: .55;
+}
+/* Ρυθμίσεις σε ενότητες (28/11/2026): μικρός τίτλος πάνω από κάθε ομάδα καρτών */
+.dsec h3 {
+  margin: 18px 2px 8px;
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  color: var(--mu);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.dsec:first-of-type h3 {
+  margin-top: 6px;
+}
+/* Ειδοποιήσεις (28/11/2026): κάρτα ανά ομάδα, μία γραμμή ανά ειδοποίηση με διακόπτη on/off (input.sw, role="switch") */
+.ncard {
+  cursor: default;
+  margin-bottom: 10px;
+}
+.ncard > b {
+  display: block;
+  margin-bottom: 2px;
+}
+.ntog {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  margin: 0;
+  border-top: 1px solid var(--bd);
+  color: var(--tx);
+  font-size: calc(15 * var(--u));
+  cursor: pointer;
+}
+.ncard > b + .ntog {
+  border-top: 0;
+}
+.ntog small {
+  display: block;
+  color: var(--mu);
+  font-size: calc(12.5 * var(--u));
+  margin-top: 1px;
+}
+input.sw {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 50px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 15px;
+  background: var(--bd);
+  cursor: pointer;
+  transition: background .2s;
+}
+input.sw::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  transition: transform .2s;
+}
+input.sw:checked {
+  background: var(--ac);
+}
+input.sw:checked::after {
+  transform: translateX(20px);
+}
+input.sw:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+input.sw:disabled {
+  opacity: .5;
+}
+@media (prefers-reduced-motion: reduce) {
+  input.sw, input.sw::after { transition: none; }
+}
+.fsauto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--tx);
+}
+.fsauto input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--ac);
+}
+
+/* σειρά επιλογών που κατεβαίνει όταν δεν χωράει (αντί να κυλάει δεξιά) */
+.chips.wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+.chip {
+  flex: none;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  color: var(--tx);
+  border-radius: 99px;
+  padding: 6px 12px;
+  font-size: calc(14 * var(--u));
+}
+.chip.on {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+}
+main>.page>h2:first-of-type {
+  margin-top: 4px;
+}
+/* πάνω μέρος σελίδας όπως στο iPhone: «‹ Πίσω» αριστερά, «•••» δεξιά (core.js, topNav) */
+.pnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  margin: -4px 0 2px;
+}
+.pnav .pbk {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: 75%;
+  margin: 0 0 0 -6px;
+  padding: 6px 6px 6px 0;
+  background: none;
+  border: 0;
+  color: var(--ac);
+  font-size: calc(17 * var(--u));
+  font-weight: 500;
+}
+.pnav .pbk span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pnav .pbk svg {
+  flex: none;
+}
+/* μεγάλος τίτλος (π.χ. «Εκκρεμότητες · Ημερολόγιο») σε στενό κινητό: σπάει σε δύο γραμμές αντί να κοπεί */
+.pnav .pti {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: calc(16 * var(--u));
+  line-height: 1.2;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  pointer-events: none;
+}
+.pnav.ptt .pbk {
+  flex: none;
+  max-width: 34%;
+}
+.pnav.ptt+h2 {
+  display: none;
+}
+.pnav .pmo {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  color: var(--ac);
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+.nm {
+  font-weight: 600;
+  /* μεγάλο όνομα (ή μεγάλα γράμματα): σπάει μέσα στη λέξη αντί να σπρώξει έξω τα δεξιά (τζίρος, ☆) */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.mu {
+  color: var(--mu);
+  font-size: calc(14 * var(--u));
+}
+.tz {
+  color: var(--ac);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pri {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+}
+.pr {
+  background: var(--ac2);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: calc(13 * var(--u));
+}
+.dbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  border: 1px solid var(--bd);
+  border-radius: 22px;
+  padding: 6px 6px 6px 12px;
+  background: var(--card,var(--bg));
+}
+.dbar textarea {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  resize: none;
+  padding: 6px 0;
+  margin: 0;
+  outline: none;
+  min-height: 0;
+  box-shadow: none;
+}
+.rb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.ctab {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: calc(13 * var(--u));
+  margin-top: 4px;
+}
+.ctab th,
+.ctab td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--bd);
+  text-align: right;
+  white-space: nowrap;
+}
+.ctab th:first-child,
+.ctab td:first-child {
+  text-align: left;
+}
+.ctab th {
+  font-weight: 600;
+  color: var(--mu);
+}
+.mb {
+  padding: 10px 12px;
+  border-radius: 14px;
+  margin: 8px 0;
+  max-width: 88%;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  font-size: calc(15 * var(--u));
+}
+.mbc {
+  background: var(--ac2);
+}
+.warn {
+  background: var(--ac2);
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: calc(14 * var(--u));
+}
+.up {
+  color: var(--ac);
+  font-weight: 600;
+}
+.dn {
+  color: var(--rd);
+  font-weight: 600;
+}
+.pk {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.pk:active {
+  background: var(--ac2);
+}
+/* Πρόγραμμα ημέρας: περιοχές μιας πόλης (▸) */
+.pk .pkx {
+  margin: -6px -6px -6px 8px;
+  padding: 4px 10px;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--mu);
+  font-size: calc(15 * var(--u));
+}
+.pk.pkp {
+  padding-left: 34px;
+  background: var(--ac2);
+}
+:root[data-theme="dark"] .gv {
+  --g1: #1c5cab;
+  --g2: #3987e5;
+  --gu: #3987e5;
+  --gd: #e66767;
+  --gtr: #2c322f;
+}
+.ol .oc {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+.ol .oc .t {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+}
+.ol .oc .m {
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  margin-top: 2px;
+}
+.ol h3 {
+  margin: 16px 0 4px;
+  font-size: calc(16 * var(--u));
+}
+/* σειρά μικρών κουμπιών ενεργειών σε κάρτα (πρόγραμμα, εκτός προγράμματος): μία γραμμή, χωρίς σπάσιμο κειμένου */
+.acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.acts button {
+  padding: 6px 12px;
+  font-size: calc(14 * var(--u));
+  border-radius: 9px;
+  white-space: nowrap;
+}
+/* εορτολόγιο: μπάρα μίας γραμμής κάτω από το ημερολόγιο (Εκκρεμότητες · Ημερολόγιο)· πάτημα → η λίστα από κάτω */
+.ndbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(217,169,31,.1);
+  border: 1px solid rgba(217,169,31,.45);
+  font-size: calc(14 * var(--u));
+}
+.ndbar[data-ndbar] {
+  cursor: pointer;
+}
+.ndbar.on {
+  border-radius: 10px 10px 0 0;
+}
+.ndbar .tx {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ndbar .ndc {
+  color: var(--mu);
+}
+.ndlist {
+  padding: 4px 10px 8px;
+  border: 1px solid rgba(217,169,31,.45);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+}
+/* τάμπλετ: η λίστα δεξιά, χωρίς τη μπάρα από πάνω */
+.ndlist.ndsolo {
+  margin: 4px 0 10px;
+  border-top: 1px solid rgba(217,169,31,.45);
+  border-radius: 10px;
+}
+.ndlist .ndr:first-of-type {
+  border-top: 0;
+}
+/* ανοιχτή μπάρα γιορτών: «Γιορτάζουν» (όλα τα ονόματα, με τα υποκοριστικά) και «Προτάσεις» (οι πελάτες) */
+.ndlist .ndh {
+  margin: 8px 0 3px;
+  font-weight: 600;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+}
+.ndlist .ndnm {
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.5;
+  padding-bottom: 4px;
+}
+.ndlist .ndft {
+  font-size: calc(13 * var(--u));
+  margin-top: 4px;
+}
+.ndr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(217,169,31,.3);
+}
+.ndr.done {
+  opacity: .55;
+}
+.ndr .ndn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ndr .ndn .nm {
+  cursor: pointer;
+  font-size: calc(14.5 * var(--u));
+}
+.ndr button,
+.ndr a.btn {
+  margin: 0;
+  padding: 6px 10px;
+  font-size: calc(14 * var(--u));
+}
+.ndr a.ndw {
+  border-color: #23875a;
+  color: #23875a;
+  font-weight: 600;
+}
+.ndfx {
+  margin-top: 8px;
+  font-size: calc(13 * var(--u));
+}
+/* Εκκρεμότητες · Ημερολόγιο: ο μήνας μένει σταθερός πάνω, κυλάει μόνο η λίστα της μέρας (όχι με πολύ μεγάλα γράμματα) */
+.cal {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--bd);
+}
+html.big .cal {
+  position: static;
+}
+.calh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.calh b {
+  flex: 1;
+  text-align: center;
+  font-size: calc(17 * var(--u));
+}
+.calh button {
+  margin: 0;
+  padding: 4px 14px;
+}
+.calh .chip {
+  padding: 4px 10px;
+}
+.calg {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  text-align: center;
+}
+.calw {
+  font-size: calc(12 * var(--u));
+  color: var(--mu);
+  margin-bottom: 3px;
+}
+.cday {
+  -webkit-touch-callout: none;   /* παρατεταμένο πάτημα = νέα εκκρεμότητα, όχι μενού του κινητού */
+  -webkit-user-select: none;
+  user-select: none;
+  margin: 0;
+  padding: 4px 0 3px;
+  min-height: calc(42 * var(--u));
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: calc(15 * var(--u));
+}
+.cday.t {
+  border: 2px solid var(--ac);
+  font-weight: 700;
+}
+.cday.s {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: var(--bg);   /* ανοιχτό πάνω στο σκούρο πράσινο, σκούρο πάνω στο ανοιχτό πράσινο του σκούρου θέματος */
+}
+.cmk {
+  display: flex;
+  gap: 2px;
+  min-height: 6px;
+}
+.cmk i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.cday.s .cmk i {
+  background: var(--bg) !important;
+}
+.cmk .r { background: #e0584a; }
+.cmk .b { background: #3b82d6; }
+.cmk .g { background: #2e9a68; }
+.cmk .y { background: #dca321; }
+.cmk .p { background: #8a5cc8; }
+/* εβδομάδα ↔ μήνας (28/11/2026): μέρες άλλου μήνα στην εβδομάδα αχνές· κουμπί «▾ Μήνας / ▴ Εβδομάδα» κάτω από τις μέρες */
+.cday.o span:first-child {
+  opacity: .5;
+}
+.calwk {
+  display: block;
+  margin: 4px auto 0;
+  padding: 4px 14px;
+  border: 0;
+  background: none;
+  color: var(--mu);
+  font-size: calc(13 * var(--u));
+}
+.cdh {
+  margin: 12px 0 6px;
+}
+.cdsub {
+  margin: 8px 0 4px;
+  font-weight: 600;
+  font-size: calc(13.5 * var(--u));
+}
+/* καρτέλα: αλλαγή γιορτής· μικρό κουμπί με αόρατο select από πάνω (ανοίγει τη λίστα του κινητού) */
+.ndbtn {
+  position: relative;
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--tx);
+  font-size: calc(13.5 * var(--u));
+}
+.ndbtn select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+/* σήμα προσωρινού πελάτη (δεν έχει περάσει στο orders), δίπλα στο όνομα σε κάθε σελίδα */
+.notord {
+  display: inline-block;
+  background: rgba(201,113,28,.14);
+  color: #b5651d;
+  border-radius: 8px;
+  padding: 1px 7px;
+  font-size: calc(12 * var(--u));
+  font-weight: 700;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) .notord {
+    background: rgba(240,163,94,.18);
+    color: #f0a35e;
+  }
+}
+:root[data-theme="dark"] .notord {
+  background: rgba(240,163,94,.18);
+  color: #f0a35e;
+}
+.appt {
+  display: inline-block;
+  background: #1f4d6b;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1px 8px;
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.callb {
+  border-color: var(--ac);
+  color: var(--ac);
+  margin: 0 6px 6px 0;
+}
+/* επιλογή τηλεφώνου στο παράθυρο κλήσης (#calll), όταν ο πελάτης έχει περισσότερα από ένα */
+#calll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#calll:not(:empty) {
+  margin-bottom: 12px;
+}
+a.btn.callo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+}
+.ti {
+  display: inline-flex;
+  vertical-align: -3px;
+}
+:root {
+  --pmon: #2563c9;
+  --pmonbg: rgba(37,99,201,.09);
+  --pday: #23875a;
+  --pdaybg: rgba(35,135,90,.10);
+  --tech: #a87400;
+  --techbg: rgba(242,190,40,.16);
+  --sem: #7a3fb8;
+  --sembg: rgba(122,63,184,.09);
+  --camp: #b5470f;
+  --campbg: rgba(214,96,30,.10);
+  --nbk: #eef0f2;
+  --nbkf: #4a5560;
+  --nbkb: #d5dadf;
+  --nhm: #e3eefc;
+  --nhmf: #2563c9;
+  --nhmb: #bcd3f3;
+  --bg: #f6f4ef;
+  --card: #fff;
+  --tx: #1f2421;
+  --mu: #6b716c;
+  --ac: #2f6f5e;
+  --ac2: #e3efe9;
+  --bd: #e2ded4;
+  --rd: #b3402e;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top,0px);
+  padding-bottom: env(safe-area-inset-bottom,0px);
+  /* Απόσταση της κάτω μπάρας από το κάτω άκρο: 14px· σε iPhone με γραμμή αρχικής οθόνης (εφαρμογή από εικονίδιο) κάθεται
+     λίγο πάνω από τη γραμμή, όχι 14px πάνω από όλο το περιθώριο. Ό,τι στοιβάζεται πάνω από την μπάρα μετριέται από εδώ. */
+  --navb: max(14px, calc(env(safe-area-inset-bottom,0px) - 12px));
+  --gl: rgba(255,255,255,.3);
+  --glb: rgba(255,255,255,.75);
+  --gli: rgba(255,255,255,.9);
+  --glt: #3d464d;
+  --glm: rgba(255,255,255,.78);
+}
+
+/* ---- Θέμα: χρώματα (ανοιχτό / σκούρο) ---- */
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) {
+    --pmon: #6ea2f0;
+    --pmonbg: rgba(110,162,240,.13);
+    --pday: #4fc48c;
+    --pdaybg: rgba(79,196,140,.13);
+    --tech: #f2c94c;
+    --techbg: rgba(242,201,76,.14);
+    --sem: #b98cf0;
+    --sembg: rgba(185,140,240,.13);
+    --camp: #ff9d61;
+    --campbg: rgba(255,157,97,.14);
+    --nbk: #2c3236;
+    --nbkf: #c9d1d8;
+    --nbkb: #3d454b;
+    --nhm: #1d2c42;
+    --nhmf: #8db8f5;
+    --nhmb: #2e4566;
+    --gl: rgba(40,46,50,.34);
+    --glb: rgba(255,255,255,.12);
+    --gli: rgba(255,255,255,.08);
+    --glt: #d3dade;
+    --glm: rgba(40,46,50,.82);
+  }
+}
+:root[data-theme="dark"] {
+  --pmon: #6ea2f0;
+  --pmonbg: rgba(110,162,240,.13);
+  --pday: #4fc48c;
+  --pdaybg: rgba(79,196,140,.13);
+  --tech: #f2c94c;
+  --techbg: rgba(242,201,76,.14);
+  --sem: #b98cf0;
+  --sembg: rgba(185,140,240,.13);
+  --camp: #ff9d61;
+  --campbg: rgba(255,157,97,.14);
+  --nbk: #2c3236;
+  --nbkf: #c9d1d8;
+  --nbkb: #3d454b;
+  --nhm: #1d2c42;
+  --nhmf: #8db8f5;
+  --nhmb: #2e4566;
+  --gl: rgba(40,46,50,.34);
+  --glb: rgba(255,255,255,.12);
+  --gli: rgba(255,255,255,.08);
+  --glt: #d3dade;
+  --glm: rgba(40,46,50,.82);
+}
+
+/* ---- Κοινά κομμάτια (κάρτες, γραμμές, ετικέτες, κουμπιά) ---- */
+.chips,
+[style*="overflow-x:auto"],
+[style*="overflow:auto"],
+#cp,
+.ctab {
+  touch-action: pan-x pan-y pinch-zoom;
+}
+main {
+  padding: 12px 14px 120px;
+  margin: auto;
+  overflow-x: clip;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.dlbar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bd);
+  overflow: hidden;
+  margin: 6px 0 4px;
+  position: relative;
+}
+.dlbar i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+.dlbar s {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--tx);
+  opacity: .55;
+}
+.dlr {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+}
+.dlbox {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(122,63,184,.08);
+  border: 1px solid rgba(122,63,184,.35);
+}
+.dlbtns {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.dlbtns button {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border-color: #7a3fb8;
+  color: #7a3fb8;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.dlbtns .dlsb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-color: #23875a;
+  color: #23875a;
+}
+.dlbtns .dlsb span {
+  font-size: calc(12 * var(--u));
+  font-weight: 500;
+  opacity: .85;
+}
+.dlig {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.dlig button {
+  margin: 0;
+  padding: 4px 10px;
+  font-size: calc(12.5 * var(--u));
+  color: var(--mu);
+  border-color: var(--bd);
+  background: transparent;
+}
+#dsh {
+  z-index: 20;
+  min-height: calc(100vh - 132px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+}
+
+/* ---- Κάτω μπάρα, «Νέο», κουμπί ανοιχτού προγράμματος, μπάρα κύλισης ---- */
+#nav {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: var(--navb);
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  align-items: center;
+  padding: 7px 4px;
+  border-radius: 30px;
+  background: var(--gl);
+  -webkit-backdrop-filter: blur(9px) saturate(160%);
+  backdrop-filter: blur(9px) saturate(160%);
+  border: 1px solid var(--glb);
+  box-shadow: 0 6px 22px rgba(0,0,0,.12),inset 0 1px 0 var(--gli);
+  max-width: 520px;
+  margin: 0 auto;
+  transition: transform .2s,opacity .2s;
+}
+#nav.off {
+  transform: translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+}
+#nav .nb {
+  touch-action: manipulation;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--glt);
+  font: 600 calc(10.5 * var(--uc)) -apple-system,system-ui,sans-serif;
+  position: relative;
+  min-height: 44px;
+  justify-content: center;
+}
+/* 5 ενότητες σε πολύ μικρή οθόνη (π.χ. 320px): λίγο μικρότερα γράμματα, για να μην ακουμπούν οι λέξεις */
+@media (max-width: 359px) {
+  #nav .nb {
+    font-size: calc(10 * var(--uc));
+    letter-spacing: -.2px;
+  }
+}
+#nav .nb:disabled {
+  opacity: .35;
+}
+#nav .nb:active {
+  transform: scale(.92);
+}
+#nav .bdg {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: 6px;
+  min-width: calc(17 * var(--uc));
+  height: calc(17 * var(--uc));
+  border-radius: 9px;
+  background: #d9382f;
+  color: #fff;
+  font: 700 calc(10.5 * var(--uc))/calc(17 * var(--uc)) -apple-system,system-ui,sans-serif;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+#pm {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgba(20,30,26,.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+#pm.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+#pmb {
+  position: fixed;
+  left: 50%;
+  bottom: calc(86px + var(--navb));
+  transform: translate(-50%,16px) scale(.97);
+  width: min(320px,88vw);
+  z-index: 41;
+  border-radius: 24px;
+  padding: 10px;
+  background: var(--glm);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glb);
+  box-shadow: 0 14px 40px rgba(0,0,0,.22),inset 0 1px 0 var(--gli);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s,transform .2s;
+}
+#pmb.on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%,0) scale(1);
+}
+#pmb .pt {
+  font: 600 calc(12 * var(--u)) -apple-system,system-ui,sans-serif;
+  color: var(--mu);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: 4px 10px 6px;
+}
+#pmb button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 0;
+  background: none;
+  border-radius: 14px;
+  text-align: left;
+  color: var(--tx);
+  font-size: calc(16 * var(--u));
+  font-weight: 600;
+}
+#pmb button:active {
+  background: rgba(47,111,94,.12);
+}
+#pmb .pe {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(47,111,94,.13);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(19 * var(--u));
+  flex: none;
+}
+#nvo {
+  position: fixed;
+  right: 18px;
+  bottom: calc(84px + var(--navb));
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.9);
+  background: #23875a;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(35,135,90,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform .2s,opacity .2s;
+}
+#nvo:active {
+  transform: scale(.92);
+}
+/* + στο Ημερολόγιο (28/11/2026): ίδια θέση και μέγεθος με το «Ανοιχτό πρόγραμμα» */
+#tfab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(84px + var(--navb));
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--ac);
+  color: var(--bg);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  touch-action: manipulation;
+}
+#tfab:active {
+  transform: scale(.92);
+}
+#nvo .oc {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: #fff;
+  color: #1f6b45;
+  border: 1.5px solid #23875a;
+  border-radius: 10px;
+  font: 700 calc(11 * var(--uc))/calc(16 * var(--uc)) -apple-system,system-ui,sans-serif;
+  padding: 0 5px;
+  white-space: nowrap;
+}
+#nvo .ol {
+  position: absolute;
+  right: 64px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--gl);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--glb);
+  color: var(--tx);
+  font: 600 calc(12 * var(--u)) -apple-system,system-ui,sans-serif;
+  padding: 5px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0,0,0,.12);
+  opacity: 0;
+  transition: opacity .3s;
+}
+#nvo.hint .ol {
+  opacity: 1;
+}
+/* η ενότητα όπου βρίσκεσαι: πράσινο κείμενο και απαλό πλαίσιο που πιάνει όλο το κουμπί, εικονίδιο και λέξη
+   (απόφαση Πασχάλη 15/11)· το πλαίσιο (.npill) γλιστράει στο νέο κουμπί (17/11). Χρώμα από το --ac, ταιριάζει σε ανοιχτό και σκούρο. */
+#nav .nb.on {
+  margin: -2px 3px;
+  color: var(--ac);
+}
+/* το πλαίσιο γλιστράει από κουμπί σε κουμπί (απόφαση 17/11, core.js: pill) */
+#nav .npill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 20px;
+  background: color-mix(in srgb,var(--ac) 15%,transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: transform .28s cubic-bezier(.3,.8,.3,1),width .28s,height .28s,opacity .15s;
+}
+#nav .npill.vis {
+  opacity: 1;
+}
+#nav .npill.np0 {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #nav .npill {
+    transition: none;
+  }
+}
+#nav .nb.on>svg {
+  stroke-width: 2.3;
+}
+#nav .nhome>svg {
+  margin-top: -2px;
+}
+#pmb .pd {
+  display: block;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 400;
+  color: var(--mu);
+  margin-top: 1px;
+}
+#fs {
+  position: fixed;
+  right: 0;
+  top: calc(64px + env(safe-area-inset-top,0px));
+  bottom: calc(90px + var(--navb));
+  width: 30px;
+  z-index: 38;
+  display: none;
+  touch-action: none;
+}
+#fs i {
+  position: absolute;
+  right: 4px;
+  width: 7px;
+  height: 52px;
+  border-radius: 6px;
+  background: rgba(47,111,94,.55);
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  transition: width .15s,right .15s,opacity .3s,background .15s;
+  opacity: .55;
+}
+#fs.act i,
+#fs.drag i {
+  opacity: 1;
+}
+#fs.drag i {
+  width: 12px;
+  right: 3px;
+  background: #2f6f5e;
+}
+@media (prefers-color-scheme:dark) {
+  :root:not([data-theme="light"]) #fs i {
+    background: rgba(111,196,162,.6);
+  }
+  :root:not([data-theme="light"]) #fs.drag i {
+    background: #6fc4a2;
+  }
+}
+:root[data-theme="dark"] #fs i {
+  background: rgba(111,196,162,.6);
+}
+:root[data-theme="dark"] #fs.drag i {
+  background: #6fc4a2;
+}
+
+/* ---- Παράθυρα, μηνύματα, ειδοποίηση, τικ ολοκλήρωσης ---- */
+#clrx {
+  position: fixed;
+  z-index: 60;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--mu);
+  color: var(--card);
+  font-size: calc(15 * var(--u));
+  line-height: 1;
+  opacity: .85;
+}
+#cel {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20,40,32,.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity .25s;
+}
+#cel.on {
+  opacity: 1;
+}
+#cel .cb {
+  background: var(--card,#fff);
+  color: var(--tx,#1f2421);
+  border-radius: 28px;
+  padding: 30px 26px 24px;
+  width: min(320px,84vw);
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(0,0,0,.25);
+  transform: scale(.8);
+  transition: transform .35s cubic-bezier(.2,1.4,.4,1);
+}
+#cel.on .cb {
+  transform: scale(1);
+}
+#cel svg {
+  width: 128px;
+  height: 128px;
+  display: block;
+  margin: 0 auto 14px;
+}
+#cel .cc {
+  fill: #2fa36b;
+  transform-origin: 50% 50%;
+  transform: scale(0);
+  animation: celC .45s cubic-bezier(.2,1.5,.4,1) .1s forwards;
+}
+#cel .ck {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 90;
+  stroke-dashoffset: 90;
+  animation: celK .45s ease-out .5s forwards;
+}
+#cel h3 {
+  margin: 0 0 6px;
+  font-size: calc(24 * var(--u));
+  color: #2f8a5c;
+}
+#cel p {
+  font-size: calc(17 * var(--u));
+  margin: 0;
+  color: var(--mu,#5f6661);
+  line-height: 1.4;
+}
+#cel small {
+  display: block;
+  margin-top: 14px;
+  font-size: calc(12 * var(--u));
+  color: var(--mu,#8a8f8b);
+}
+@media (prefers-reduced-motion:reduce) {
+  #cel .cc,
+  #cel .ck {
+    animation: none;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+#ntoast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(86px + var(--navb));
+  transform: translateX(-50%);
+  z-index: 60;
+  background: var(--tx);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-size: calc(14 * var(--u));
+  width: max-content;   /* σε μία γραμμή όσο χωράει, όχι στενό στη μέση */
+  max-width: min(86vw, 520px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  display: none;
+}
+/* κουμπί μέσα στο μήνυμα (π.χ. «Αναίρεση», js/trash.js) */
+#ntoast .tact {
+  margin: -4px -6px -4px 8px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 700;
+  font-size: calc(14 * var(--u));
+}
+
+/* ---- Φύλλα δεξιά (τάμπλετ): sheet.js και τα φύλλα visit, task, debt, deal, techreq, buyer, salesitem ---- */
+.shh {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0 10px;
+}
+.shh > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.shh h2 {
+  margin: 0;
+  font-size: calc(19 * var(--u));
+}
+.shstep {
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  white-space: nowrap;
+  margin-top: 6px;
+}
+.sha {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+.sha>button,
+.sha>a.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  font-size: calc(16 * var(--u));
+  border-radius: 14px;
+  margin: 0;
+}
+.sha svg {
+  width: 22px;
+  height: 22px;
+}
+.sha.n2 {
+  grid-template-columns: 1fr 1fr;
+}
+.sha.n4 {
+  grid-template-columns: 1fr 1fr 1fr 1.3fr;
+}
+/* μεγάλα γράμματα (html.big): δύο κουμπιά ανά σειρά· το μονό τελευταίο (π.χ. «✓ Έγινε») πιάνει όλη τη σειρά */
+html.big .sha,
+html.big .sha.n4 {
+  grid-template-columns: 1fr 1fr;
+}
+html.big .sha > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.sha .shdone {
+  background: #23875a;
+  border-color: #23875a;
+  color: #fff;
+  font-weight: 700;
+}
+.sha .shdone.on {
+  background: var(--ac2);
+  border-color: var(--ac2);
+  color: var(--ac);
+}
+.shfacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.shchip {
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: calc(13.5 * var(--u));
+  background: var(--card);
+}
+.shchip.dn {
+  color: var(--rd);
+}
+.shchip.up {
+  color: var(--ac);
+}
+.shchip.dl {
+  color: var(--sem);
+}
+.shchip.cm {
+  color: var(--camp);
+}
+/* σήμα καμπάνιας «%» μέσα σε κείμενο (PL.pct) */
+.pct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 50%;
+  background: var(--camp);
+  color: var(--card);
+  font-size: .78em;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: .08em;
+}
+.shbox {
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 0 0 10px;
+  background: var(--card);
+}
+.shbox>h3 {
+  margin: 0 0 8px;
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  font-weight: 600;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+/* φόρμα «Νέα εκκρεμότητα» (js/pages/taskedit.js) */
+.shbox>h3 .tew {
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.tewhen {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tewhen input[type=date] {
+  flex: 1;
+  min-width: 0;
+}
+.tewhen input[type=time] {
+  flex: none;
+  width: calc(120 * var(--u));
+}
+.tecl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ac2);
+}
+.tecl button {
+  flex: none;
+  padding: 4px 10px;
+}
+.teact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 16px;
+}
+.teact .pri {
+  padding: 12px 22px;
+  font-size: calc(16 * var(--u));
+}
+.shbox.hi {
+  background: var(--ac2);
+  border-color: transparent;
+}
+.shbox textarea {
+  width: 100%;
+  min-height: 74px;
+  margin: 6px 0;
+}
+.shrow {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.shnav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.shlink {
+  color: var(--ac);
+  font-weight: 600;
+  background: none;
+  border: 0;
+  padding: 6px 0;
+}
+
+/* μεγάλα νούμερα (υπόλοιπο, συμφωνία, είδος) */
+.shk {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 10px 0 0;
+}
+.shk>div {
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--card);
+}
+.shk span {
+  display: block;
+  font-size: calc(12.5 * var(--u));
+  color: var(--mu);
+}
+.shk b {
+  font-size: calc(20 * var(--u));
+}
+/* γραμμές μέσα σε κουτί: είδος αριστερά, νούμερα δεξιά */
+.shr {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+}
+.shr > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* λίστα που ανοίγει φύλλο (δεξί μέρος χωρίς επιλογή) */
+.shl>.shli {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--bd);
+  cursor: pointer;
+}
+.shl>.shli:last-child {
+  border-bottom: 0;
+}
+.shli>div {
+  min-width: 0;
+}
+.shli .mu {
+  font-size: calc(13 * var(--u));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shli>span {
+  white-space: nowrap;
+  font-weight: 600;
+}
+.shpre {
+  white-space: pre-wrap;
+  font: inherit;
+  margin: 0 0 8px;
+}
+
+/* ---- Οριζόντια οθόνη (τάμπλετ): ίδια συνθήκη με το PL.WIDE στο core.js ----
+   Η μπάρα γίνεται κάθετη στα αριστερά. Σε σελίδα-λίστα με `split` (core.js) η λίστα είναι αριστερά, η λεπτομέρεια δεξιά,
+   και η καθεμία κυλά μόνη της. */
+@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
+  :root {
+    --rail: calc(96px + env(safe-area-inset-left,0px));
+  }
+  #nav {
+    left: calc(12px + env(safe-area-inset-left,0px));
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    width: 72px;
+    grid-template-columns: none;
+    grid-auto-flow: row;
+    gap: 6px;
+    padding: 10px 4px;
+    margin: 0;
+  }
+  #nav.off {
+    transform: translate(-140%,-50%);
+  }
+  main {
+    padding-left: var(--rail);
+    padding-bottom: 40px;
+  }
+  #dsh {
+    min-height: calc(100vh - 52px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  }
+  main.split {
+    display: grid;
+    grid-template-columns: minmax(300px,var(--paneL,34%)) minmax(420px,1fr);
+    height: calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    padding: 0 0 0 var(--rail);
+  }
+  main.split>.page {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 12px 18px 40px;
+  }
+  main.split>.page.paneL {
+    border-right: 1px solid var(--bd);
+  }
+  /* χερούλι πλάτους στηλών (core.js) */
+  #pdiv {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    z-index: 38;
+    cursor: col-resize;
+    touch-action: none;
+  }
+  #pdiv::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    width: 6px;
+    height: 44px;
+    margin-top: -22px;
+    border-radius: 3px;
+    background: var(--bd);
+  }
+  #pdiv.on::after,
+  #pdiv:hover::after {
+    background: var(--ac);
+  }
+  /* ό,τι είναι ανοιχτό δεξιά (core.js, markSel) */
+  main.split>.paneL .sel {
+    border-color: var(--ac);
+    box-shadow: inset 0 0 0 1px var(--ac);
+    background: var(--ac2);
+    border-radius: 12px;
+  }
+  main.split .pgempty {
+    margin-top: 38vh;
+    text-align: center;
+  }
+  #pmb {
+    left: calc(var(--rail) + 170px);
+    bottom: 24px;
+  }
+  /* «Ανοιχτό πρόγραμμα» και το + του Ημερολογίου: κάτω από την κάθετη μπάρα, για να μην κρύβουν τη λεπτομέρεια δεξιά. */
+  #nvo, #tfab {
+    left: calc(20px + env(safe-area-inset-left,0px));
+    right: auto;
+    bottom: 24px;
+  }
+  #nvo .ol {
+    left: 64px;
+    right: auto;
+  }
+  #ntoast {
+    bottom: 24px;
+  }
+  body:has(main.split) #fs {
+    display: none;
+  }
+}
+
+/* ---- Κίνηση σελίδων στο κινητό (js/slide.js, απόφαση 17/11): πιο μέσα → από δεξιά, «Πίσω» → το αντίθετο ----
+   Η «φωτογραφία» (.pgsnap) της σελίδας που φεύγει κάθεται από κάτω (ή από πάνω στο «Πίσω»). Ένα συμπαγές περίγραμμα στο
+   χρώμα του φόντου καλύπτει τα περιθώρια δεξιά-αριστερά της σελίδας, ώστε να μη φαίνεται η πίσω σελίδα στις άκρες. */
+@keyframes pg-in { from { transform: translateX(100%); } }
+@keyframes pg-out { to { transform: translateX(-28%); opacity: .5; } }
+@keyframes pg-back { from { transform: translateX(-28%); opacity: .5; } }
+@keyframes pg-away { to { transform: translateX(100%); } }
+.page.pgin,
+.page.pgback {
+  min-height: 100dvh;
+  background: var(--bg);
+}
+.page.pgin {
+  position: relative;
+  z-index: 21;
+  box-shadow: 0 0 0 16px var(--bg),-12px 0 30px rgba(0,0,0,.16);
+  animation: pg-in .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.page.pgback {
+  animation: pg-back .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.pgsnap {
+  position: fixed;
+  z-index: 20;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg);
+}
+.pgsnap > .page {
+  margin: 0;
+}
+.pgsnap.pgout {
+  animation: pg-out .34s cubic-bezier(.2,.8,.2,1) both;
+}
+.pgsnap.pgaway {
+  z-index: 22;
+  box-shadow: 0 0 0 16px var(--bg),-12px 0 30px rgba(0,0,0,.16);
+  animation: pg-away .34s cubic-bezier(.2,.8,.2,1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page.pgin,
+  .page.pgback,
+  .pgsnap {
+    animation: none;
+  }
+}
+
+/* ---- Κινήσεις ---- */
+@keyframes pbi { 0%{left:-35%}100%{left:100%} }
+@keyframes celC { to{transform:scale(1)} }
+@keyframes celK { to{stroke-dashoffset:0} }
+/* σελίδα «Οδηγίες» (js/help.js, 28/11/2026) */
+.hlp {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.5;
+}
+.hlp li {
+  margin-bottom: 10px;
+}
+/* Σεμινάρια κοινά (28/11/2026): άτομα ανά κομμωτήριο, δηλώσεις άλλων πωλητών, ποιος φτιάχνει σεμινάρια */
+.acppl { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: calc(14 * var(--u)); color: var(--mu); }
+.acppl button { min-width: 38px; padding: 4px 0; font-size: calc(18 * var(--u)); line-height: 1; }
+.acppl b { min-width: 22px; text-align: center; color: var(--tx); font-size: calc(16 * var(--u)); }
+.acoth { border-bottom: 1px solid var(--bd); padding: 8px 2px; }
+.acoth:last-child { border-bottom: 0; }
+.acmk { background: var(--card); border: 1px dashed var(--bd); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }

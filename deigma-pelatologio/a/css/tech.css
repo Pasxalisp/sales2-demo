@@ -1,0 +1,346 @@
+/* tech.css — Ενέργειες: τεχνικός, σεμινάρια, καμπάνιες.
+   Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
+/* αρχική «Ενέργειες»: τρεις κάρτες με εικονίδιο σε κύκλο, μετρητή και βελάκι */
+.hubk {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  padding: 16px 14px 16px 16px;
+  margin: 0 0 14px;
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  color: var(--tx);
+}
+.hubi {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hubi svg {
+  width: 28px;
+  height: 28px;
+}
+#hubt .hubi {
+  background: var(--techbg);
+  color: #c99a1e;
+}
+#hubs .hubi {
+  background: var(--sembg);
+  color: var(--sem);
+}
+#hubc .hubi {
+  background: var(--campbg);
+  color: var(--camp);
+}
+.hubx {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hubx b {
+  font-size: calc(17 * var(--u));
+}
+.hubx .mu {
+  font-size: calc(14 * var(--u));
+  line-height: 1.35;
+}
+.hubn {
+  flex: none;
+  align-self: flex-start;
+  min-width: 30px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--ac2);
+  color: var(--ac);
+  font-weight: 700;
+  text-align: center;
+}
+.hubc {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--mu);
+}
+/* σεμινάρια και καμπάνιες (actions.js): χρώμα του είδους, όνομα πελάτη → καρτέλα,
+   κατάσταση σε μικρά κουμπιά σε μία σειρά (το τρέχον χρωματισμένο), οι ολοκληρωμένες αχνές */
+[data-page="semlist"], [data-page="seminar"] {
+  --ak: var(--sem);
+  --akbg: var(--sembg);
+}
+[data-page="camplist"], [data-page="campaign"] {
+  --ak: var(--camp);
+  --akbg: var(--campbg);
+}
+[data-page="semlist"], [data-page="camplist"] {
+  z-index: 12;
+}
+[data-page="semlist"] h2, [data-page="camplist"] h2 {
+  color: var(--ak);
+}
+.acnm {
+  cursor: pointer;
+}
+.acseg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.acseg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 7px;
+  border-radius: 99px;
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.acseg button span {
+  font-size: calc(11 * var(--u));
+}
+.acseg button.on {
+  background: var(--akbg);
+  border-color: var(--ak);
+  color: var(--ak);
+  font-weight: 600;
+}
+.acold .card {
+  opacity: .7;
+}
+/* υπενθύμιση καμπάνιας στο κουτί του προγράμματος */
+.camp {
+  margin-top: 4px;
+  font-size: calc(13.5 * var(--u));
+  color: var(--camp);
+  font-weight: 600;
+}
+/* «Προσθήκη» στην επιλογή πελατών: κολλά κάτω, πάνω από την κάτω μπάρα. */
+.smbar {
+  position: sticky;
+  bottom: calc(70px + var(--navb));
+  background: var(--bg);
+  padding: 10px 0;
+}
+/* Οριζόντια οθόνη: η μπάρα είναι στο πλάι. */
+@media (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
+  .smbar {
+    bottom: 0;
+  }
+}
+/* Αιτήματα τεχνικού (27/11/2026, js/treq.js, js/pages/treqs.js, λίστα «Τεχνική υποστήριξη»): κατάσταση σε κάψουλα,
+   πρόοδος 4 βημάτων (Στάλθηκε → Το είδε → Ραντεβού → Ολοκλήρωση), σημείωμα σε κίτρινο κουτί, αναφορά σε πράσινο. */
+.trh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.trstripe {
+  height: 8px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(-45deg, #f2c94c 0 11px, #2b2b2b 11px 22px);
+  margin: -4px 0 12px;
+}
+.trp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--ac2);
+  color: var(--ac);
+}
+.trp.dr {
+  background: transparent;
+  border: 1px dashed var(--bd);
+  color: var(--mu);
+}
+.trp.ap {
+  background: var(--techbg);
+  color: var(--tech);
+}
+.trp.pp {
+  background: rgba(179,64,46,.10);
+  color: var(--rd);
+}
+.trnote, .trrep {
+  margin-top: 8px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.trnote {
+  background: var(--techbg);
+  border-left: 3px solid var(--tech);
+}
+.trrep {
+  background: var(--ac2);
+}
+.trnote b, .trrep b {
+  display: block;
+  font-size: calc(12 * var(--u));
+  margin-bottom: 2px;
+}
+.trnote b {
+  color: var(--tech);
+}
+.trrep b {
+  color: var(--ac);
+}
+.trst {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+.trst i {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bd);
+}
+.trst i.d {
+  background: var(--tech);
+}
+.trsl {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: calc(11 * var(--u));
+  color: var(--mu);
+  margin-top: 3px;
+}
+.trg {
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+  font-weight: 700;
+  margin: 16px 0 6px;
+}
+.trcity {
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  margin: 8px 0 4px;
+}
+.trdone summary {
+  cursor: pointer;
+}
+.tracts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.tracts .trb {
+  background: var(--tech);
+  border-color: var(--tech);
+  color: #1f2421;
+  font-weight: 600;
+}
+.trform {
+  margin-top: 8px;
+}
+.trwho {
+  margin-top: 8px;
+  font-size: calc(14 * var(--u));
+}
+.trappt {
+  margin: 8px 0 0;
+}
+.trcat {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(14.5 * var(--u));
+}
+.trcat th {
+  font-size: calc(12 * var(--u));
+  color: var(--mu);
+  font-weight: 600;
+  text-align: center;
+  padding: 4px;
+}
+.trcat td {
+  padding: 7px 4px;
+  border-top: 1px solid var(--bd);
+  text-align: center;
+}
+.trcat th:first-child, .trcat td:first-child {
+  text-align: left;
+}
+.trlost {
+  color: var(--tech);
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+}
+.trlog {
+  margin-top: 12px;
+}
+.trlog summary {
+  cursor: pointer;
+  color: var(--mu);
+  font-size: calc(14 * var(--u));
+}
+.trli {
+  padding: 8px 0;
+  border-top: 1px solid var(--bd);
+  cursor: pointer;
+}
+.trli:first-of-type {
+  border-top: 0;
+}
+/* συνεργαζόμενος τεχνικός πάνω-πάνω στην «Τεχνική υποστήριξη» (28/11/2026)· χωρίς επιλογή, κίτρινο πλαίσιο */
+.trmate {
+  margin-bottom: 12px;
+}
+.trmate select {
+  margin-top: 6px;
+}
+.trmate p {
+  margin: 6px 0 0;
+}
+.trmate.need {
+  border-color: var(--tech);
+  background: var(--techbg);
+}
+/* Υπεύθυνος τεχνικών (28/11/2026): ένα κουτί ανά τεχνικό με μετρητές· πάτημα = μόνο τα αιτήματα αυτού */
+.trtechs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.trtk {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+.trtk span {
+  font-size: calc(13 * var(--u));
+  color: var(--mu);
+}
+.trtk em {
+  font-style: normal;
+  color: #b7791f;
+  font-weight: 700;
+}
+.trtk.on {
+  border-color: var(--ac);
+  box-shadow: inset 0 0 0 1px var(--ac);
+}
