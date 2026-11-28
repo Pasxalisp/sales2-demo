@@ -73,9 +73,9 @@
   /* ---------- κάρτα στις Ρυθμίσεις ---------- */
   (PL.labActs = PL.labActs || []).push({ page: 'data', mount(box) {
     const card = document.createElement('div');
-    card.className = 'card'; card.id = 'pushc'; card.style.cssText = 'cursor:default;margin-bottom:10px';
+    card.className = 'card ncard'; card.id = 'pushc';   /* ίδιο ύφος με τις άλλες ειδοποιήσεις (js/pages/data.js, διακόπτης input.sw) */
     box.appendChild(card);
-    let busy = false, note = '';
+    let busy = false, note = '', want = null;   /* want: η θέση που πάτησε, όσο περιμένει τη συσκευή/βάση */
     async function paint() {
       if (!card.isConnected) return;
       const head = '<b>🔔 Ειδοποιήσεις με κλειστή εφαρμογή</b>', foot = note ? `<p class="mu" id="pushm">${esc(note)}</p>` : '';
@@ -91,21 +91,24 @@
       }
       const on = Notification.permission === 'granted' && !!(await current().catch(() => null));
       if (!card.isConnected) return;
-      card.innerHTML = head + (on
-        ? '<p class="mu">✅ Ενεργές σε αυτή τη συσκευή. Χτυπάνε την ώρα κάθε εκκρεμότητας και ραντεβού, ακόμη κι αν η εφαρμογή είναι κλειστή.</p><button id="pusht" class="pri">Δοκιμή</button> <button id="pushx">Απενεργοποίηση</button>'
-        : '<p class="mu">Για να χτυπάει η ώρα κάθε εκκρεμότητας και ραντεβού, ακόμη κι αν η εφαρμογή είναι κλειστή. Για αυτή τη συσκευή.</p><button id="pushon" class="pri">Ενεργοποίηση</button>') + foot;
-      card.querySelectorAll('button').forEach((b) => { b.disabled = busy; });
+      /* ένας διακόπτης (28/11/2026): ανοιχτός = ενεργές σε αυτή τη συσκευή· όταν είναι ανοιχτός, μικρό «Δοκιμή» από κάτω */
+      card.innerHTML = head + `<label class="ntog"><span>Ειδοποιήσεις σε αυτή τη συσκευή<small>Χτυπάνε την ώρα κάθε εκκρεμότητας και ραντεβού, ακόμη κι αν η εφαρμογή είναι κλειστή</small></span>` +
+        `<input type="checkbox" role="switch" class="sw" id="pushsw"${(busy && want != null ? want : on) ? ' checked' : ''}></label>` + (on ? '<p><button id="pusht">Δοκιμή</button></p>' : '') + foot;
+      card.querySelectorAll('button, input').forEach((b) => { b.disabled = busy; });
     }
     const run = (fn, done) => async () => {
       if (busy) return; busy = true; note = ''; paint();
       try { const r = await fn(); note = done(r); } catch (e) { note = (e && e.message) || String(e); }
       busy = false; paint();
     };
+    card.onchange = (ev) => {
+      if (ev.target.id !== 'pushsw') return;
+      want = ev.target.checked;
+      if (want) run(enable, () => 'Έτοιμο. Πάτα «Δοκιμή» για να δεις μία.')();
+      else run(disable, () => 'Απενεργοποιήθηκαν σε αυτή τη συσκευή.')();
+    };
     card.onclick = (ev) => {
-      const id = ev.target.id;
-      if (id === 'pushon') run(enable, () => 'Έτοιμο. Πάτα «Δοκιμή» για να δεις μία.')();
-      else if (id === 'pushx') run(disable, () => 'Απενεργοποιήθηκαν σε αυτή τη συσκευή.')();
-      else if (id === 'pusht') run(P.test, (r) => (r.error ? r.error : r.sent ? 'Στάλθηκε. Θα έρθει σε λίγα δευτερόλεπτα.' : 'Δεν έφτασε σε καμία συσκευή. Απενεργοποίησε και ενεργοποίησε ξανά.'))();
+      if (ev.target.id === 'pusht') run(P.test, (r) => (r.error ? r.error : r.sent ? 'Στάλθηκε. Θα έρθει σε λίγα δευτερόλεπτα.' : 'Δεν έφτασε σε καμία συσκευή. Απενεργοποίησε και ενεργοποίησε ξανά.'))();
     };
     paint();
     return () => card.remove();

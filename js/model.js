@@ -194,11 +194,13 @@
 
   /* Εκκίνηση: φορτώνει ό,τι χρειάζεται η αρχική και η μπάρα (λίστα πελατών και εκκρεμότητες). */
   M.boot = async function () {
-    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout', 'ndfix', 'treq'];
+    const cols = ['clients', 'prospects', 'notes', 'tasks', 'balnotes', 'balances', 'plans', 'xout', 'ndfix', 'treq', 'settings'];
     /* ο γενικός τζίρος (M.tz) και το Goldwell (M.gold) χρειάζονται brands/cats σε ΚΑΘΕ σελίδα, όπως στην παλιά */
     ['brands', 'cats'].forEach((c) => PL.store.use(c));
-    const upd = () => { const n = M.dueList().length; PL.bar.setBadge(n); PL.bus.emit('due', n); };
+    /* ο αριθμός στη μπάρα κλείνει από Ρυθμίσεις → Ειδοποιήσεις (PL.notify 'badge')· το 'due' (π.χ. ειδοποιήσεις στο κινητό) στέλνεται πάντα */
+    const upd = () => { const n = M.dueList().length; PL.bar.setBadge(PL.notify.on('badge') ? n : 0); PL.bus.emit('due', n); };
     cols.forEach((c) => PL.store.on(c, upd));
+    PL.bus.on('notify', (k) => { if (k === 'badge') upd(); });
     await Promise.all(cols.map((c) => PL.store.use(c)));
     upd();
   };

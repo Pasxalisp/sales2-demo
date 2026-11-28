@@ -301,24 +301,6 @@
 .trli:first-of-type {
   border-top: 0;
 }
-.trtog {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 9px 0;
-  margin: 0;
-  border-top: 1px solid var(--bd);
-  color: var(--tx);
-  font-size: calc(15 * var(--u));
-}
-.trtog input {
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  flex: none;
-  accent-color: var(--ac);
-}
 /* συνεργαζόμενος τεχνικός πάνω-πάνω στην «Τεχνική υποστήριξη» (28/11/2026)· χωρίς επιλογή, κίτρινο πλαίσιο */
 .trmate {
   margin-bottom: 12px;

@@ -3,18 +3,16 @@
    Όταν το υπόλοιπο ενός πελάτη ΜΕΙΩΘΕΙ σε σχέση με την τελευταία φορά που το είδε αυτή η συσκευή, ήρθε κατάθεση:
    μήνυμα «💶 ΠΕΛΑΤΗΣ: κατάθεση 2.000,00 €» (αν είναι πολλές: η μεγαλύτερη + πόσες ακόμα).
    Τι είδε η συσκευή: localStorage 'pl.balSeen.<χρήστης>' = {πελάτης: ποσό}. Πρώτη φορά σε μια συσκευή: κρατά μόνο τα ποσά (χωρίς μήνυμα).
-   Ρύθμιση: Ρυθμίσεις → Ειδοποιήσεις → «Κατάθεση πελάτη» (settings/notify.dep· ανοιχτή αν δεν την άλλαξες).
+   Ρύθμιση: Ρυθμίσεις → Ειδοποιήσεις → «Κατάθεση πελάτη» (PL.notify 'dep', js/notify.js· ανοιχτή αν δεν την άλλαξες).
    Ο τεχνικός δεν βλέπει ποσά (PL.can('money')): δεν τρέχει. */
 (function () {
-  const PL = window.PL, u = PL.u, S = PL.store, db = () => PL.adapter.db;
+  const PL = window.PL, u = PL.u, S = PL.store;
   const org = () => PL.adapter.org, key = () => 'pl.balSeen.' + ((org() && org().me && org().me.id) || PL.adapter.userId() || 'me');
   const read = () => { try { return JSON.parse(localStorage.getItem(key()) || 'null'); } catch (e) { return null; } };
   const write = (m) => { try { localStorage.setItem(key(), JSON.stringify(m)); } catch (e) { /* χωρίς μνήμη: ξαναμετρά την επόμενη φορά */ } };
   const amounts = () => { const m = {}; Object.entries(S.all('balances')).forEach(([id, b]) => { if (b) m[id] = Math.round((+b.amount || 0) * 100) / 100; }); return m; };
 
   PL.deposit = {
-    on: () => { const s = S.get('settings', 'notify') || {}; return s.dep !== false; },
-    async set(on) { const d = Object.assign({}, S.get('settings', 'notify') || {}, { dep: !!on }); await db().set('settings/notify', d); S.put('settings', 'notify', d); },
     /* καταθέσεις από την τελευταία φορά: [{id, name, v}] (η μεγαλύτερη πρώτη)· ενημερώνει τι είδε η συσκευή */
     check() {
       if (!S.loaded('balances')) return [];   /* πριν φτάσουν τα υπόλοιπα δεν συγκρίνει (ούτε σβήνει όσα είχε δει) */
@@ -29,7 +27,7 @@
   function watch() {
     if (!PL.can('money')) return;
     Promise.all([S.use('balances'), S.use('settings'), S.use('clients'), S.use('prospects')]).then(() => {
-      const tell = () => { const L = PL.deposit.check(); if (L.length && PL.deposit.on()) PL.dlg.toast(PL.deposit.say(L)); };
+      const tell = () => { const L = PL.deposit.check(); if (L.length && PL.notify.on('dep')) PL.dlg.toast(PL.deposit.say(L)); };
       tell(); S.on('balances', tell);
     });
   }
