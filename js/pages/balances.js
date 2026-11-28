@@ -62,7 +62,7 @@
     aside: (el) => PL.debt.aside(el),   /* debt.js: υποσχέσεις, χωρίς ενημέρωση, υπερβάσεις */
     render(el) {
       /* εμφάνιση 28/11/2026: κάρτα συνόλων, φίλτρα με αριθμούς, κάρτα πελάτη με κουτάκι ενημέρωσης (κόκκινο: υπέρβαση) */
-      el.innerHTML = `<h2 class="bhd"><span class="bhi">${PL.icon.euro}</span>Υπόλοιπα πελατών</h2><div id="bsum"></div><div id="bchips" class="bchips"></div>
+      el.innerHTML = `<h2 class="pgh"><span class="pghi">${PL.icon.euro}</span>Υπόλοιπα πελατών</h2><div id="bsum"></div><div id="bchips" class="bchips"></div>
 <div class="bsrch"><span>${LENS}</span><input id="bq" placeholder="Αναζήτηση πελάτη ή πόλης…"></div><div id="bl"></div><div id="bsmall"></div>`;
       const $ = (s) => el.querySelector(s);
       COLS.forEach((c) => S.use(c));

@@ -14,7 +14,7 @@
   PL.register('products', {
     title: 'Προϊόντα',
     render(el) {
-      el.innerHTML = `<h2 class="prh"><span class="prhi">${IC.bottle}</span>Προϊόντα</h2>
+      el.innerHTML = `<h2 class="pgh"><span class="pghi">${IC.bottle}</span>Προϊόντα</h2>
         <button id="pnew" class="prn"><span class="prni">${IC.cart}</span><b>Νέα παραγγελία</b><span class="prv">${IC.chev}</span></button><div id="ppk" class="prk" hidden></div>
         ${tool('whobought', IC.lens, 'Αναζήτηση προϊόντος', 'Ποιος πελάτης αγόρασε ένα προϊόν, ανά περιοχή')}
         ${tool('sales', IC.bars, 'Πωλήσεις ανά κατηγορία', 'Πόσα πούλησα φέτος σε σχέση με πέρσι και ποια ακριβώς')}`;

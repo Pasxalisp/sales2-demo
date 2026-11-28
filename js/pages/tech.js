@@ -8,11 +8,13 @@
   const COLS = ['clients', 'prospects', 'tech', 'seminars', 'campaigns', 'treq', 'settings'];
   const TI = (n) => `<svg viewBox="0 0 24 24" width="${n}" height="${n}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="18" r="2.6"/><circle cx="11.5" cy="18" r="2.6"/><path d="M6.8 16 13.5 3.5"/><path d="M9.7 16 3 3.5"/><rect x="15.5" y="3.5" width="6.5" height="3" rx="1"/><path d="M16.6 6.5v8M18.2 6.5v8M19.8 6.5v8M21.4 6.5v8"/></svg>`;
 
+  /* εμφάνιση 28/11/2026 (εικόνα Πασχάλη): τίτλος με ψαλίδι, κάρτες με εικονίδιο σε πράσινο κουτάκι, γραμμή, μετρητής, › */
+  const SCI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>';
   PL.register('tech', {
     title: 'Ενέργειες',
     render(el) {
       const chev = '<svg class="hubc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
-      el.innerHTML = `<h2>Ενέργειες</h2>
+      el.innerHTML = `<h2 class="pgh"><span class="pghi">${SCI}</span>Ενέργειες</h2>
 <button class="hubk" id="hubt"><span class="hubi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><span class="hubx"><b>Επίσκεψη τεχνικού</b><span class="mu">Πελάτες που χρειάζονται τεχνικό</span></span><span class="hubn" id="hubtc"></span>${chev}</button>
 <button class="hubk" id="hubs"><span class="hubi"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 1 8.5 12 14l9-4.5V16h2V8.5z"/><path d="M5.5 12.2V16c0 1.8 3 3.5 6.5 3.5s6.5-1.7 6.5-3.5v-3.8L12 15.5z"/></svg></span><span class="hubx"><b>Σεμινάρια</b><span class="mu">Σεμινάρια Ακαδημίας και ποιοι πελάτες ενδιαφέρονται</span></span><span class="hubn" id="hubsc"></span>${chev}</button>
 <button class="hubk" id="hubc"><span class="hubi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg></span><span class="hubx"><b>Καμπάνιες</b><span class="mu">Προσφορές της εταιρείας και ποιοι πελάτες ενδιαφέρονται</span></span><span class="hubn" id="hubcc"></span>${chev}</button>`;

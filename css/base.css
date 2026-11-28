@@ -1889,3 +1889,8 @@ html.big .sha > :last-child:nth-child(odd) {
 .acoth { border-bottom: 1px solid var(--bd); padding: 8px 2px; }
 .acoth:last-child { border-bottom: 0; }
 .acmk { background: var(--card); border: 1px dashed var(--bd); border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; }
+/* Τίτλος σελίδας με πράσινο εικονίδιο σε κουτάκι (28/11/2026): Υπόλοιπα, Προϊόντα, Ενέργειες.
+   Σταθερό σκούρο πράσινο και στο σκούρο θέμα (το --ac εκεί είναι ανοιχτό και το λευκό δεν διαβάζεται). */
+.pgh { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.pghi { flex: none; width: 40px; height: 40px; border-radius: 12px; background: #2f6f5e; color: #fff; display: inline-flex; align-items: center; justify-content: center; }
+.pghi svg { width: 22px; height: 22px; }

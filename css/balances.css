@@ -1,9 +1,6 @@
 /* balances.css — Υπόλοιπα.
    Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
 /* εμφάνιση 28/11/2026: τίτλος με εικονίδιο, κάρτα συνόλων, φίλτρα, κάρτα πελάτη (κόκκινη όταν έχει υπέρβαση), κουτάκι ενημέρωσης */
-.bhd { display: flex; align-items: center; gap: 10px; }
-.bhi { display: inline-flex; width: 34px; height: 34px; border-radius: 10px; background: #2f6f5e; color: #fff; align-items: center; justify-content: center; flex: none; }
-.bhi svg { width: 20px; height: 20px; }
 .bsum { background: color-mix(in srgb, var(--ac) 13%, var(--card)); border: 1px solid color-mix(in srgb, var(--ac) 22%, transparent); border-radius: 18px; padding: 14px 16px; margin-bottom: 12px; }
 .bsg { display: flex; align-items: flex-start; }
 .bsg > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }

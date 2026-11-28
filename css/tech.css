@@ -1,70 +1,13 @@
 /* tech.css — Ενέργειες: τεχνικός, σεμινάρια, καμπάνιες.
    Φορτώνεται με τη σειρά: base → home → dictate → clients → client → plans → balances → tech → products → deals (charts, card: όταν ανοίξουν οι σελίδες τους). */
-/* αρχική «Ενέργειες»: τρεις κάρτες με εικονίδιο σε κύκλο, μετρητή και βελάκι */
-.hubk {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-  text-align: left;
-  padding: 16px 14px 16px 16px;
-  margin: 0 0 14px;
-  border: 1px solid var(--bd);
-  border-radius: 18px;
-  background: var(--card);
-  box-shadow: 0 2px 10px rgba(0,0,0,.05);
-  color: var(--tx);
-}
-.hubi {
-  flex: none;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.hubi svg {
-  width: 28px;
-  height: 28px;
-}
-#hubt .hubi {
-  background: var(--techbg);
-  color: #c99a1e;
-}
-#hubs .hubi {
-  background: var(--sembg);
-  color: var(--sem);
-}
-#hubc .hubi {
-  background: var(--campbg);
-  color: var(--camp);
-}
-.hubx {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.hubx b {
-  font-size: calc(17 * var(--u));
-}
-.hubx .mu {
-  font-size: calc(14 * var(--u));
-  line-height: 1.35;
-}
-.hubn {
-  flex: none;
-  align-self: flex-start;
-  min-width: 30px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--ac2);
-  color: var(--ac);
-  font-weight: 700;
-  text-align: center;
-}
+/* αρχική «Ενέργειες» (28/11/2026): κάρτες με εικονίδιο σε πράσινο κουτάκι, γραμμή, κείμενο, μετρητής και βελάκι */
+.hubk { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; padding: 16px; margin: 0 0 12px; border: 1px solid var(--bd); border-radius: 16px; background: var(--card); color: var(--tx); }
+.hubi { flex: none; width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--ac) 13%, transparent); color: var(--ac); }
+.hubi svg { width: 28px; height: 28px; }
+.hubx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding-left: 16px; border-left: 1px solid var(--bd); }
+.hubx b { font-size: calc(17 * var(--u)); font-weight: 700; }
+.hubx .mu { font-size: calc(14 * var(--u)); line-height: 1.35; }
+.hubn { flex: none; align-self: flex-start; min-width: 32px; padding: 4px 9px; border-radius: 999px; background: color-mix(in srgb, var(--ac) 14%, transparent); color: var(--ac); font-weight: 700; text-align: center; }
 .hubc {
   flex: none;
   width: 20px;

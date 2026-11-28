@@ -133,9 +133,6 @@
 }
 
 /* Σελίδα «Προϊόντα» (28/11/2026): τίτλος με εικονίδιο, πράσινη μπάρα «Νέα παραγγελία», κάρτες εργαλείων */
-.prh { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.prhi { flex: none; width: 40px; height: 40px; border-radius: 12px; background: #2f6f5e; color: #fff; display: inline-flex; align-items: center; justify-content: center; }
-.prhi svg { width: 22px; height: 22px; }
 .prn { width: 100%; display: flex; align-items: center; gap: 16px; padding: 18px 18px; margin: 0 0 12px; border: 0; border-radius: 16px; background: #2f6f5e; color: #fff; text-align: left; }
 .prn b { flex: 1; font-size: calc(18 * var(--u)); font-weight: 700; }
 .prni { flex: none; display: inline-flex; padding-right: 16px; border-right: 1px solid rgba(255, 255, 255, .35); }
