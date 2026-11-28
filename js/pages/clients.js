@@ -52,14 +52,17 @@
         const L = base.filter((c) => !onlyT || tz.get(c.i) > 0);
         L.sort((a, b) => (!!b.prospect - !!a.prospect) || (tz.get(b.i) - tz.get(a.i)) || a.name.localeCompare(b.name, 'el'));
         const SOS = S.all('sos'), TECH = S.all('tech'), today = u.today();
-        /* κάρτα πελάτη (εκδοχή Α του δείγματος, απόφαση Πασχάλη 28/11/2026): όνομα και πόλη αριστερά, ποσό με κουτάκι ▲/▼% δεξιά,
-           εικονίδια σε τελευταία επίσκεψη / «Να πω» / Επικοινωνία, κατηγορίες σε κουτάκια (όσες δουλεύει· κόκκινες όσες σταμάτησε) */
+        /* κάρτα πελάτη (εκδοχή Α, απόφαση Πασχάλη 28/11/2026): όνομα και πόλη αριστερά, ποσό με κουτάκι ▲/▼% δεξιά,
+           εικονίδια σε τελευταία επίσκεψη / «Να πω» / Επικοινωνία, κατηγορίες σε κουτάκια. Χρώμα κουτακιού = πορεία της κατηγορίας
+           φέτος σε σχέση με πέρσι ίδια περίοδο, ΧΩΡΙΣ νούμερα (λεπτομέρειες στην καρτέλα): πράσινο ανεβαίνει, κόκκινο πέφτει,
+           γκρι σταθερή (±5%) ή λίγα πέρσι (< M.WORKED), «νέο» φέτος, «✕ σταμάτησε». */
         const CAT = M.catAll(), IC = (n) => `<span class="cci-i">${PL.icon[n]}</span>`;
-        const lost = (id) => { const d = CAT[id] || {}; return M.CATN.filter((k) => Array.isArray(d[k]) && (([a, b, f]) => a > 0 && f >= M.WORKED && b <= 0)(d[k].map((x) => +x || 0))).map((k) => M.CATL[k] || k); };
-        const chip = (l, x) => `<span class="lch${x ? ' lost' : ''}">${x ? '✕ ' : ''}${esc(l)}${x ? ' · σταμάτησε' : ''}</span>`;
+        const trend = (id) => { const d = CAT[id] || {}, o = {}; M.CATN.forEach((k) => { if (!Array.isArray(d[k])) return; const [a, b, f] = d[k].map((x) => +x || 0), l = M.CATL[k] || k;
+          o[l] = a > 0 && f >= M.WORKED && b <= 0 ? 'lost' : a < M.WORKED ? (b >= M.WORKED ? 'new' : '') : b > a * 1.05 ? 'up' : b < a * 0.95 ? 'dn' : ''; }); return o; };
+        const chip = (l, k) => `<span class="lch${k ? ' ' + k : ''}">${k === 'lost' ? '✕ ' : ''}${esc(l)}${k === 'lost' ? ' · σταμάτησε' : k === 'new' ? ' · νέο' : ''}</span>`;
         $('#list').innerHTML = L.map((c) => {
           const e = M.entries(c.i), nx = M.nextOf(c.i), due = nx && nx <= today, y = M.yoy(c), w = M.works(c.i), td = e.find((z) => z.todo), z = tz.get(c.i);
-          const ls = MON ? lost(c.i) : [], chips = [...new Set(w.concat(ls))].map((l) => chip(l, ls.includes(l))).join('');
+          const g = MON ? trend(c.i) : {}, chips = [...new Set(w.concat(Object.keys(g).filter((l) => g[l] === 'lost')))].map((l) => chip(l, g[l])).join('');
           return `<div class="card ccd" data-id="${esc(c.i)}"><div class="ccr"><div class="ccl"><div class="nm">${TECH[c.i] ? `<span class="ti">${PL.icon.tech16}</span> ` : ''}${PL.prospects.tag(c)}${esc(c.name)}</div>` +
             `<div class="cci">${IC('pin')}${esc(c.city)}</div></div>` +
             `<div class="ccv">${z > 0 ? `<span class="tz">${money(z)}</span>` : ''}${y ? `<span class="ypill ${y.cls}">${esc(y.txt)}</span>` : ''}</div>` +

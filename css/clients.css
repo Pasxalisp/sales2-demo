@@ -20,7 +20,8 @@ main>.page>header:first-child,
 main>.page>.pnav:first-child+header {
   margin: 0 -14px 10px;
 }
-/* Κάρτα πελάτη στη λίστα (28/11/2026, εκδοχή Α): όνομα/πόλη αριστερά, ποσό + κουτάκι ▲/▼% δεξιά, γραμμές με εικονίδιο, κατηγορίες σε κουτάκια */
+/* Κάρτα πελάτη στη λίστα (28/11/2026, εκδοχή Α): όνομα/πόλη αριστερά, ποσό + κουτάκι ▲/▼% δεξιά, γραμμές με εικονίδιο, κατηγορίες σε κουτάκια
+   με χρώμα πορείας (πράσινο ανεβαίνει / νέα, κόκκινο πέφτει / σταμάτησε, γκρι σταθερή) */
 #list .ccd { padding: 14px 14px 12px; border-radius: 16px; }
 .ccr { display: flex; align-items: flex-start; gap: 10px; }
 .ccl { flex: 1; min-width: 0; }
@@ -42,6 +43,8 @@ main>.page>.pnav:first-child+header {
 .lchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .lch { font-size: calc(13 * var(--u)); padding: 4px 10px; border-radius: 999px; background: var(--bd); color: var(--tx); white-space: nowrap; }
 .lch.lost { background: color-mix(in srgb, var(--rd) 13%, transparent); color: var(--rd); font-weight: 600; }
+.lch.up, .lch.new { background: color-mix(in srgb, var(--ac) 16%, transparent); color: var(--ac); font-weight: 600; }
+.lch.dn { background: color-mix(in srgb, var(--rd) 13%, transparent); color: var(--rd); font-weight: 600; }
 #cp {
   position: absolute;
   left: 0;
